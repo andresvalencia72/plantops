@@ -1,6 +1,6 @@
 # Plan de ejecución supervisable — PlantOps (10-11-2026)
 
-**Estado:** EN EJECUCIÓN; esta página distingue plan de resultados verificables.
+**Estado:** bloques A–F completados y verificados; PRs apiladas en borrador, revisión humana pendiente. Las verificaciones posteriores continuarán solo si existe trabajo autorizado.
 **Ventana objetivo:** 6 bloques de trabajo de hasta 1 hora, sin forzar duración ni actividad ficticia.
 **Repo:** `andresvalencia72/plantops` · **Issue principal:** [#1](https://github.com/andresvalencia72/plantops/issues/1).
 
@@ -29,7 +29,8 @@ main
     └── feat/plantops-web-foundation
         └── feat/plantops-app-shell
             └── feat/plantops-incidents
-                └── test/plantops-ui-review
+                └── feat/plantops-incident-report
+                    └── test/plantops-ui-review
 ```
 
 - **No fusionar automáticamente en `main`.** Abrir PR apiladas si la integración lo permite; en caso contrario, publicar ramas y documentar las bases.
@@ -60,6 +61,17 @@ main
 | Bloque C | App Shell responsive, sidebar móvil, selector de empresa demo, tema persistente, tokens v0.4 y 3 tests de navegación | `feat/plantops-app-shell` · `eeb0762`, `0d4595d` | Typecheck, 3 tests, build y límite de líneas OK; placeholders deliberados en Dashboard/Incidencias |
 | Bloques D–E (lectura) | Dos empresas, 6+2 incidencias, activos coherentes, adaptador demo, filtros, badges y panel de detalle; dashboard con KPIs derivados | `feat/plantops-incidents` · `b525e58`, `756e91e`, `16d943b` | 12 tests, typecheck, build y límite de líneas OK. Sin formulario todavía. |
 | Bloque E (alta) | Formulario shadcn y validaciones, guardado in-memory, refresh y selección del nuevo aviso; comprobaciones de tenant demo en adaptador | `feat/plantops-incident-report` · `4310021`, `4a7f088` | 17 tests, typecheck, build y límite de líneas OK. Sin persistencia real. |
+| Bloque F | GitHub Actions, 4 E2E Playwright, capturas desktop light/dark y móvil, informe QA | `test/plantops-ui-review`: `1205621`, `82da67c`, `81cc9a2`; [PR #8](https://github.com/andresvalencia72/plantops/pull/8) | 17 tests UI + 4 E2E + `npm ci`, typecheck, lint (0 errores/2 warnings shadcn), build y ≤400 líneas OK. [CI GitHub run 42834121257](https://github.com/andresvalencia72/plantops/actions/runs/42834121257) concluida en éxito para `81cc9a2`. |
+
+## Revisión y entrega (sin fusionar)
+
+Cadena GitHub: [#2 Plan](https://github.com/andresvalencia72/plantops/pull/2) → [#3 Fundación](https://github.com/andresvalencia72/plantops/pull/3) → [#4 App Shell](https://github.com/andresvalencia72/plantops/pull/4) → [#5 Listado](https://github.com/andresvalencia72/plantops/pull/5) → [#7 Alta mock](https://github.com/andresvalencia72/plantops/pull/7) → [#8 Calidad/CI](https://github.com/andresvalencia72/plantops/pull/8). Todas **draft**, cada una basada en la anterior. `main` permanece en `3ac543b`, sin merges.
+
+- [Capturas reales verificadas](../design/previews/README.md); [informe de calidad](../quality/frontend-review-2026-11-10.md).
+- El navegador móvil pasó la revisión tras esperar el cierre de la transición de navegación.
+- No existe backend, autenticación, autorización multitenant ni persistencia. La seguridad real es trabajo posterior.
+- Un **check verde para un commit** no garantiza automáticamente checks verdes en futuros commits; validar el commit HEAD antes de fusionar.
+- **Pendiente:** revisión visual del propietario y posterior decisión de merge por orden. No agregar funcionalidad sin nueva Issue o autorización.
 
 Los siguientes registros se añadirán **solo tras ejecutar y verificar** los cambios.
 
