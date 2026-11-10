@@ -1,3 +1,4 @@
+import type { RefObject } from 'react'
 import { Menu, Moon, Sun, UserRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { demoOrganizations } from '@/app/types'
@@ -10,15 +11,16 @@ type TopbarProps = {
   theme: ColorTheme
   onThemeChange: (theme: ColorTheme) => void
   onMenuOpen: () => void
+  menuTriggerRef: RefObject<HTMLButtonElement | null>
 }
 
 export function Topbar({
-  screen, organization, onOrganizationChange, theme, onThemeChange, onMenuOpen,
+  screen, organization, onOrganizationChange, theme, onThemeChange, onMenuOpen, menuTriggerRef,
 }: TopbarProps) {
   return (
     <header className="flex min-h-18 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border bg-card px-4 py-3 sm:px-7">
       <div className="flex items-center gap-3">
-        <Button aria-label="Abrir menú" className="md:hidden" size="icon" variant="ghost" onClick={onMenuOpen}>
+        <Button ref={menuTriggerRef} aria-label="Abrir menú" className="md:hidden" size="icon" variant="ghost" onClick={onMenuOpen}>
           <Menu size={19} />
         </Button>
         <span className="text-[13px] font-medium text-muted-foreground">Workspace</span>
