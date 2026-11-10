@@ -58,6 +58,7 @@ main
 | Bloque B | Vite 8, React 19, TypeScript 7, Tailwind 4, shadcn (preset Nova), 4 componentes oficiales; CI local: Typecheck, 1 test, build, npm ci y límite de líneas superados | `feat/plantops-web-foundation` · `06bba5c` | `apps/web`, `scripts/check-file-length.mjs` |
 | Bloque B | Oxlint: 0 errores y 2 advertencias en exports de variantes generadas por shadcn | `06bba5c` | Pendiente evaluar si ajustar regla o mantener componente oficial |
 | Bloque C | App Shell responsive, sidebar móvil, selector de empresa demo, tema persistente, tokens v0.4 y 3 tests de navegación | `feat/plantops-app-shell` · `eeb0762`, `0d4595d` | Typecheck, 3 tests, build y límite de líneas OK; placeholders deliberados en Dashboard/Incidencias |
+| Bloques D–E (lectura) | Dos empresas, 6+2 incidencias, activos coherentes, adaptador demo, filtros, badges y panel de detalle; dashboard con KPIs derivados | `feat/plantops-incidents` · `b525e58`, `756e91e`, `16d943b` | 12 tests, typecheck, build y límite de líneas OK. Sin formulario todavía. |
 
 Los siguientes registros se añadirán **solo tras ejecutar y verificar** los cambios.
 
