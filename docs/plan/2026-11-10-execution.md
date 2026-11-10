@@ -35,7 +35,7 @@ main
 - **No fusionar automáticamente en `main`.** Abrir PR apiladas si la integración lo permite; en caso contrario, publicar ramas y documentar las bases.
 - No usar `reset --hard`, `push --force`, `git clean` ni modificaciones en otros repositorios.
 - Commits pequeños y semánticos (`chore`, `feat`, `test`, `docs`); preferible un cambio verificable por commit.
-- **Máximo 400 líneas por archivo** nuevo o modificado; evitar archivos gigantes, CSS monolítico y componentes universales.
+- **Máximo 400 líneas por archivo escrito a mano**; lockfiles generados automáticamente son una excepción necesaria para instalaciones reproducibles. Evitar archivos gigantes, CSS monolítico y componentes universales.
 - Mantener `.engram/`, `.codegraph/`, credenciales, caches y `node_modules/` ignorados.
 - Antes de cada commit: `git diff --check`, revisar `git status`, conteo de líneas, correr las pruebas que ya existan. Si falla, documentar el bloqueo; no afirmar éxito.
 - No publicar capturas privadas de inspiración ni generar un backend sin contrato.
@@ -55,6 +55,8 @@ main
 | --- | --- | --- | --- |
 | Inicio | Revisados Git, documentación y herramienta Mac | `main` · `3ac543b` | Árbol limpio, proyecto vacío salvo docs |
 | Inicio | Plan creado; ramas posteriores condicionadas a verificaciones | `chore/plantops-execution-plan` | Este archivo |
+| Bloque B | Vite 8, React 19, TypeScript 7, Tailwind 4, shadcn (preset Nova), 4 componentes oficiales; CI local: Typecheck, 1 test, build, npm ci y límite de líneas superados | `feat/plantops-web-foundation` · `06bba5c` | `apps/web`, `scripts/check-file-length.mjs` |
+| Bloque B | Oxlint: 0 errores y 2 advertencias en exports de variantes generadas por shadcn | `06bba5c` | Pendiente evaluar si ajustar regla o mantener componente oficial |
 
 Los siguientes registros se añadirán **solo tras ejecutar y verificar** los cambios.
 
