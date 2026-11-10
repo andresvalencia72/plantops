@@ -13,7 +13,7 @@ describe('Navegación de PlantOps', () => {
   it('navega desde el dashboard hasta incidencias', async () => {
     render(<App />)
     const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: /ir a incidencias/i }))
+    await user.click(screen.getByRole('button', { name: /ver incidencias/i }))
     expect(screen.getByRole('heading', { name: 'Incidencias' })).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Navegación principal' })).toBeInTheDocument()
   })
@@ -30,6 +30,6 @@ describe('Navegación de PlantOps', () => {
     render(<App />)
     const user = userEvent.setup()
     await user.selectOptions(screen.getByLabelText('Organización de demostración'), 'north')
-    expect(screen.getByText(/Northline Industries · Datos de demostración/)).toBeInTheDocument()
+    expect(screen.getByText(/Northline Industries · Datos ficticios/)).toBeInTheDocument()
   })
 })
