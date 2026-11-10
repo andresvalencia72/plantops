@@ -2,8 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { IncidentsPage } from './incidents-page'
+import { mockIncidentRepository } from './mock-repository'
 
-afterEach(cleanup)
+afterEach(() => { cleanup(); mockIncidentRepository.resetForTests() })
 
 describe('Incidents workspace', () => {
   it('renders organization-scoped records and derived counters', async () => {
@@ -46,5 +47,32 @@ describe('Incidents workspace', () => {
       expect(screen.queryByText('Presión inestable en circuito auxiliar')).not.toBeInTheDocument()
     })
     expect(screen.getAllByText('Velocidad de descenso irregular')).toHaveLength(2)
+  })
+})
+
+
+describe('Report incident form (demo)', () => {
+  it('validates missing fields and shows errors beside inputs', async () => {
+    const user = userEvent.setup()
+    render(<IncidentsPage organization="atlas" />)
+    await user.click(screen.getByRole('button', { name: 'Nueva incidencia' }))
+    await user.click(screen.getByRole('button', { name: 'Registrar aviso' }))
+    expect(screen.getByText('Selecciona un activo de esta organización.')).toBeInTheDocument()
+    expect(screen.getByText('El título debe contener al menos 3 caracteres.')).toBeInTheDocument()
+    expect(screen.getByText('Describe el problema en al menos 10 caracteres.')).toBeInTheDocument()
+  })
+
+  it('registers a valid incident and refreshes the list without mixing organizations', async () => {
+    const user = userEvent.setup()
+    render(<IncidentsPage organization="atlas" />)
+    await screen.findByText(/6 de 6 incidencias/)
+    await user.click(screen.getByRole('button', { name: 'Nueva incidencia' }))
+    await user.selectOptions(screen.getByLabelText('Activo afectado'), 'a-101')
+    await user.type(screen.getByLabelText('Título del problema'), 'Fallo de refrigeración')
+    await user.type(screen.getByLabelText('Descripción'), 'El circuito pierde presión durante el turno.')
+    await user.click(screen.getByRole('button', { name: 'Registrar aviso' }))
+    expect(await screen.findByText(/7 de 7 incidencias/)).toBeInTheDocument()
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(await mockIncidentRepository.list('north')).toHaveLength(2)
   })
 })
