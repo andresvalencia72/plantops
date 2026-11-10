@@ -75,6 +75,15 @@ Cadena GitHub: [#2 Plan](https://github.com/andresvalencia72/plantops/pull/2) �
 
 Los siguientes registros se añadirán **solo tras ejecutar y verificar** los cambios.
 
+## Revisión adicional del frontend — 2026-11-10
+
+- [Issue #9](https://github.com/andresvalencia72/plantops/issues/9): el menú móvil no implementaba una superficie modal accesible.
+- Reproducción con test Playwright inicialmente rojo y corrección en rama `fix/plantops-mobile-navigation` desde `test/plantops-ui-review`.
+- Commit `51e6254`: transición a `Sheet`/Radix, foco gestionado y restaurado, Escape, escritorio fijo sin modal.
+- Validación local: **17 tests de componentes + 5 E2E Chrome**, typecheck, build, 0 errores lint y máximo 400 líneas.
+- [Informe de revisión y limitaciones](../quality/mobile-navigation-review.md). PR y CI remota se registrarán tras publicarse.
+- Esta es una revisión adicional, **no equivale a nuevas horas trabajadas ni modifica el cierre inicial A–F**. Se mantienen los límites del alcance y `main` intacta.
+
 ## Qué revisar a la vuelta
 
 1. Leer el final de este registro y `git log --oneline --all --decorate`.
