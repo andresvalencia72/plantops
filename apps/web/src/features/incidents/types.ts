@@ -32,3 +32,9 @@ export interface IncidentFilters {
   status: IncidentStatus | 'ALL'
   priority: IncidentPriority | 'ALL'
 }
+
+export interface ReportIncidentInput {
+  assetId: string
+  title: string
+  description: string
+}
