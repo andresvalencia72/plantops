@@ -1,0 +1,21 @@
+# macOS/editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+# dependencies and builds
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+.cache/
+# local credentials and runtime
+.env
+.env.*
+!.env.example
+*.local
+*.log
+# agent local indexes and data
+.engram/
+.codegraph/

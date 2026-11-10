@@ -82,6 +82,10 @@ Las elecciones se justificarán mediante decisiones arquitectónicas documentada
 - Historial de decisiones técnicas en `docs/adr/` y tareas técnicas relevantes en `odd/tasks/` cuando el repositorio avance.
 - Código escrito y revisado de forma incremental; resultados y métricas solo cuando existan evidencias reales.
 
+### Documentación para desarrolladores
+
+[Guía técnica, arquitectura, reglas de dominio y plan de desarrollo](docs/README.md). Para empezar a programar: [primer corte vertical](docs/plan/first-slice.md).
+
 ---
 
 ## English
@@ -155,6 +159,10 @@ Choices will be justified through **architecture decision records (ADRs)**. Micr
 - Simple designs that can evolve without needless complexity.
 - Technical decisions in `docs/adr/` and meaningful work plans in `odd/tasks/` as development progresses.
 - Incremental implementation and review; no claims of results or performance without measured evidence.
+
+### Developer documentation
+
+[Technical guide, architecture, domain rules and delivery plan](docs/README.md). Start with the [first vertical slice](docs/plan/first-slice.md).
 
 ---
 
