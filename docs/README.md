@@ -20,6 +20,7 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 8 | [ADR y decisiones pendientes](adr/README.md) | Hipótesis, alternativas, razones |
 | 9 | [Estrategia de pruebas](quality/testing.md) | Qué verificar, desde el primer corte |
 | 10 | [Estándares de ingeniería](quality/engineering.md) | CI, PR, seguridad y definición de terminado |
+| 10b | [Revisión real del frontend](quality/frontend-review-2026-11-10.md) | Pruebas, capturas y riesgos restantes |
 | 11 | [Roadmap y primer corte](plan/roadmap.md) | Secuencia de ejecución, sin fechas artificiales |
 | 12 | [Primer corte vertical](plan/first-slice.md) | Guía operativa para comenzar a escribir el frontend |
 | 13 | [Herramientas de agentes](operations/agent-tooling.md) | Engram, CodeGraph e integración personalizada |

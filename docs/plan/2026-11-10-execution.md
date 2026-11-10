@@ -29,7 +29,8 @@ main
     └── feat/plantops-web-foundation
         └── feat/plantops-app-shell
             └── feat/plantops-incidents
-                └── test/plantops-ui-review
+                └── feat/plantops-incident-report
+                    └── test/plantops-ui-review
 ```
 
 - **No fusionar automáticamente en `main`.** Abrir PR apiladas si la integración lo permite; en caso contrario, publicar ramas y documentar las bases.
@@ -60,6 +61,7 @@ main
 | Bloque C | App Shell responsive, sidebar móvil, selector de empresa demo, tema persistente, tokens v0.4 y 3 tests de navegación | `feat/plantops-app-shell` · `eeb0762`, `0d4595d` | Typecheck, 3 tests, build y límite de líneas OK; placeholders deliberados en Dashboard/Incidencias |
 | Bloques D–E (lectura) | Dos empresas, 6+2 incidencias, activos coherentes, adaptador demo, filtros, badges y panel de detalle; dashboard con KPIs derivados | `feat/plantops-incidents` · `b525e58`, `756e91e`, `16d943b` | 12 tests, typecheck, build y límite de líneas OK. Sin formulario todavía. |
 | Bloque E (alta) | Formulario shadcn y validaciones, guardado in-memory, refresh y selección del nuevo aviso; comprobaciones de tenant demo en adaptador | `feat/plantops-incident-report` · `4310021`, `4a7f088` | 17 tests, typecheck, build y límite de líneas OK. Sin persistencia real. |
+| Bloque F | GitHub Actions para frontend, pruebas E2E con Playwright, capturas reales escritorio/light/dark y móvil, informe de QA y limitaciones | `test/plantops-ui-review` (commits finales en Git) | 17 tests UI + 4 E2E + `npm ci`, typecheck, lint (0 errores, 2 warnings shadcn), build y límite de líneas OK localmente; **CI remota pendiente** |
 
 Los siguientes registros se añadirán **solo tras ejecutar y verificar** los cambios.
 

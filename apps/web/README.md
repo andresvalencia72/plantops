@@ -24,6 +24,7 @@ Desde `apps/web`:
 - `npm test` — Vitest + React Testing Library.
 - `npm run build` — compilación de producción.
 - `npm run check:lines` — máximo 400 líneas para archivos escritos a mano, excluidos lockfiles generados.
+- `npm run test:e2e` — 4 escenarios de navegador con Playwright; las capturas locales se generan en `test-results/`.
 
 ## Fuentes de verdad
 
