@@ -1,6 +1,6 @@
 # Revisión correctiva — navegación móvil
 
-**Fecha:** 2026-11-10 · **Rama:** `fix/plantops-mobile-navigation` · [Issue #9](https://github.com/andresvalencia72/plantops/issues/9) · **Estado:** implementado y verificado localmente; CI remota pendiente.
+**Fecha:** 2026-11-10 · **Rama:** `fix/plantops-mobile-navigation` · [Issue #9](https://github.com/andresvalencia72/plantops/issues/9) · **Estado:** implementado y verificado localmente; [CI GitHub Actions](https://github.com/andresvalencia72/plantops/actions/runs/42844650702) superada en `b8a3937`.
 
 ## Defecto confirmado
 
