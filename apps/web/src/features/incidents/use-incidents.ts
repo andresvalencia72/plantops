@@ -17,7 +17,6 @@ export function useIncidents(organization: DemoOrganization) {
 
   useEffect(() => {
     let active = true
-    setState({ organization, records: [], loading: true, error: null })
     void mockIncidentRepository.list(organization).then((records) => {
       if (active) setState({ organization, records, loading: false, error: null })
     }).catch(() => {
