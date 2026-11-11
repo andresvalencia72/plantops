@@ -58,6 +58,11 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
     setAttempt((n) => n + 1)
   }
 
+  // This fixed query marker contains no email, provider tokens or OAuth state.
+  // It is informational only and never grants access.
+  const accessDenied = new URLSearchParams(window.location.search)
+    .get('auth') === 'access-denied'
+
   const organization = connection.status === 'ready'
     ? connection.organizations.find((item) => item.id === organizationId)
     : undefined
@@ -108,10 +113,13 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
             <span className="flex size-11 items-center justify-center rounded-md bg-secondary text-primary">
               <LockKeyhole size={21} aria-hidden="true" />
             </span>
-            <h2 className="text-[20px] font-semibold">Se requiere una sesión válida</h2>
+            <h2 className="text-[20px] font-semibold">
+              {accessDenied ? 'Acceso pendiente de invitación' : 'Se requiere una sesión válida'}
+            </h2>
             <p role="alert" className="text-sm leading-6 text-muted-foreground">
-              La API respondió 401. Solo podrás ver organizaciones e incidencias
-              cuando un proveedor autorizado haya verificado tu identidad.
+              {accessDenied
+                ? 'No podemos habilitar esta cuenta en PlantOps. Solicita al responsable de tu organización una invitación vigente para el correo verificado con el que iniciaste sesión.'
+                : 'La API respondió 401. Solo podrás ver organizaciones e incidencias cuando un proveedor autorizado haya verificado tu identidad.'}
             </p>
             {connection.providers.includes('google') && (
               <Button asChild className="w-full sm:w-auto">

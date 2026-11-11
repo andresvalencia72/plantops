@@ -69,6 +69,27 @@ describe('API read-only workspace', () => {
       .toBeInTheDocument()
   })
 
+  it('explains invitation-denied callback without showing an email or fixtures', async () => {
+    window.history.replaceState({}, '', '/?source=api&auth=access-denied')
+    const fetcher = vi.fn<typeof fetch>(async (url) =>
+      String(url).endsWith('/auth/oidc/providers')
+        ? json({ providers: ['google'] })
+        : json({ message: 'Unauthorized' }, 401))
+    try {
+      render(<ApiReadWorkspace client={createApiReadClient(fetcher)} />)
+      expect(await screen.findByRole('heading', {
+        name: 'Acceso pendiente de invitación',
+      })).toBeInTheDocument()
+      expect(screen.getByRole('alert')).toHaveTextContent('invitación vigente')
+      expect(screen.queryByText('Atlas Manufacturing')).not.toBeInTheDocument()
+      expect(await screen.findByRole('link', { name: 'Continuar con Google' }))
+        .toHaveAttribute('href', '/auth/oidc/google/login?redirectTo=%2F%3Fsource%3Dapi')
+      expect(fetcher).toHaveBeenCalledTimes(2)
+    } finally {
+      window.history.replaceState({}, '', '/')
+    }
+  })
+
   it('offers Google only when the backend explicitly reports it enabled', async () => {
     const fetcher = vi.fn<typeof fetch>(async (url) =>
       String(url).endsWith('/auth/oidc/providers')
