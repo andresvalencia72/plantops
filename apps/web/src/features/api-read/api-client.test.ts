@@ -50,6 +50,18 @@ describe('API read-only adapter', () => {
       .toThrow('Respuesta inesperada')
   })
 
+  it('gives actionable messages for retryable write errors', async () => {
+    const input = { assetId: 'asset-a', title: 'Motor', description: 'Motor fuera de servicio' }
+    const overloaded = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ error: 'Service Unavailable' }, 503)))
+    await expect(overloaded.reportIncident('org-a', input, 'retry-key'))
+      .rejects.toThrow('Reintenta con la misma solicitud')
+    const throttled = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({}, 429)))
+    await expect(throttled.reportIncident('org-a', input, 'retry-key'))
+      .rejects.toThrow('Demasiadas solicitudes')
+  })
+
   it('discovers configured OIDC providers without exposing secrets', async () => {
     const fetcher = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(jsonResponse({ providers: ['google', 'experimental'] }))
