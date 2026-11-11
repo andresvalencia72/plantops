@@ -3,8 +3,8 @@
 **Industrial maintenance and operations management, designed as a multi-tenant SaaS.**  
 **Gestión de mantenimiento y operaciones industriales, diseñada como un SaaS multiempresa.**
 
-> **Project status / Estado:** Product definition and architecture planning. No application code has been implemented yet.  
-> **Estado del proyecto:** Definición funcional y planificación de arquitectura. Todavía no hay código de aplicación.
+> **Project status / Estado:** Sprint 1 · frontend demo and API foundation in stacked draft PRs; authentication and database not implemented.
+> **Estado del proyecto:** Sprint 1 · frontend demo y base NestJS en PR draft encadenadas; sin autenticación ni base de datos.
 
 [Español](#español) · [English](#english)
 
@@ -53,12 +53,12 @@ Estas son las decisiones funcionales de partida y pueden evolucionar con evidenc
 
 | Área | Candidato | Estado |
 | --- | --- | --- |
-| Frontend | React + TypeScript | Propuesto |
-| Backend | NestJS + TypeScript | Propuesto |
-| Base de datos | PostgreSQL | Propuesto |
-| Arquitectura | Monolito modular | Propuesta |
+| Frontend | React + TypeScript | Demo implementada, PR draft sin fusionar |
+| Backend | NestJS 12 + TypeScript | Fundación `/health` implementada en PR draft |
+| Base de datos | PostgreSQL compartida | Estrategia aceptada; no implementada |
+| Arquitectura | Monolito modular | ADR-0002 aceptado |
 | Desarrollo local | Docker Compose | Propuesto |
-| CI | GitHub Actions | Propuesto |
+| CI | GitHub Actions | Workflows por app en ramas draft |
 | Contratos y pruebas | OpenAPI, pruebas unitarias, integración y E2E | Por diseñar |
 
 Las elecciones se justificarán mediante decisiones arquitectónicas documentadas (**ADR**). No se introducirán microservicios, colas ni infraestructura adicional sin necesidad demostrable.
@@ -131,12 +131,12 @@ These are baseline product decisions and may evolve based on evidence and ADRs.
 
 | Area | Candidate | Status |
 | --- | --- | --- |
-| Frontend | React + TypeScript | Proposed |
-| Backend | NestJS + TypeScript | Proposed |
-| Database | PostgreSQL | Proposed |
-| Architecture | Modular monolith | Proposed |
+| Frontend | React + TypeScript | Demo implemented in draft PRs |
+| Backend | NestJS 12 + TypeScript | `/health` foundation in draft PR |
+| Database | Shared PostgreSQL | Strategy accepted; not implemented |
+| Architecture | Modular monolith | ADR-0002 accepted |
 | Local development | Docker Compose | Proposed |
-| CI | GitHub Actions | Proposed |
+| CI | GitHub Actions | Per-app workflows in draft branches |
 | API contracts and testing | OpenAPI, unit, integration, and E2E tests | To be designed |
 
 Choices will be justified through **architecture decision records (ADRs)**. Microservices, message queues, and additional infrastructure will only be introduced when they solve a demonstrated problem.
