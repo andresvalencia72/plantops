@@ -19,6 +19,10 @@ export class PostgresOidcStateStore implements OidcStateStore {
 
   async saveOidcState(transaction: OidcTransaction): Promise<void> {
     await this.database.transaction(async (tx) => {
+      // Serialize cleanup/capping across API instances under concurrent logins.
+      await tx.execute(sql`select pg_advisory_xact_lock(
+        hashtext('plantops:oidc-state-cap')
+      )`);
       await tx.insert(oidcStates).values({
         state: transaction.state,
         provider: transaction.provider,
