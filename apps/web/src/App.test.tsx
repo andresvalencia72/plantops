@@ -30,6 +30,7 @@ describe('Navegación de PlantOps', () => {
     render(<App />)
     const user = userEvent.setup()
     await user.selectOptions(screen.getByLabelText('Organización de demostración'), 'north')
-    expect(screen.getByText(/Northline Industries · Datos ficticios/)).toBeInTheDocument()
+    expect(screen.getByText('Mantenimiento / Northline Industries')).toBeInTheDocument()
+    expect(screen.getByText('Datos ficticios')).toBeInTheDocument()
   })
 })
