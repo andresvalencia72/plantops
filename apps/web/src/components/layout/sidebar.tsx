@@ -76,7 +76,7 @@ function NavigationContent({
           <Settings2 size={16} aria-hidden="true" />
           <span>Entorno de demostración</span>
         </div>
-        <div className="flex items-center gap-2 px-3 pb-1 text-[11px] text-muted-foreground/75">
+        <div className="flex items-center gap-2 px-3 pb-1 text-xs text-muted-foreground">
           <span className="size-1.5 rounded-full bg-muted-foreground" />
           Sin conexión a producción
         </div>

@@ -30,7 +30,7 @@ export function Topbar({
       <div className="flex items-center gap-2">
         {import.meta.env.DEV && (
           <a href="/?source=api"
-            className="hidden h-9 items-center gap-2 rounded-md border border-border px-3 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground lg:inline-flex">
+            className="hidden h-9 items-center gap-2 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground lg:inline-flex">
             <Database size={14} aria-hidden="true" /> Vista API
           </a>
         )}
