@@ -38,14 +38,17 @@ export async function resolveInvitedIdentity(
       eq(oidcAccounts.provider, profile.provider),
       eq(oidcAccounts.subject, profile.subject),
     );
-    const existingAccount = async () => {
+    const existingAccount = async (): Promise<{
+      found: boolean;
+      principal: { id: string } | null;
+    }> => {
       const [account] = await tx
         .select({ userId: oidcAccounts.userId })
         .from(oidcAccounts)
         .where(lookup)
         .limit(1);
-      if (!account) return null;
-      // A suspended account with no active tenant must not sign in.
+      if (!account) return { found: false, principal: null };
+      // Found-but-suspended must never fall through to new invitation signup.
       const [active] = await tx
         .select({ id: memberships.id })
         .from(memberships)
@@ -54,11 +57,14 @@ export async function resolveInvitedIdentity(
           eq(memberships.status, 'ACTIVE'),
         ))
         .limit(1);
-      return active ? { id: account.userId } : null;
+      return {
+        found: true,
+        principal: active ? { id: account.userId } : null,
+      };
     };
 
     const existing = await existingAccount();
-    if (existing) return existing;
+    if (existing.found) return existing.principal;
 
     const email = verifiedInvitationEmail(profile);
     if (!email) return null;
@@ -80,7 +86,7 @@ export async function resolveInvitedIdentity(
       .for('update');
 
     // A competing callback might have consumed the invitation while waiting.
-    if (pending.length === 0) return existingAccount();
+    if (pending.length === 0) return (await existingAccount()).principal;
 
     const displayName = profile.name?.trim().slice(0, 120) ||
       email.split('@')[0] || 'Member';

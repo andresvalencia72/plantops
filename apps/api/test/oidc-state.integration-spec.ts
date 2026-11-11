@@ -86,6 +86,15 @@ describe('OIDC state uses atomic PostgreSQL storage', () => {
     expect(await store.consumeOidcState(fresh.state)).toEqual(fresh);
   });
 
+  it('keeps the state cap under simultaneous login starts', async () => {
+    const capped = new PostgresOidcStateStore(db, 4);
+    const states = Array.from({ length: 10 }, () => transaction());
+    await Promise.all(states.map((state) => capped.saveOidcState(state)));
+    const keys = await db.select({ state: oidcStates.state }).from(oidcStates);
+    expect(keys.length).toBeLessThanOrEqual(4);
+    await db.delete(oidcStates);
+  });
+
   it('drops the oldest pending transaction when a small test cap is reached', async () => {
     const capped = new PostgresOidcStateStore(db, 3);
     const base = Date.now();

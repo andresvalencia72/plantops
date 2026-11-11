@@ -112,6 +112,20 @@ describe('invite-only OIDC identity resolution', () => {
     }
   });
 
+  it('concurrent callbacks for one invited subject yield the same local user', async () => {
+    await invitation('race@example.test');
+    const subject = profile('race@example.test');
+    const results = await Promise.all(
+      Array.from({ length: 5 }, () => resolveInvitedIdentity(db, subject, {})),
+    );
+    const ids = results.map((result) => result?.id);
+    expect(new Set(ids).size).toBe(1);
+    expect(ids[0]).toBeTruthy();
+    const records = await db.select().from(oidcAccounts)
+      .where(eq(oidcAccounts.subject, subject.subject));
+    expect(records).toHaveLength(1);
+  });
+
   it('refuses sign-in if every membership of an existing identity is suspended', async () => {
     const subject = profile('suspended@example.test');
     await invitation('suspended@example.test');
@@ -119,6 +133,11 @@ describe('invite-only OIDC identity resolution', () => {
     await db.update(memberships).set({ status: 'SUSPENDED' })
       .where(eq(memberships.userId, linked!.id));
     expect(await resolveInvitedIdentity(db, subject, {})).toBeNull();
+    const secondInvite = await invitation('suspended@example.test');
+    expect(await resolveInvitedIdentity(db, subject, {})).toBeNull();
+    const [stillPending] = await db.select().from(invitations)
+      .where(eq(invitations.id, secondInvite.id));
+    expect(stillPending?.consumedAt).toBeNull();
     const usersFound = await db.select().from(users)
       .where(eq(users.id, linked!.id));
     expect(usersFound).toHaveLength(1);
