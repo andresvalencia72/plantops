@@ -26,6 +26,16 @@ restricciones consultar la
 [guía OIDC](../../docs/architecture/oidc-invitation-flow.md).
 La base PostgreSQL sólo se ha migrado en CI efímera, no en un despliegue.
 
+## Invitaciones y piloto de autenticación
+
+La herramienta privada `npm run invites:operator -- --help` permite
+emitir, revocar y listar invitaciones desde un puesto de operación
+autorizado. En modo predeterminado **no conecta a ninguna base**:
+las escrituras exigen `--apply`, nombre de BD y confirmación exacta de
+organización. Ninguna invitación o credencial real se ha creado.
+Consultar [guía de piloto OIDC](../../docs/architecture/oidc-local-validation.md)
+antes de encender Docker, configurar OAuth o migrar datos locales.
+
 ## Validación
 
 ```sh
