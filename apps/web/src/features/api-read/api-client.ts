@@ -25,14 +25,17 @@ export type ApiReportResult = Readonly<{
 
 export class ApiRequestError extends Error {
   readonly status: number
-  constructor(status: number) {
+  constructor(status: number, operation: 'read' | 'write' = 'read') {
     super(status === 400 ? 'Revisa los datos introducidos.'
-      : status === 409 ? 'Esta solicitud ya se usó con datos distintos.'
-        : status === 415 ? 'El servidor rechazó el formato enviado.'
-          : status === 401 ? 'Se necesita una sesión válida.'
-      : status === 403 ? 'No tienes acceso a esta organización.'
-        : status === 404 ? 'El recurso no está disponible.'
-          : 'No se pudo consultar la API. Intenta de nuevo.')
+      : status === 401 ? 'Se necesita una sesión válida.'
+        : status === 403 ? 'No tienes acceso a esta organización.'
+          : status === 404 ? 'El recurso no está disponible.'
+            : status === 409 ? 'Esta solicitud ya se usó con datos distintos.'
+              : status === 415 ? 'El servidor rechazó el formato enviado.'
+                : status === 429 ? 'Demasiadas solicitudes. Espera antes de reintentar.'
+                  : operation === 'write'
+                    ? 'No se pudo confirmar el registro. Reintenta con la misma solicitud.'
+                    : 'No se pudo consultar la API. Intenta de nuevo.')
     this.name = 'ApiRequestError'
     this.status = status
   }
@@ -89,7 +92,7 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
         },
         body: JSON.stringify(input),
       })
-      if (!response.ok) throw new ApiRequestError(response.status)
+      if (!response.ok) throw new ApiRequestError(response.status, 'write')
       const value: unknown = await response.json()
       if (!record(value) || !string(value.id) || !string(value.organizationId) ||
         !string(value.assetId) || !string(value.title) ||

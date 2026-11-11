@@ -6,6 +6,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { ApiAsset, ApiReadClient, ApiReportInput } from './api-client'
+import {
+  clearPendingReport, fingerprintReport, readPendingReport, savePendingReport,
+} from './report-retry-journal'
+import type { PendingReport } from './report-retry-journal'
 
 type Attempt = Readonly<{ key: string; input: ApiReportInput }>
 type Fields = 'assetId' | 'title' | 'description'
@@ -16,6 +20,7 @@ type Props = {
   onOpenChange: (open: boolean) => void
   onCreated: (id: string) => void
   organizationId: string
+  userId: string
   assets: ApiAsset[]
   client: ApiReadClient
 }
@@ -35,15 +40,29 @@ function validate(input: ApiReportInput, assets: ApiAsset[]): Errors {
 }
 
 export function ApiReportDialog({
-  open, onOpenChange, onCreated, organizationId, assets, client,
+  open, onOpenChange, onCreated, organizationId, userId, assets, client,
 }: Props) {
   const [assetId, setAssetId] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [errors, setErrors] = useState<Errors>({})
-  const [error, setError] = useState('')
+  const [error, setError] = useState(() => {
+    try {
+      readPendingReport(userId, organizationId)
+      return ''
+    } catch (cause) {
+      return cause instanceof Error ? cause.message : 'Error al recuperar el intento.'
+    }
+  })
   const [pending, setPending] = useState<Attempt | null>(null)
   const [saving, setSaving] = useState(false)
+  const [recovery, setRecovery] = useState<PendingReport | null>(() => {
+    try {
+      return readPendingReport(userId, organizationId)
+    } catch {
+      return null
+    }
+  })
 
   function close(next: boolean) {
     if (!saving) onOpenChange(next)
@@ -51,9 +70,15 @@ export function ApiReportDialog({
   }
 
   function resetAttempt() {
-    setPending(null)
-    setError('')
-    setErrors({})
+    try {
+      clearPendingReport(userId, organizationId)
+      setPending(null)
+      setRecovery(null)
+      setError('')
+      setErrors({})
+    } catch {
+      setError('No se pudo descartar la clave anterior. No envíes otro aviso todavía.')
+    }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -67,13 +92,31 @@ export function ApiReportDialog({
       setErrors(nextErrors)
       if (Object.keys(nextErrors).length) return
     }
-    const attempt = pending ?? { input, key: crypto.randomUUID() }
-    setPending(attempt)
     setError('')
     setSaving(true)
     try {
+      let attempt = pending
+      if (!attempt) {
+        const fingerprint = await fingerprintReport(input)
+        const stored = readPendingReport(userId, organizationId)
+        if (stored && stored.fingerprint !== fingerprint) {
+          setRecovery(stored)
+          throw new Error('Existe otro aviso sin confirmar. Reintroduce exactamente los datos anteriores o descarta ese intento.')
+        }
+        const pointer = stored ?? { key: crypto.randomUUID(), fingerprint }
+        savePendingReport(userId, organizationId, pointer)
+        setRecovery(pointer)
+        attempt = { key: pointer.key, input }
+      }
+      setPending(attempt)
       const result = await client.reportIncident(organizationId, attempt.input, attempt.key)
-      resetAttempt()
+      try {
+        clearPendingReport(userId, organizationId)
+      } catch {
+        // A confirmed 201 remains success even when browser storage is blocked.
+      }
+      setPending(null)
+      setRecovery(null)
       setAssetId('')
       setTitle('')
       setDescription('')
@@ -82,8 +125,7 @@ export function ApiReportDialog({
     } catch (cause) {
       setError(cause instanceof Error
         ? cause.message : 'No se pudo confirmar la operación. Reintenta la misma solicitud.')
-      // An unconfirmed result must never generate a second key automatically.
-      // Only explicit correction can begin a different logical request.
+      // No new key is allowed while a previously sent operation is uncertain.
     } finally {
       setSaving(false)
     }
@@ -134,6 +176,13 @@ export function ApiReportDialog({
               onChange={(event) => setDescription(event.target.value)} />
             {errors.description && <p id="api-report-description-error" className="text-xs text-destructive">{errors.description}</p>}
           </div>
+          {recovery && !locked && (
+            <p role="status" className="text-xs text-muted-foreground">
+              Hay un envío anterior sin confirmar. Vuelve a introducir exactamente
+              sus datos para reintentar con la misma clave. Consulta también el listado
+              antes de descartarlo: otro intento podría duplicar el aviso.
+            </p>
+          )}
           {locked && (
             <p role="status" className="text-xs text-muted-foreground">
               Se conserva la clave y el contenido de esta operación para evitar duplicados.
@@ -141,7 +190,7 @@ export function ApiReportDialog({
             </p>
           )}
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-          {locked && error && (
+          {(locked || recovery || error.startsWith('No se pudo verificar')) && error && (
             <Button type="button" size="sm" variant="outline"
               onClick={resetAttempt} disabled={saving}
               aria-label="Descartar intento anterior y editar datos">

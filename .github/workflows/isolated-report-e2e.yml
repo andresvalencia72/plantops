@@ -51,6 +51,9 @@ jobs:
       - name: Install web
         working-directory: apps/web
         run: npm ci --no-audit --no-fund
+      - name: Validate isolated startup safeguards
+        working-directory: apps/api
+        run: node --test scripts/validate-lab-config.test.mjs
       - name: Start disposable Nest test server
         working-directory: apps/api
         run: |

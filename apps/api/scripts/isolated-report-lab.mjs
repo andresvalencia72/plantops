@@ -5,25 +5,17 @@
 import { randomUUID } from 'node:crypto';
 import { writeFile, unlink } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { validateLabConfig } from './validate-lab-config.mjs';
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 
 const raw = process.env.DATABASE_TEST_URL;
 const destination = process.env.PLANTOPS_ISOLATED_FIXTURE;
-if (!raw || !destination) throw new Error('Test DB and fixture path required');
-const url = new URL(raw);
-if (!['127.0.0.1', 'localhost'].includes(url.hostname) ||
-    !url.pathname.endsWith('_test') ||
-    process.env.NODE_ENV === 'production' ||
-    process.env.PORT === '3001') {
-  throw new Error('Only local disposable *_test PostgreSQL is permitted');
-}
-if (resolve(destination).startsWith(resolve(process.cwd(), '../..') + '/')) {
-  throw new Error('Fixture must be outside the repository');
-}
+validateLabConfig({ raw, destination, cwd: process.cwd() });
 process.env.DATABASE_URL = raw;
 process.env.PORT = '3002';
+delete process.env.SESSION_TRUSTED_ORIGINS;
 delete process.env.GOOGLE_OIDC_CLIENT_ID;
 delete process.env.GOOGLE_OIDC_CLIENT_SECRET;
 delete process.env.MICROSOFT_OIDC_CLIENT_ID;
