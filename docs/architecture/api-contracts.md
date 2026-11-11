@@ -1,6 +1,6 @@
 # Contratos de API — borrador para diseño frontend
 
-**Estado:** DRAFT · endpoints y campos a validar cuando comience NestJS. No hay backend ni OpenAPI real. **Revisión:** 2026-11-10.
+**Estado:** DRAFT · existe base NestJS y caso de uso interno de incidencias; **no hay endpoints privados, login ni OpenAPI publicado**. **Revisión:** 2026-11-11.
 
 Este documento permite diseñar fixtures y adaptadores **sin convertir propuestas en API pública comprometida**.
 
@@ -61,6 +61,30 @@ Ejemplo de reporte candidato:
   "description": "Se observa caída de presión en turno de mañana."
 }
 ```
+
+### Reintentos del reporte (candidato de contrato HTTP, NO publicado)
+
+- Cada acción *nueva* de reportar generará un UUIDv4 aleatorio.
+  Propuesta: enviarlo en la cabecera `Idempotency-Key` de `POST /incidents`.
+  El cliente debe conservarlo para reintentos tras timeout/desconexión,
+  **sin generar otro ID al reintentar**. El body seguirá sin `organizationId`.
+- La implementación **interna** ya exige `idempotencyKey` en
+  `ReportIncidentInput`, y comprueba la combinación de organización,
+  membresía e identificador en una restricción única de PostgreSQL.
+- Con la misma clave y el mismo contenido *normalizado* se devuelve el
+  mismo ID de incidencia. Si se reutiliza con contenido distinto, se lanza
+  `409 Conflict`; clave ausente o inválida, `400 Bad Request`.
+- El reintento **no elude permisos**: la membresía y el rol se vuelven a
+  comprobar. Una membresía revocada provoca acceso denegado aunque el
+  incidente se hubiese creado antes.
+- **Pendientes de decisión HTTP:** estado de respuesta inicial frente a
+  replay (p. ej. 201/200), si devolver recurso actual o respuesta cacheada,
+  formato de errores, caducidad de claves, política de reintentos en la UI y
+  aprobación de cabecera. Nada de esto está desplegado.
+- No reutilizar una clave para crear una segunda incidencia intencionada.
+  No guardar ni exponer el hash de la petición en la respuesta.
+
+Ver [implementación y pruebas de idempotencia](incident-reporting-usecase.md).
 
 **No son esquemas finales:** los campos de prioridad, taxonomía, anexos o asignación de supervisor siguen abiertos.
 

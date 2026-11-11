@@ -102,3 +102,25 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 - **Siguiente puerta de decisión:** seleccionar proveedor de identidad y
   sesiones en ADR-0004 y revisar la propuesta de modelo físico antes de
   conectar frontend y API. Ninguna PR draft fue fusionada; `main` intacta.
+
+## Resistencia a reintentos y concurrencia — 2026-11-11
+
+- [PR #21](https://github.com/andresvalencia72/plantops/pull/21):
+  migración `0001` con `idempotency_key`, `request_hash` e índice único
+  compuesto por organización, membresía y clave. Campos nullable para
+  compatibilidad con filas anteriores; el flujo nuevo exige clave UUIDv4.
+  CI [#43003127769](https://github.com/andresvalencia72/plantops/actions/runs/43003127769) SUCCESS.
+- [PR #22](https://github.com/andresvalencia72/plantops/pull/22):
+  hash del payload normalizado, replay de la misma incidencia, conflicto
+  al cambiar contenido de una clave existente; respeta suspensión y
+  revalidación del miembro. CI
+  [#43003401612](https://github.com/andresvalencia72/plantops/actions/runs/43003401612) SUCCESS.
+- [PR #23](https://github.com/andresvalencia72/plantops/pull/23):
+  5 pruebas nuevas sobre 8 reintentos simultáneos, payloads en conflicto,
+  claves distintas, miembros distintos y replay tras suspensión. CI
+  [#43003597780](https://github.com/andresvalencia72/plantops/actions/runs/43003597780) SUCCESS.
+- **Contrato público no aprobado:** cabecera `Idempotency-Key`, estados
+  HTTP para el primer commit/replay, retención de claves y manejo de
+  cambios de activo durante una carrera extrema necesitan revisión.
+  Se conserva `ADR-0004` propuesto, sin proveedor de sesión ni endpoints
+  privados; `main` sigue sin fusiones.
