@@ -1,6 +1,7 @@
 # Reportar incidencia: primer caso de uso interno
 
-**Estado:** implementación interna **sin endpoint HTTP** · 2026-11-11.
+**Estado:** caso de uso interno, ya vinculado a un endpoint en **PR draft**
+`POST /organizations/:organizationId/incidents` · 2026-11-11.
 **Evolución:** PR #20 (caso de uso), #21 (índice SQL), #22 (reintentos), #23 (concurrencia).
 
 ## Entrada y límites
@@ -42,9 +43,9 @@ membresías suspendidas antes de consultar el incidente.
 La migración nueva permite nulos en `idempotency_key`/`request_hash` para
 registros anteriores; el caso de uso nuevo exige siempre un UUIDv4.
 
-**Sigue sin haber endpoint HTTP ni autenticación real.** Los límites
-superiores de textos y la política de rechazo de activos inactivos aún
-necesitan aprobación de contrato antes de publicar la API.
+**El endpoint ya está en PR draft, pero NO publicado ni fusionado.**
+Los límites superiores y la política de rechazo de activos inactivos
+continúan sujetos a revisión del contrato antes del despliegue.
 
 ## Verificación
 

@@ -24,9 +24,9 @@ Con proveedores activos, `GET /auth/oidc/providers` publica **solo
 sus nombres**, sin IDs ni secretos. Para el piloto Google en React
 usa el origen fijo `http://127.0.0.1:5184` y el proxy Vite
 `/auth/oidc`; no cambies las cookies Secure para hacerlo funcionar.
-Actualmente no hay credenciales OAuth reales y no se ha verificado login
-de un usuario externo. Para configurar callbacks, invitaciones y
-restricciones consultar la
+Google OAuth fue verificado en Chrome **solo en la Mac local**; las
+credenciales permanecen en `.env` privado y Microsoft no se ha probado.
+Para configurar callbacks, invitaciones y restricciones consultar la
 [guía OIDC](../../docs/architecture/oidc-invitation-flow.md).
 La base PostgreSQL sólo se ha migrado en CI efímera, no en un despliegue.
 
@@ -36,7 +36,8 @@ La herramienta privada `npm run invites:operator -- --help` permite
 emitir, revocar y listar invitaciones desde un puesto de operación
 autorizado. En modo predeterminado **no conecta a ninguna base**:
 las escrituras exigen `--apply`, nombre de BD y confirmación exacta de
-organización. Ninguna invitación o credencial real se ha creado.
+organización. Una cuenta invitada accedió al piloto local mediante
+Google, sin compartir secretos ni desplegar públicamente.
 Consultar [guía de piloto OIDC](../../docs/architecture/oidc-local-validation.md)
 antes de encender Docker, configurar OAuth o migrar datos locales.
 
@@ -71,9 +72,11 @@ Además de activos, la API expone (en PR draft) rutas autenticadas de
 `GET /organizations/:organizationId/incidents/:incidentId`. El listado
 admite `limit` (1–50, valor 20 por defecto) y `cursor` opaco; cada
 consulta vuelve a validar que la membresía está ACTIVE.
-El detalle de otra empresa responde 404. No existen aún operaciones
-HTTP de escritura de incidencias. Ver
-[contratos API](../../docs/architecture/api-contracts.md).
+El detalle de otra empresa responde 404. El nuevo
+`POST /organizations/:organizationId/incidents` está implementado
+**solo en PR draft**, con `Idempotency-Key` UUIDv4 y protección de
+sesión, tenant y CSRF; aún no está conectado al formulario React.
+Ver [contrato HTTP propuesto](../../docs/architecture/incident-reporting-http.md).
 
 ## Validación
 
@@ -92,9 +95,10 @@ un servicio efímero mediante `npm run test:integration`. Ese comando exige
 `DATABASE_TEST_URL` apuntando exclusivamente a `localhost` y a una base
 con nombre terminado en `_test`. **No usar una base persistente.**
 
-El caso de uso interno de incidencias admite un UUIDv4 `idempotencyKey`
-para deduplicar reintentos concurrentes. No existe aún un endpoint HTTP
-que acepte esa clave ni se ha aprobado el formato de cabecera.
+La escritura HTTP propuesta acepta `Idempotency-Key` UUIDv4,
+deduplica reintentos concurrentes y devuelve 201 tanto en primer
+reporte como en replay idéntico. Sigue pendiente su aprobación
+de contrato antes de fusionar o conectar a una UI real.
 
 No publicar la API fuera de loopback ni conectar el frontend hasta
 revisar clientes OAuth, HTTPS/proxy, política de invitaciones, CORS, CSRF

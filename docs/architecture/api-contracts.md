@@ -1,6 +1,6 @@
 # Contratos de API — borrador para diseño frontend
 
-**Estado:** PARCIAL · hay HTTP autenticado para perfil, organizaciones, activos e incidencias de solo lectura en PR draft; OIDC aún sin clientes reales, no hay POST de incidencias ni OpenAPI publicado. **Revisión:** 2026-11-11.
+**Estado:** PARCIAL · Google OIDC verificado solo en Chrome local; HTTP autenticado para perfil, organizaciones, activos y lectura de incidencias. `POST` de incidencias propuesto e implementado en **nueva PR draft**, no fusionado ni desplegado. Sin OpenAPI publicado. **Revisión:** 2026-11-11.
 
 Este documento permite diseñar fixtures y adaptadores **sin convertir propuestas en API pública comprometida**.
 
@@ -24,7 +24,7 @@ Este documento permite diseñar fixtures y adaptadores **sin convertir propuesta
 | Listar activos | `GET /organizations/:organizationId/assets` (implementado) | Miembro ACTIVE |
 | Consultar activo | `GET /organizations/:organizationId/assets/:assetId` (implementado) | Miembro ACTIVE |
 | Listar incidencias | `GET /organizations/:organizationId/incidents` (implementado) | Miembro ACTIVE |
-| Reportar incidencia | `POST /incidents` | Miembro habilitado |
+| Reportar incidencia | `POST /organizations/:organizationId/incidents` (PR draft) | Miembro ACTIVE |
 | Ver incidencia | `GET /organizations/:organizationId/incidents/:incidentId` (implementado) | Miembro ACTIVE |
 | Iniciar revisión | `POST /incidents/:id/review` | Supervisor |
 | Cerrar incidencia | `POST /incidents/:id/close` | Supervisor |
@@ -55,8 +55,9 @@ o incidencia de otra organización se oculta con 404.
   ⇒ 403; incidencia extranjera o inexistente ⇒ 404.
 - PostgreSQL usa un índice para `(organization_id, reported_at DESC, id DESC)`
   creado por migración Drizzle `0004`.
-- **No implementa escritura de incidencias**. `POST /incidents` y la
-  cabecera de reintento siguen como propuestas pendientes de revisión.
+- La escritura se implementa en otra PR draft mediante
+  `POST /organizations/:organizationId/incidents`; aún sin UI ni despliegue.
+  Ver [contrato HTTP de reporte](incident-reporting-http.md).
 
 **Alternativa:** transiciones mediante `PATCH` con comandos tipados. Evaluarla en ADR si simplifica auditabilidad, idempotencia y coherencia.
 
@@ -86,29 +87,23 @@ Ejemplo de reporte candidato:
 }
 ```
 
-### Reintentos del reporte (candidato de contrato HTTP, NO publicado)
+### Reintentos del reporte (contrato en PR draft, NO desplegado)
 
-- Cada acción *nueva* de reportar generará un UUIDv4 aleatorio.
-  Propuesta: enviarlo en la cabecera `Idempotency-Key` de `POST /incidents`.
-  El cliente debe conservarlo para reintentos tras timeout/desconexión,
-  **sin generar otro ID al reintentar**. El body seguirá sin `organizationId`.
-- La implementación **interna** ya exige `idempotencyKey` en
-  `ReportIncidentInput`, y comprueba la combinación de organización,
-  membresía e identificador en una restricción única de PostgreSQL.
-- Con la misma clave y el mismo contenido *normalizado* se devuelve el
-  mismo ID de incidencia. Si se reutiliza con contenido distinto, se lanza
-  `409 Conflict`; clave ausente o inválida, `400 Bad Request`.
-- El reintento **no elude permisos**: la membresía y el rol se vuelven a
-  comprobar. Una membresía revocada provoca acceso denegado aunque el
-  incidente se hubiese creado antes.
-- **Pendientes de decisión HTTP:** estado de respuesta inicial frente a
-  replay (p. ej. 201/200), si devolver recurso actual o respuesta cacheada,
-  formato de errores, caducidad de claves, política de reintentos en la UI y
-  aprobación de cabecera. Nada de esto está desplegado.
-- No reutilizar una clave para crear una segunda incidencia intencionada.
-  No guardar ni exponer el hash de la petición en la respuesta.
-
-Ver [implementación y pruebas de idempotencia](incident-reporting-usecase.md).
+- La ruta propuesta y probada es
+  `POST /organizations/:organizationId/incidents`, con
+  `Idempotency-Key` UUIDv4 obligatorio y body de tres campos. La ruta
+  exige identidad de sesión, tenant ACTIVE y CSRF global.
+- Se propone `201` tanto en creación como en replay idéntico:
+  devuelve el mismo recurso/ID sin insertar filas nuevas.
+  Contenido distinto con la misma clave ⇒ `409`; inválido ⇒ `400`.
+  La membresía se comprueba otra vez incluso en un replay.
+- Se rechazan campos extra como `userId`, `status` y
+  `organizationId` en el body: la identidad y el permiso proceden del
+  servidor, nunca del cliente.
+- No hay caducidad de claves implementada, ni UI conectada todavía;
+  la propuesta continúa pendiente de revisión antes de fusionar.
+- [Contrato HTTP con ejemplos y límites](incident-reporting-http.md) y
+  [caso de uso transaccional](incident-reporting-usecase.md).
 
 **No son esquemas finales:** los campos de prioridad, taxonomía, anexos o asignación de supervisor siguen abiertos.
 
