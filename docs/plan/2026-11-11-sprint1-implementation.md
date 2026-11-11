@@ -208,3 +208,20 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   consolas de los proveedores, aportar secretos mediante .env local seguro,
   abrir Docker Desktop y completar el callback en un navegador. No reclamar
   validación de IdP real hasta disponer de evidencia; ninguna PR fusionada.
+
+## TODO aplazado — login local y diagnóstico Docker (2026-11-11)
+
+- El usuario decidió **aplazar** la prueba del callback localhost de Google,
+  cookies Secure en Chrome/Safari y el login real; no habilitar soluciones
+  inseguras ni cambiar el contrato para evitar la prueba.
+- Diagnóstico de solo lectura en Mac: Docker Desktop instalado 4.64.0,
+  macOS 26.5.2 arm64; el backend persistía desde hacía 16 días con rutas de
+  log en `~/.Trash/Containers/com.docker.docker` (ubicación ausente ahora).
+  El contenedor de app activo en `~/Library/Containers/com.docker.docker`
+  sólo contiene logs, y falta `~/.docker/run/docker.sock`.
+  `open -g -a Docker` devolvió error `-1712` (tiempo de espera).
+- **No se han terminado procesos, limpiado volúmenes, borrado datos ni
+  reseteado la instalación.** Revisar copias del disco VM antes de
+  recuperación; Docker puede contener datos que el usuario necesite.
+  Guía y evidencia resumidas en
+  [piloto OIDC](../architecture/oidc-local-validation.md).

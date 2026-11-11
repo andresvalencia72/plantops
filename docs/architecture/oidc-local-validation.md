@@ -4,6 +4,30 @@
 **Fecha:** 2026-11-11. Solo para desarrolladores autorizados; nunca producción.
 El código y las verificaciones PostgreSQL están en PR draft #29–#41.
 
+## TODO aplazado — callback local y navegadores (11/11/2026)
+
+**Decisión del propietario:** posponer la validación de OIDC real y el
+comportamiento de cookies `Secure` en Chrome/Safari. No registrar clientes
+OAuth ni cambiar ahora el callback solo por la incertidumbre del loopback.
+Google permite el callback HTTP en `127.0.0.1` para pruebas locales con
+clientes OAuth web, pero el flujo extremo a extremo **no se ha validado**.
+Antes de retomar: confirmar callback exacto y política de cookies en los
+navegadores objetivo; si falla, configurar HTTPS de desarrollo. En producción
+siempre HTTPS. Los pasos de este documento quedan **en espera**.
+
+**Bloqueo Docker Desktop detectado (11/11/2026):** macOS conserva un
+`com.docker.backend` antiguo cuyos archivos abiertos apuntan a
+`~/.Trash/Containers/com.docker.docker/Data`, mientras la ruta actual
+`~/Library/Containers/com.docker.docker/Data` contiene solo registros
+mínimos. No existe `~/.docker/run/docker.sock` y `open -g -a Docker`
+termina con error `-1712`. La carpeta señalada en la Papelera ya no se
+encuentra en esa ubicación; **podrían faltar datos de contenedores o
+volúmenes**. No se ha reiniciado ni reseteado Docker Desktop, ni borrado
+datos. Antes de reparar: identificar si hay imágenes, volúmenes o BDs
+locales que deban recuperarse; comprobar copias y ubicación del disco VM.
+Ver [respaldo y recuperación de Docker Desktop](https://docs.docker.com/desktop/settings-and-maintenance/backup-and-restore/).
+
+
 ## Preparar la Mac y PostgreSQL
 
 El Docker CLI está instalado, pero el daemon de Docker Desktop no estaba
