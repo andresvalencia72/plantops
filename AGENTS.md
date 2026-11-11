@@ -36,4 +36,8 @@ Leer en orden: `docs/README.md`, `docs/product/domain-model.md`, `docs/plan/firs
 
 ## Estado de arranque
 
-Repositorio con documentación y frontend de demostración en ramas de PR apiladas; no existe backend ni autenticación, tenancy o CI productiva validada. Los prototipos v0.4 anteriores son referencia estética, no código de producción.
+`main` solo contiene bootstrap; las PR draft apiladas incluyen frontend
+demo, NestJS/PostgreSQL, login OIDC local por invitación, sesiones y
+lecturas/escritura de incidencias. Ninguna PR se fusionó ni desplegó
+públicamente. Tests de backend solo contra bases descartables `*_test`;
+no usar `plantops_dev` del piloto para validar cambios. Los prototipos v0.4 anteriores son referencia estética, no código de producción.

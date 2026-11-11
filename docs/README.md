@@ -1,10 +1,13 @@
 # Documentación técnica — PlantOps
 
-**Estado:** preparación del desarrollo · **Última revisión:** 2026-11-10 · **Idioma:** español (README público ES/EN).
+**Estado:** desarrollo Sprint 1 en PR draft apiladas · **Última revisión:** 2026-11-11 · **Idioma:** español (README público ES/EN).
 
 Este directorio es la **fuente de verdad técnica** del proyecto. El [README raíz](../README.md) presenta el producto al público; los documentos de aquí especifican sus reglas, decisiones, arquitectura candidata y criterios de calidad. El tablero de GitHub contiene trabajo accionable y los PR contienen evidencia de implementación. Notion enlaza el estado del proyecto, no duplica estos documentos.
 
-> **Alcance real:** el repositorio `main` conserva la documentación de arranque; en ramas apiladas existe un **frontend de demostración** con datos ficticios, sin backend ni autorización real. El prototipo visual **v0.4** fue aceptado como dirección estética, no como código de producción ni contrato técnico.
+> **Alcance real:** `main` conserva la documentación de arranque; en las PR
+> apiladas ya existen NestJS, PostgreSQL, autenticación por sesión e interfaces
+> HTTP protegidas. El frontend demo sigue aislado de los datos reales.
+> El POST de incidencias está en PR draft, **sin despliegue público**. El prototipo visual **v0.4** fue aceptado como dirección estética, no como código de producción ni contrato técnico.
 
 ## Ruta de lectura sugerida
 
@@ -16,7 +19,7 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 4 | [Sistema visual](design/visual-system.md) | Referencia v0.4, componentes, accesibilidad |
 | 5 | [Arquitectura candidata](architecture/overview.md) | Contexto, contenedores y límites |
 | 6 | [Arquitectura frontend](architecture/frontend.md) | Organización React, mocks y contratos |
-| 7 | [Borrador de API](architecture/api-contracts.md) | Recursos y respuestas **no implementadas** |
+| 7 | [Borrador de API](architecture/api-contracts.md) | Recursos implementados en PR draft y propuestas pendientes |
 | 8 | [ADR y decisiones pendientes](adr/README.md) | Hipótesis, alternativas, razones |
 | 9 | [Estrategia de pruebas](quality/testing.md) | Qué verificar, desde el primer corte |
 | 10 | [Estándares de ingeniería](quality/engineering.md) | CI, PR, seguridad y definición de terminado |
@@ -49,7 +52,9 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 
 ## Antes de empezar
 
-Leer [Primer corte vertical](plan/first-slice.md) y [AGENTS.md](../AGENTS.md). No comenzar por la base de datos ni generar todos los módulos NestJS: **primero construiremos una UI fiable con fixtures tipadas**, sin confundir la simulación de permisos con seguridad real.
+Leer [Primer corte vertical](plan/first-slice.md) y [AGENTS.md](../AGENTS.md). No generar módulos NestJS por anticipación: la UI demo y la API
+autenticada permanecen aisladas hasta verificar el flujo E2E contra una
+base de pruebas independiente.
 
 ## Histórico de esta base
 

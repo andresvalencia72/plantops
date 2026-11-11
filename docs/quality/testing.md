@@ -1,6 +1,7 @@
 # Estrategia de pruebas y seguridad verificable
 
-**Estado:** plan de calidad recomendado; no hay suites implementadas. **Revisión:** 2026-11-10.
+**Estado:** estrategia activa; suites Vitest, pruebas PostgreSQL y Playwright
+implementadas en PR draft. **Revisión:** 2026-11-11.
 
 ## Objetivo
 

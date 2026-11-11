@@ -7,11 +7,12 @@
 ## Entrada y límites
 
 `reportIncident(database, context, { assetId, title, description, idempotencyKey })` sólo
-acepta un `TenantContext` que debe haberse obtenido tras validar una sesión
-real y su membresía. **El proveedor de sesiones aún no está elegido**, por
-tanto el caso de uso no se registra en ningún controlador NestJS.
+acepta un `TenantContext` obtenido tras validar la sesión real y su
+membresía ACTIVE. Actualmente se invoca desde `IncidentsController`
+mediante el guard global de sesiones PostgreSQL, dentro de una PR draft.
 
-Los campos se normalizan y validan en el servidor: título 3–160 caracteres,
+Los campos se normalizan y validan en el servidor: `assetId` se canoniza
+a minúsculas para calcular la huella de reintento; título 3–160 caracteres,
 descripción 10–4000, UUID del activo y clave UUIDv4 de reintento. Los límites superiores son una
 **propuesta técnica** por revisar antes de publicar el contrato HTTP.
 
@@ -35,7 +36,7 @@ descripción 10–4000, UUID del activo y clave UUIDv4 de reintento. Los límite
    No se devuelve el hash guardado.
 
 **Semántica:** mismo actor, tenant, clave y contenido normalizado ⇒ mismo
-ID; clave reutilizada con contenido distinto ⇒ 409; otra clave ⇒ acción
+ID con HTTP 201 (incluido en replays); clave reutilizada con contenido distinto ⇒ 409; otra clave ⇒ acción
 independiente. El replay devuelve la representación *actual* del incidente
 (no una respuesta HTTP original cacheada). Se bloquean los replays de
 membresías suspendidas antes de consultar el incidente.

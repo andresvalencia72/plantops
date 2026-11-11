@@ -16,7 +16,9 @@
 - Cabecera obligatoria `Idempotency-Key: <UUIDv4 aleatorio>`.
   Generar una clave por acción lógica y conservarla al reintentar
   por desconexión o timeout. No enviarla en el body.
-- `Content-Type: application/json`, con **exactamente tres campos**:
+- `Content-Type: application/json` (se admiten parámetros como `charset=utf-8`);
+  otros tipos reciben **415 Unsupported Media Type** sin ejecutar el comando.
+- Cuerpo con **exactamente tres campos**:
 
 ```json
 {
@@ -30,7 +32,9 @@ No se aceptan `organizationId`, `userId`, `role`, `status`,
 `reportedByMembershipId` ni claves extra. `assetId` debe ser UUID;
 `title` se normaliza con trim y requiere 3–160 caracteres;
 `description` se normaliza con trim y requiere 10–4000 caracteres.
-La clave de idempotencia se valida como UUID versión 4.
+La clave de idempotencia se valida como UUID versión 4. El UUID del
+activo se canoniza a minúsculas antes de calcular el hash: una misma
+referencia con distinta capitalización no constituye un payload nuevo.
 
 ## Respuesta y semántica de reintento
 
@@ -67,6 +71,7 @@ no es una copia binaria cacheada del primer HTTP.
 | --- | --- |
 | 201 | Creación o replay equivalente, misma incidencia |
 | 400 | UUID, cabecera o body incorrecto; campos adicionales rechazados |
+| 415 | Content-Type ausente o distinto de application/json |
 | 401 | Sin sesión PlantOps válida |
 | 403 | Sin membresía ACTIVE, o CSRF/origen no autorizado |
 | 404 | Activo inexistente, inactivo o perteneciente a otro tenant |
@@ -76,8 +81,13 @@ no es una copia binaria cacheada del primer HTTP.
 
 - **No es una API pública estable**: este contrato necesita revisión
   de producto antes de fusionar PR o incorporar un formulario real.
-- No hay expiración temporal de claves: se conservan mientras exista
-  la incidencia. No se implementa una tabla de deduplicación externa.
+- **Decisión MVP:** el primer commit y cada replay válido devuelven `201`
+  con el mismo identificador. No se promete un snapshot inmutable: la
+  representación puede incluir un estado posterior de la incidencia.
+- **Decisión MVP:** las claves no caducan temporalmente y permanecen
+  asociadas a la incidencia; no existe tabla de deduplicación externa.
+  Antes de producción se revisarán retención, crecimiento y política
+  de eliminación, sin purgar claves que puedan permitir duplicados.
 - No se admite crear activos, prioridad, adjuntos, responsable ni OT
   en este primer comando. Se mantiene la regla de toda incidencia
   vinculada a un activo registrado y activo en el tenant.
