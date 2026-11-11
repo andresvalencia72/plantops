@@ -95,7 +95,9 @@ Ejemplo de reporte candidato:
   exige identidad de sesión, tenant ACTIVE y CSRF global.
 - Se propone `201` tanto en creación como en replay idéntico:
   devuelve el mismo recurso/ID sin insertar filas nuevas.
-  Contenido distinto con la misma clave ⇒ `409`; inválido ⇒ `400`.
+  Contenido distinto con la misma clave ⇒ `409`; inválido ⇒ `400`;
+  `Content-Type` distinto de `application/json` ⇒ `415`. El UUID del
+  activo se canoniza antes de calcular la huella de idempotencia.
   La membresía se comprueba otra vez incluso en un replay.
 - Se rechazan campos extra como `userId`, `status` y
   `organizationId` en el body: la identidad y el permiso proceden del
