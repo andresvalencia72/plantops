@@ -26,14 +26,14 @@ export function IncidentsPage({ organization }: { organization: DemoOrganization
     <div className="space-y-7">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[.16em] text-primary">Gestión de mantenimiento</p>
-          <h1 className="text-[28px] font-semibold tracking-[-.045em] sm:text-[32px]">Incidencias</h1>
-          <p className="mt-2 text-[13px] text-muted-foreground">
+          <p className="mb-2 text-xs font-medium text-primary">Gestión de mantenimiento</p>
+          <h1 className="text-[28px] font-medium tracking-normal sm:text-[32px]">Incidencias</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             Avisos sobre activos, prioridades y seguimiento del trabajo.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-[11px] text-muted-foreground">Datos de demostración</span>
+          <span className="text-xs text-muted-foreground">Datos de demostración</span>
           <Button onClick={() => setFormOpen(true)}><Plus size={15} aria-hidden="true"/> Nueva incidencia</Button>
         </div>
       </div>
@@ -89,7 +89,7 @@ export function IncidentsPage({ organization }: { organization: DemoOrganization
             <Button variant="outline" onClick={() => setFilters(initialFilters)}>Limpiar filtros</Button>
           </div>
         )}
-        <p className="border-t border-border px-5 py-3 text-[11px] text-muted-foreground">
+        <p className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
           {loading ? 'Consultando datos…' : `${filtered.length} de ${records.length} incidencias`} · Datos ficticios
         </p>
       </section>

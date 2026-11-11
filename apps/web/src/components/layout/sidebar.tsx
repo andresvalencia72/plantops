@@ -42,7 +42,7 @@ function NavigationContent({
       </div>
       <nav aria-label="Navegación principal" className="flex-1 space-y-6 px-3 py-6">
         <section aria-label="Operaciones">
-          <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[.15em] text-muted-foreground">Operaciones</p>
+          <p className="px-3 pb-2 text-xs font-medium text-muted-foreground">Operaciones</p>
           <div className="space-y-1">
             {available.map(({ id, label, icon: Icon }) => (
               <button
@@ -57,16 +57,16 @@ function NavigationContent({
                 ].join(' ')}
                 onClick={() => { onNavigate(id); onClose() }}
               >
-                <Icon size={17} strokeWidth={1.7} aria-hidden="true" />{label}
+                <Icon size={16} strokeWidth={1.5} aria-hidden="true" />{label}
               </button>
             ))}
           </div>
         </section>
         <section aria-label="Próximamente">
-          <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[.15em] text-muted-foreground">Próximamente</p>
+          <p className="px-3 pb-2 text-xs font-medium text-muted-foreground">Próximamente</p>
           {upcoming.map(({ label, icon: Icon }) => (
             <div key={label} className="flex h-10 items-center gap-3 px-3 text-[13px] text-muted-foreground/70">
-              <Icon size={17} strokeWidth={1.7} aria-hidden="true" />{label}
+              <Icon size={16} strokeWidth={1.5} aria-hidden="true" />{label}
             </div>
           ))}
         </section>
@@ -77,7 +77,7 @@ function NavigationContent({
           <span>Entorno de demostración</span>
         </div>
         <div className="flex items-center gap-2 px-3 pb-1 text-[11px] text-muted-foreground/75">
-          <span className="size-1.5 rounded-full bg-emerald-500" />
+          <span className="size-1.5 rounded-full bg-muted-foreground" />
           Sin conexión a producción
         </div>
       </div>
