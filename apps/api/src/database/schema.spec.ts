@@ -52,6 +52,17 @@ describe('shared-schema tenant constraints', () => {
     });
   });
 
+  it('uniquely scopes a retry key by organization and reporter', () => {
+    const keys = getTableConfig(incidents).uniqueConstraints.map(
+      (constraint) => constraint.columns.map((column) => column.name),
+    );
+    expect(keys).toContainEqual([
+      'organization_id',
+      'reported_by_membership_id',
+      'idempotency_key',
+    ]);
+  });
+
   it('assigns a new incident the reported state by default', () => {
     expect(incidents.status.default).toBe('REPORTED');
   });
