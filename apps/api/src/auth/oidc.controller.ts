@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Query, Redirect } from '@nestjs/common';
+import {
+  Controller,
+  ForbiddenException,
+  Get,
+  Header,
+  Param,
+  Query,
+  Redirect,
+} from '@nestjs/common';
 import { OidcService, Public } from '@nestjs/authentication';
 import { buildOidcConfig } from './oidc.config.js';
 
@@ -27,11 +35,26 @@ export class OidcController {
   }
 
   @Get(':provider/callback')
+  @Header('Cache-Control', 'no-store')
+  @Header('Referrer-Policy', 'no-referrer')
   @Redirect()
-  callback(
+  async callback(
     @Param('provider') provider: string,
     @Query() query: Record<string, string>,
   ) {
-    return this.oidc.finish(provider, query);
+    try {
+      return await this.oidc.finish(provider, query);
+    } catch (error) {
+      // Only the expected invite-only denial may navigate to a safe UI.
+      // State, token, replay, issuer and other security failures stay errors.
+      if (error instanceof ForbiddenException &&
+        error.message === 'account not allowed') {
+        return {
+          url: '/?source=api&auth=access-denied',
+          statusCode: 303,
+        };
+      }
+      throw error;
+    }
   }
 }

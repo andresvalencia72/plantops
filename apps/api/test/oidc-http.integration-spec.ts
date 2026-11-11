@@ -1,9 +1,10 @@
-import { INestApplication } from '@nestjs/common';
+import { ForbiddenException, INestApplication } from '@nestjs/common';
+import { OidcService } from '@nestjs/authentication';
 import { NodeAdapter } from '@nestjs/platform-node';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
-import { afterAll, beforeAll, describe, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const database = process.env.DATABASE_TEST_URL;
 if (!database) throw new Error('DATABASE_TEST_URL required');
@@ -64,6 +65,37 @@ describe('opt-in OIDC HTTP routing without real provider credentials', () => {
     await request(app.getHttpServer())
       .get('/auth/oidc/unconfigured/login')
       .expect(404);
+  });
+
+  it('redirects only invite-denied callbacks without leaking provider info', async () => {
+    const oidc = app.get(OidcService);
+    const stub = vi.spyOn(oidc, 'finish')
+      .mockRejectedValueOnce(new ForbiddenException('account not allowed'));
+    try {
+      const response = await request(app.getHttpServer())
+        .get('/auth/oidc/google/callback?state=untrusted&code=untrusted')
+        .expect(303);
+      expect(response.headers.location).toBe('/?source=api&auth=access-denied');
+      expect(response.headers['cache-control']).toBe('no-store');
+      expect(response.headers['referrer-policy']).toBe('no-referrer');
+      expect(response.text).not.toContain('account not allowed');
+    } finally {
+      stub.mockRestore();
+    }
+  });
+
+  it('keeps other callback failures fail-closed instead of redirecting', async () => {
+    const oidc = app.get(OidcService);
+    const stub = vi.spyOn(oidc, 'finish')
+      .mockRejectedValueOnce(new ForbiddenException('Cross-origin sign-in refused'));
+    try {
+      const response = await request(app.getHttpServer())
+        .get('/auth/oidc/google/callback?state=untrusted&code=untrusted')
+        .expect(403);
+      expect(response.headers.location).toBeUndefined();
+    } finally {
+      stub.mockRestore();
+    }
   });
 
   it('refuses a callback without state and browser transaction cookie', async () => {
