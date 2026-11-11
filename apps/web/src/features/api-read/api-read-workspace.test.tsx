@@ -133,6 +133,49 @@ describe('API read-only workspace', () => {
     expect(fetcher.mock.calls.every(([, init]) => init?.method === 'GET')).toBe(true)
   })
 
+  it('logs out with a server POST and removes protected data on 401', async () => {
+    let signedIn = true
+    const { fetcher } = readyFetcher()
+    const wrapper = vi.fn<typeof fetch>(async (url, options) => {
+      if (String(url) === '/api/auth/logout') {
+        signedIn = false
+        return new Response(null, { status: 204 })
+      }
+      if (!signedIn && String(url) === '/api/me') {
+        return json({ message: 'Unauthorized' }, 401)
+      }
+      if (!signedIn && String(url).endsWith('/auth/oidc/providers')) {
+        return json({ providers: [] })
+      }
+      return fetcher(url, options)
+    })
+    const user = userEvent.setup()
+    render(<ApiReadWorkspace client={createApiReadClient(wrapper)} />)
+    expect(await screen.findByRole('button', { name: /Fuga de planta A/ }))
+      .toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Cerrar sesión' }))
+    await screen.findByRole('heading', { name: 'Se requiere una sesión válida' })
+    expect(screen.queryByText('Fuga de planta A')).not.toBeInTheDocument()
+    expect(wrapper.mock.calls.some(([url, options]) =>
+      url === '/api/auth/logout' && options?.method === 'POST')).toBe(true)
+  })
+
+  it('preserves the current view if logout fails', async () => {
+    const { fetcher } = readyFetcher()
+    const wrapper = vi.fn<typeof fetch>(async (url, options) =>
+      String(url) === '/api/auth/logout' ? json({ error: 'Unavailable' }, 503)
+        : fetcher(url, options))
+    const user = userEvent.setup()
+    render(<ApiReadWorkspace client={createApiReadClient(wrapper)} />)
+    expect(await screen.findByRole('button', { name: /Fuga de planta A/ }))
+      .toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Cerrar sesión' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'No se pudo cerrar la sesión')
+    expect(screen.getByRole('button', { name: /Fuga de planta A/ }))
+      .toBeInTheDocument()
+  })
+
   it('shows a readable server error and recovers after retry without demo fixtures', async () => {
     let failed = true
     const fetcher = vi.fn<typeof fetch>(async (url) => {

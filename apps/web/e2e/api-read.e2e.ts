@@ -58,6 +58,47 @@ test('invite denial is informative, no account enumeration or demo fallback', as
   await expect(page.getByRole('link', { name: 'Continuar con Google' })).toBeVisible()
 })
 
+test('logout clears protected content and returns to sign-in state', async ({ page }) => {
+  let signedIn = true
+  let logoutCount = 0
+  await page.route('**/api/**', async (route) => {
+    const url = new URL(route.request().url())
+    const path = url.pathname
+    if (path === '/api/auth/logout') {
+      expect(route.request().method()).toBe('POST')
+      logoutCount += 1
+      signedIn = false
+      return route.fulfill({ status: 204, body: '' })
+    }
+    const response = (data: unknown, status = 200) =>
+      route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) })
+    if (path === '/api/me') {
+      return signedIn
+        ? response({ id: 'fixture-user', displayName: 'Usuario de pruebas' })
+        : response({ message: 'Unauthorized' }, 401)
+    }
+    if (path === '/api/me/organizations') {
+      return response([{ id: 'org-a', name: 'Empresa de pruebas', role: 'MEMBER' }])
+    }
+    if (path === '/api/auth/oidc/providers') {
+      return response({ providers: ['google'] })
+    }
+    if (path === '/api/organizations/org-a/assets') return response([])
+    if (path === '/api/organizations/org-a/incidents') {
+      return response({ items: [], nextCursor: null })
+    }
+    throw new Error('Unexpected API path in logout test')
+  })
+  await page.goto('/?source=api')
+  await expect(page.getByText('Empresa de pruebas').last()).toBeVisible()
+  await page.getByRole('button', { name: 'Cerrar sesión' }).click()
+  await expect(page.getByRole('heading', { name: 'Se requiere una sesión válida' }))
+    .toBeVisible()
+  await expect(page.getByText('Empresa de pruebas')).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Continuar con Google' })).toBeVisible()
+  expect(logoutCount).toBe(1)
+})
+
 test('API preview lists only the selected tenant with intercepted test responses', async ({ page }) => {
   const calls: string[] = []
   await page.route('**/api/**', async (route) => {
