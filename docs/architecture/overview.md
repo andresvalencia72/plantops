@@ -33,7 +33,7 @@ flowchart TB
 
 - **Web:** presentación, interacciones y estados de carga/error. No concede autorizaciones reales.
 - **API:** validación, autorización contextual, casos de uso, transacciones y auditoría.
-- **PostgreSQL:** integridad, persistencia e índices. Estrategia de tenancy pendiente de ADR.
+- **PostgreSQL:** integridad, persistencia e índices. Estrategia base de tenancy aprobada; aún sin modelo físico ni pruebas.
 - **Infra:** Compose local y CI recomendados cuando exista código. No desplegar nada por anticipado.
 
 ## Límites funcionales sugeridos (no carpetas obligatorias)
@@ -67,7 +67,7 @@ sequenceDiagram
   Web-->>User: Feedback y registro visible
 ```
 
-## Aislamiento multiempresa (decisión crítica pendiente)
+## Aislamiento multiempresa (estrategia aprobada, verificación pendiente)
 
 Recomendación inicial: modelo shared database / shared schema con `organization_id` en datos operativos, un contexto de organización autenticado y controles redundantes a nivel consulta e integridad. Estrategia base **aprobada el 2026-11-11**, aún sin implementar ni acreditar su aislamiento real. Esquemas por tenant, BD por tenant y RLS se evaluarán sólo ante necesidades justificadas.
 
