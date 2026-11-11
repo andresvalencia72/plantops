@@ -2,6 +2,7 @@ import { getTableConfig } from 'drizzle-orm/pg-core';
 import { describe, expect, it } from 'vitest';
 import { assets } from './assets.js';
 import { incidents } from './incidents.js';
+import { auditEvents } from './audit-events.js';
 import { memberships } from './organizations.js';
 
 function uniqueColumnSets(table: typeof assets | typeof memberships) {
@@ -108,5 +109,33 @@ describe('shared-schema tenant constraints', () => {
 
   it('assigns a new incident the reported state by default', () => {
     expect(incidents.status.default).toBe('REPORTED');
+  });
+});
+
+describe('append-only incident review audit schema', () => {
+  it('enforces tenant-linked actor and incident foreign keys and stable retries', () => {
+    const table = getTableConfig(auditEvents);
+    const links = table.foreignKeys.map((key) => {
+      const ref = key.reference();
+      return {
+        from: ref.columns.map((col) => col.name),
+        to: ref.foreignColumns.map((col) => col.name),
+      };
+    });
+    expect(links).toContainEqual({
+      from: ['organization_id', 'incident_id'],
+      to: ['organization_id', 'id'],
+    });
+    expect(links).toContainEqual({
+      from: ['organization_id', 'actor_membership_id'],
+      to: ['organization_id', 'id'],
+    });
+    expect(table.uniqueConstraints.map((key) =>
+      key.columns.map((col) => col.name))).toContainEqual([
+      'organization_id', 'actor_membership_id', 'action', 'idempotency_key',
+    ]);
+    expect(table.checks.map((check) => check.name)).toContain(
+      'audit_event_review_transition',
+    );
   });
 });
