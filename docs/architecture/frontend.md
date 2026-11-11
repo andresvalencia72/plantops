@@ -44,6 +44,31 @@ apps/web/
 
 No es obligatorio crear todos los directorios antes de tener código. Evitar una jerarquía de 6 niveles para un componente pequeño.
 
+## Primer adaptador HTTP: lectura real, sin login simulado (2026-11-11)
+
+- Se añadió `apps/web/src/features/api-read/api-client.ts`, adaptador
+  de solo lectura a rutas NestJS para perfil, organizaciones autorizadas,
+  activos y paginación/detalle de incidencias.
+- `?source=api` activa una vista separada **solo en desarrollo**. El
+  dashboard normal continúa trabajando exclusivamente con fixtures.
+- Las solicitudes son `GET` same-origin `/api`, con cookie nativa,
+  enviadas por el proxy Vite hacia el Nest local en loopback.
+  No se guardan JWT, IDs de usuario, credenciales ni tokens en el frontend.
+- `401`, `403` y respuestas inválidas son errores visibles; nunca
+  se hace fallback automático a fixtures. Antes de una sesión válida
+  no se consultan ni muestran organizaciones del servidor.
+- El selector solo lista empresas autorizadas por `GET /me/organizations`;
+  cambiar de empresa remonta la vista y cancela peticiones anteriores.
+  La API revalida la membresía ACTIVE en cada llamada.
+- **El resultado de una página no es el total global de incidencias**;
+  la UI no inventa prioridad, responsable ni ubicación si la API no
+  proporciona esos campos.
+- El detalle exige otra petición autenticada. No se ha habilitado
+  mutación ni navegación por OAuth. La conexión completa depende de
+  completar el TODO sobre callback/cookie Secure y deployment HTTPS.
+- Pruebas React del adaptador, cambios de tenant, paginación y errores;
+  Playwright valida el `401` real local y respuestas interceptadas en CI.
+
 ## Diseño de datos en frontend
 
 - Representar identificadores como valores opacos; no deducir organización a partir del formato de ID.

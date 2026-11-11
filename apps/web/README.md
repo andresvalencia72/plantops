@@ -11,7 +11,41 @@ Aplicación React 19 + TypeScript 7 + Vite 8 + Tailwind CSS 4 con componentes lo
 - Alta de incidencias ficticias con validación de campos y activo de la organización demo, sin API.
 - Pruebas de interfaz y adaptador; máximo de 400 líneas para código escrito a mano.
 
-**No existe** autenticación real, autorización multiempresa del servidor, API NestJS, BD persistente, órdenes de trabajo ni CI productiva hasta que se implementen y validen. El selector de organización es solo una simulación visual. Los datos de alta se pierden al recargar.
+El selector de organización de la **demo** es solo una simulación visual;
+las altas ficticias se pierden al recargar. La API NestJS tiene lectura
+autorizada de organizaciones, activos e incidencias en PR draft, pero **no
+existe todavía login real con Google/Microsoft, despliegue ni POST de incidencias**.
+
+## Vista API local de solo lectura
+
+El modo API de React está aislado de la demo y **únicamente funciona en
+desarrollo** (Vite). No mezcla fixtures con respuestas reales y no concede
+permisos. Arranca NestJS local con una DB descartable, y Vite:
+
+```sh
+cd apps/web
+npm run dev -- --host 127.0.0.1 --port 5184 --strictPort
+```
+
+- Demo predeterminada: `http://127.0.0.1:5184/`.
+- Vista API: `http://127.0.0.1:5184/?source=api`; también accesible con
+  «Vista API» en el encabezado de la demo en pantallas grandes.
+- El navegador solicita `/api/me` con `credentials: include`, mediante
+  proxy Vite exclusivamente local a `127.0.0.1:3001`. Solo tras una sesión
+  válida consulta `/api/me/organizations`, activos e incidencias de las
+  empresas autorizadas. No envía tokens ni user IDs desde el cliente.
+- Sin sesión la API responde 401; se muestra un estado de acceso pendiente
+  **sin caer en los mocks**. El login externo y las cookies `Secure`
+  sobre loopback siguen siendo TODO.
+- Con sesión válida, solo lectura: selector de organizaciones devueltas por
+  el servidor, activos, listado paginado (20 por página), detalle y errores
+  401/403. No hay formulario de creación ni permisos simulados.
+- No se habilita en builds de producción: antes de desplegar hará falta
+  un proxy HTTPS `/api` revisado, flujos OIDC reales y política de sesión.
+- Las pruebas unitarias emplean respuestas simuladas explícitas. El E2E
+  normal también las intercepta para funcionar en CI sin Nest; establece
+  `PLANTOPS_E2E_REAL_API=1` para probar el 401 real en la Mac.
+
 
 ## Comprobaciones
 

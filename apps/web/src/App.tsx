@@ -4,8 +4,9 @@ import type { DemoOrganization, Screen } from '@/app/types'
 import { AppShell } from '@/components/layout/app-shell'
 import { DashboardPage } from '@/features/dashboard/dashboard-page'
 import { IncidentsPage } from '@/features/incidents/incidents-page'
+import { ApiReadWorkspace } from '@/features/api-read/api-read-workspace'
 
-export default function App() {
+function DemoApp() {
   const [screen, setScreen] = useState<Screen>('overview')
   const [organization, setOrganization] = useState<DemoOrganization>('atlas')
   const { theme, setTheme } = useTheme()
@@ -24,4 +25,11 @@ export default function App() {
         : <IncidentsPage key={organization} organization={organization} />}
     </AppShell>
   )
+}
+
+// Never enable this preview in production. Demo and API trees never share records.
+export default function App() {
+  return import.meta.env.DEV && new URLSearchParams(window.location.search).get('source') === 'api'
+    ? <ApiReadWorkspace />
+    : <DemoApp />
 }
