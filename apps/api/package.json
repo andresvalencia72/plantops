@@ -21,7 +21,8 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "typecheck": "tsc --noEmit --incremental false",
     "db:generate": "drizzle-kit generate",
-    "db:check": "drizzle-kit check"
+    "db:check": "drizzle-kit check",
+    "test:integration": "vitest run --config ./vitest.config.integration.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

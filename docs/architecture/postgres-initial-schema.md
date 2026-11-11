@@ -57,3 +57,18 @@ PostgreSQL de pruebas con dos organizaciones y membresías independientes.
 - Política de desactivación de activos y restricciones de longitud/no vacío
   en strings, validación de input.
 - Validar migración y FKs con PostgreSQL ejecutado en un entorno aislado.
+
+## Evidencia real de integración (PR de pruebas posterior)
+
+`test/tenant-db.integration-spec.ts` crea dos organizaciones, usuarios,
+membresías y activos ficticios en PostgreSQL temporal de GitHub Actions.
+Ejecuta la migración versionada y comprueba:
+- Membresía A no autoriza seleccionar B.
+- Listados y consulta por ID filtran por empresa.
+- PostgreSQL rechaza referencias cruzadas de activo y autor.
+- Una incidencia válida A se crea con estado `REPORTED`.
+
+La prueba requiere `DATABASE_TEST_URL` y **rechaza** conexiones remotas o
+bases cuyo nombre no termina en `_test`. Nunca se ejecuta sobre producción.
+Los tests no sustituyen la revisión de sesión real, permisos administrativos
+o concurrencia; esos flujos aún no están implementados.
