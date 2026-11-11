@@ -22,6 +22,7 @@ import {
 } from '../security/tenant-context.js';
 import { DrizzleIncidentReader } from './drizzle-incident-reader.js';
 import { reportIncident } from './report-incident.js';
+import { startIncidentReview } from './start-incident-review.js';
 
 @Controller('organizations/:organizationId/incidents')
 export class IncidentsController {
@@ -71,6 +72,33 @@ export class IncidentsController {
       assetId: input.assetId,
       title: input.title,
       description: input.description,
+    });
+  }
+
+  @Post(':incidentId/review')
+  @HttpCode(200)
+  @Header('Cache-Control', 'no-store')
+  async startReview(
+    @CurrentUser('id') userId: string,
+    @Param('organizationId', new ParseUUIDPipe({ version: '4' }))
+    organizationId: string,
+    @Param('incidentId', new ParseUUIDPipe({ version: '4' }))
+    incidentId: string,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
+    @Headers('content-type') contentType: string | undefined,
+    @Body() body: unknown,
+  ) {
+    if (contentType?.split(';', 1)[0]?.trim().toLowerCase() !== 'application/json') {
+      throw new UnsupportedMediaTypeException('Expected application/json');
+    }
+    const context = await this.scope(userId, organizationId);
+    if (!body || typeof body !== 'object' || Array.isArray(body) ||
+      Object.keys(body).length !== 0) {
+      throw new BadRequestException('Expected an empty JSON object');
+    }
+    return startIncidentReview(this.connection.db, context, {
+      incidentId,
+      idempotencyKey: idempotencyKey ?? '',
     });
   }
 

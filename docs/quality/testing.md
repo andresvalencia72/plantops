@@ -51,6 +51,17 @@ No cada pixel requiere un test unitario; sí cada regla de negocio crítica.
 | T-015 | Error/red lenta durante alta | UI | Formulario no se pierde y feedback útil |
 | T-016 | Modo claro/oscuro, foco y diálogo | UI + accesibilidad | Navegable por teclado |
 
+## Evidencia UC-03 en base descartable (PR draft)
+
+`apps/api/test/start-incident-review.integration-spec.ts` y
+`incident-review-http.integration-spec.ts` verifican PostgreSQL real,
+sesión sintética y HTTP; no utilizan OAuth personal ni `plantops_dev`.
+Incluyen rol insuficiente, suspensión o cambio de rol, aislamiento tenant,
+CSRF, clave inválida, replay sin duplicar auditoría, concurrencia de
+20 comandos, conflicto de clave en incidencias distintas, atomicidad
+frente a un fallo SQL y trigger append-only. Las nuevas migraciones se
+ejecutan únicamente en la BD de pruebas `*_test` habilitada.
+
 ## Seguridad: defensa en profundidad
 
 - Identidad autenticada y membresía vigente para el tenant activo.

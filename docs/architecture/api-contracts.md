@@ -26,7 +26,7 @@ Este documento permite diseñar fixtures y adaptadores **sin convertir propuesta
 | Listar incidencias | `GET /organizations/:organizationId/incidents` (implementado) | Miembro ACTIVE |
 | Reportar incidencia | `POST /organizations/:organizationId/incidents` (PR draft) | Miembro ACTIVE |
 | Ver incidencia | `GET /organizations/:organizationId/incidents/:incidentId` (implementado) | Miembro ACTIVE |
-| Iniciar revisión | `POST /incidents/:id/review` | Supervisor |
+| Iniciar revisión | `POST /organizations/:organizationId/incidents/:incidentId/review` (PR draft) | Supervisor ACTIVE |
 | Cerrar incidencia | `POST /incidents/:id/close` | Supervisor |
 | Crear orden | `POST /work-orders` | Supervisor |
 | Asignar/reasignar | `POST /work-orders/:id/assign` | Supervisor |
@@ -58,6 +58,20 @@ o incidencia de otra organización se oculta con 404.
 - La escritura se implementa en otra PR draft mediante
   `POST /organizations/:organizationId/incidents`; aún sin UI ni despliegue.
   Ver [contrato HTTP de reporte](incident-reporting-http.md).
+
+### Iniciar revisión (UC-03, implementado en PR draft)
+
+- `POST /organizations/:organizationId/incidents/:incidentId/review`
+  con sesión activa, CSRF, `Content-Type: application/json`, body `{}`
+  y `Idempotency-Key: UUIDv4`.
+- Solo `SUPERVISOR` con membresía ACTIVE; el servidor revalida los
+  permisos, bloquea la fila y registra un `audit_events` append-only
+  en la misma transacción PostgreSQL que la transición.
+- `200` creación o replay; `400` estructura/UUID; `401` sesión;
+  `403` permiso/CSRF; `404` recurso no visible; `409` estado
+  incompatible o clave reutilizada para otra incidencia; `415` formato.
+- Solo `REPORTED → UNDER_REVIEW`. Nunca se dispara desde el frontend
+  de piloto. [Contrato y evidencia](incident-review-contract.md).
 
 **Alternativa:** transiciones mediante `PATCH` con comandos tipados. Evaluarla en ADR si simplifica auditabilidad, idempotencia y coherencia.
 

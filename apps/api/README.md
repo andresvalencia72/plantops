@@ -78,6 +78,25 @@ El detalle de otra empresa responde 404. El nuevo
 sesión, tenant y CSRF; aún no está conectado al formulario React.
 Ver [contrato HTTP propuesto](../../docs/architecture/incident-reporting-http.md).
 
+## Iniciar revisión — UC-03 (PR draft, no desplegada)
+
+`POST /organizations/:organizationId/incidents/:incidentId/review` con
+cookie de sesión verificada, cabecera `Idempotency-Key` UUIDv4 y cuerpo
+JSON vacío `{}`. Solo autoriza `SUPERVISOR` ACTIVE de la organización.
+Devuelve `200` y el detalle con estado `UNDER_REVIEW`; un replay con la
+misma clave devuelve `200` y el estado actual, sin segundo evento.
+Un actor sin permiso obtiene `403`, un incidente ajeno `404`, estado
+incompatible o clave reutilizada `409`; `400`/ `415` para input inválido.
+CSRF y control de sesión siguen siendo globales.
+
+La migración `0005` crea `audit_events`, con referencias de tenant
+compuestas, índice único para idempotencia y trigger que prohíbe
+modificaciones/borrados. El caso de uso usa `FOR SHARE` para membresía,
+`FOR UPDATE` para incidencia y una única transacción para evento y estado.
+Pruebas de concurrencia con 20 operaciones y fallo de persistencia
+verifican atomicidad. Ninguna migración se ha aplicado al piloto.
+Consultar [contrato UC-03](../../docs/architecture/incident-review-contract.md).
+
 ## Validación
 
 ```sh
