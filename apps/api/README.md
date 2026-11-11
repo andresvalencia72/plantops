@@ -12,16 +12,19 @@ Vitest y Oxlint. Generado a partir de la CLI oficial y ajustado para PlantOps.
 - Por defecto escucha en `127.0.0.1:3001`. `PORT` permite otro puerto local.
 - `curl http://127.0.0.1:3001/health` devuelve `{"status":"ok"}`.
 
-Las PR draft de autenticación incluyen `@nestjs/authentication`, una
-migración `sessions` y un `PostgresSessionStore` comprobado en CI. **No están
-conectados todavía al arranque HTTP**: sin proveedor de identidad, cookies
-emitidas, guard global ni endpoints de login. La prueba de sesiones corre
-contra un PostgreSQL descartable en CI y no requiere credenciales reales.
+**Se requiere `DATABASE_URL` en el arranque**: no existe fallback en memoria.
+El guard HTTP global, las sesiones persistentes y CSRF nativo están
+habilitados. `GET /health` es público y sólo prueba vida del proceso, no
+conectividad de PostgreSQL ni readiness. Las rutas de negocio siempre
+exigen cookie de sesión y membresía de empresa comprobada.
 
-La ruta `/health` **sólo prueba que el proceso responde**, no que haya una
-base de datos disponible ni aislamiento multiempresa. Las demás rutas aún
-no están creadas. Hay un esquema y repositorios Drizzle en PR draft, pero
-no se incluye autenticación ni conexión a una BD persistente.
+Las rutas OIDC de Google/Microsoft son **opt-in**: sin clientes
+configurados no se registran; con variables parciales el arranque falla.
+Actualmente no hay credenciales OAuth reales y no se ha verificado login
+de un usuario externo. Para configurar callbacks, invitaciones y
+restricciones consultar la
+[guía OIDC](../../docs/architecture/oidc-invitation-flow.md).
+La base PostgreSQL sólo se ha migrado en CI efímera, no en un despliegue.
 
 ## Validación
 
@@ -44,7 +47,8 @@ El caso de uso interno de incidencias admite un UUIDv4 `idempotencyKey`
 para deduplicar reintentos concurrentes. No existe aún un endpoint HTTP
 que acepte esa clave ni se ha aprobado el formato de cabecera.
 
-No iniciar recursos reales ni exponer API pública antes del diseño de
-identidad/membresías y migraciones. Ver [roadmap](../../docs/plan/roadmap.md),
+No publicar la API fuera de loopback ni conectar el frontend hasta
+revisar clientes OAuth, HTTPS/proxy, política de invitaciones, CORS, CSRF
+y migraciones persistentes. Ver [roadmap](../../docs/plan/roadmap.md),
 [ADR-0002](../../docs/adr/0002-modular-monolith.md) y
 [ADR-0003](../../docs/adr/0003-multi-tenancy.md).

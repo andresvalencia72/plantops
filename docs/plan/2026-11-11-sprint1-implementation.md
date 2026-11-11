@@ -146,3 +146,39 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   elegir primer factor de login, invitaciones, recuperación, TTL y CSRF.
   No dar por entregada autenticación real ni conectar React hasta cerrar
   ese diseño y realizar E2E de protección HTTP. `main` intacta.
+
+## OIDC por invitación y primeros GET autenticados — 2026-11-11
+
+- Recuperado espacio: Mac volvió a ~20 GiB libres sin borrar Descargas.
+  `main` no se fusionó y todas las nuevas PR continúan draft encadenadas.
+- [PR #30](https://github.com/andresvalencia72/plantops/pull/30):
+  migración `0003` (tablas `oidc_accounts`, `invitations`, `oidc_states`)
+  y restricciones de identidad y expiración.
+- [PR #31](https://github.com/andresvalencia72/plantops/pull/31):
+  `OidcStateStore` PostgreSQL con nonce/PKCE, consumo único
+  `DELETE RETURNING`, expiración y límite de pendientes.
+- [PR #32](https://github.com/andresvalencia72/plantops/pull/32):
+  `OidcAccountResolver` exige identidad por (`provider`,`subject`) o
+  invitación con email verificado, vigente y no revocada. Rechaza enlace de
+  cuentas por email. Acepta membresías multiempresa en transacción.
+- [PR #33](https://github.com/andresvalencia72/plantops/pull/33):
+  rutas OIDC Google/Microsoft condicionales, callback HTTPS fijo,
+  configuración explícita y validaciones negativas. Sin credenciales
+  reales no hay endpoints de login, no se ha llamado a ningún IdP externo.
+- [PR #34](https://github.com/andresvalencia72/plantops/pull/34):
+  pruebas concurrentes de consumo de invitación/callback, bloqueo de
+  nueva alta para una identidad suspendida y límite del OIDC state bajo
+  concurrencia. CI con PostgreSQL efímero: **SUCCESS**.
+- [PR #35](https://github.com/andresvalencia72/plantops/pull/35):
+  `GET /me` y `GET /me/organizations` sobre sesión verificada,
+  no filtran empresas con membresía suspendida; pruebas HTTP.
+- [PR #36](https://github.com/andresvalencia72/plantops/pull/36):
+  `GET /organizations/:id/assets` y `.../:assetId`; comprueba
+  membresía ACTIVE, 401/403/404 y no filtra otros tenants; pruebas HTTP
+  sobre PostgreSQL temporal.
+- **Bloqueos siguientes:** clientes Google/Microsoft reales, políticas de
+  invitación y provisioning, Microsoft `emailVerified` no garantizado,
+  deploy PostgreSQL + HTTPS/CORS/CSRF revisados, E2E contra proveedores
+  reales, contrato de POST incidente aún sin aprobar. No conectar mocks
+  React a login no verificado. Ver
+  [guía OIDC](../architecture/oidc-invitation-flow.md).

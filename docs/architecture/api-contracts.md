@@ -1,6 +1,6 @@
 # Contratos de API — borrador para diseño frontend
 
-**Estado:** DRAFT · existe base NestJS y caso de uso interno de incidencias; **no hay endpoints privados, login ni OpenAPI publicado**. **Revisión:** 2026-11-11.
+**Estado:** PARCIAL · hay HTTP autenticado para perfil, organizaciones y lectura de activos en PR draft; OIDC aún sin clientes reales, no hay POST de incidencias ni OpenAPI publicado. **Revisión:** 2026-11-11.
 
 Este documento permite diseñar fixtures y adaptadores **sin convertir propuestas en API pública comprometida**.
 
@@ -19,10 +19,10 @@ Este documento permite diseñar fixtures y adaptadores **sin convertir propuesta
 
 | Operación | Endpoint candidato | Actor |
 | --- | --- | --- |
-| Contexto actual | `GET /me` | Autenticado |
-| Organizaciones accesibles | `GET /me/organizations` | Autenticado |
-| Listar activos | `GET /assets` | Miembro autorizado |
-| Consultar activo | `GET /assets/:id` | Miembro autorizado |
+| Contexto actual | `GET /me` (implementado) | Sesión |
+| Organizaciones accesibles | `GET /me/organizations` (implementado) | Sesión |
+| Listar activos | `GET /organizations/:organizationId/assets` (implementado) | Miembro ACTIVE |
+| Consultar activo | `GET /organizations/:organizationId/assets/:assetId` (implementado) | Miembro ACTIVE |
 | Listar incidencias | `GET /incidents` | Miembro autorizado |
 | Reportar incidencia | `POST /incidents` | Miembro habilitado |
 | Ver incidencia | `GET /incidents/:id` | Miembro autorizado |
@@ -33,6 +33,12 @@ Este documento permite diseñar fixtures y adaptadores **sin convertir propuesta
 | Iniciar orden | `POST /work-orders/:id/start` | Técnico responsable |
 | Completar orden | `POST /work-orders/:id/complete` | Técnico responsable |
 | Cancelar orden | `POST /work-orders/:id/cancel` | Supervisor |
+
+**Estos endpoints GET están implementados en PR draft, no desplegados.**
+El parámetro `organizationId` selecciona contexto, nunca concede permiso;
+el backend verifica membresía ACTIVE por identidad autenticada y filtra
+PostgreSQL. Sin sesión se responde 401, sin membresía 403 y un activo
+de otra organización se oculta con 404.
 
 **Alternativa:** transiciones mediante `PATCH` con comandos tipados. Evaluarla en ADR si simplifica auditabilidad, idempotencia y coherencia.
 
