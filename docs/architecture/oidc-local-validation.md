@@ -11,10 +11,10 @@ El código y las verificaciones PostgreSQL están en PR draft #29–#41.
   `127.0.0.1:55432`, datos en `tmpfs` (descartables).
 - `apps/api/.env` creado en la Mac con permisos `0600`,
   ignorado por Git, secreto aleatorio **no publicado**.
-- Aplicadas cuatro migraciones Drizzle **solo** a `plantops_dev`:
+- Aplicadas cinco migraciones Drizzle **solo** a `plantops_dev`:
   nueve tablas de dominio/autorización/sesiones/OIDC.
 - Base separada `plantops_test` creada en el mismo contenedor;
-  **66 de 66 pruebas de integración** ejecutadas correctamente
+  **71 de 71 pruebas de integración** ejecutadas correctamente
   contra PostgreSQL local, sin utilizar cuentas reales.
 - API compilada y validada en `127.0.0.1:3001` con OAuth
   desactivado: `/health` responde `200`, sesiones/recursos

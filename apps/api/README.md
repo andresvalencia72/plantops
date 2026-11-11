@@ -49,6 +49,17 @@ No crea usuarios ni invitaciones, no modifica datos y nunca imprime
 credenciales. No prueba un login OAuth real. Para detener la base local
 descartable: `docker compose --env-file .env -f compose.dev.yml down`.
 
+## Incidencias de solo lectura
+
+Además de activos, la API expone (en PR draft) rutas autenticadas de
+**lectura** para `GET /organizations/:organizationId/incidents` y
+`GET /organizations/:organizationId/incidents/:incidentId`. El listado
+admite `limit` (1–50, valor 20 por defecto) y `cursor` opaco; cada
+consulta vuelve a validar que la membresía está ACTIVE.
+El detalle de otra empresa responde 404. No existen aún operaciones
+HTTP de escritura de incidencias. Ver
+[contratos API](../../docs/architecture/api-contracts.md).
+
 ## Validación
 
 ```sh
