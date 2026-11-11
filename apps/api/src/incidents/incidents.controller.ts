@@ -10,6 +10,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  UnsupportedMediaTypeException,
   Query,
 } from '@nestjs/common';
 import { CurrentUser } from '@nestjs/authentication';
@@ -46,10 +47,14 @@ export class IncidentsController {
     @Param('organizationId', new ParseUUIDPipe({ version: '4' }))
     organizationId: string,
     @Headers('idempotency-key') idempotencyKey: string | undefined,
+    @Headers('content-type') contentType: string | undefined,
     @Body() body: unknown,
   ) {
     // No ID, membership, role or organization accepted from the request body.
     // Scope is established from the session and checked again within the TX.
+    if (contentType?.split(';', 1)[0]?.trim().toLowerCase() !== 'application/json') {
+      throw new UnsupportedMediaTypeException('Expected application/json');
+    }
     const context = await this.scope(userId, organizationId);
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
       throw new BadRequestException('Invalid incident report body');

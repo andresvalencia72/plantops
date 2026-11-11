@@ -41,11 +41,13 @@ function validate(input: ReportIncidentInput) {
   ) {
     throw new BadRequestException('Invalid incident report');
   }
+  const assetId = input.assetId.toLowerCase();
   return {
+    assetId,
     title,
     description,
     requestHash: createHash('sha256')
-      .update(JSON.stringify([input.assetId, title, description]))
+      .update(JSON.stringify([assetId, title, description]))
       .digest('hex'),
   };
 }
@@ -124,7 +126,7 @@ export async function reportIncident(
       .from(assets)
       .where(
         and(
-          eq(assets.id, input.assetId),
+          eq(assets.id, normalized.assetId),
           eq(assets.organizationId, context.organizationId),
           eq(assets.active, true),
         ),
@@ -141,7 +143,9 @@ export async function reportIncident(
         assetId: asset.id,
         reportedByMembershipId: member.id,
         idempotencyKey: input.idempotencyKey,
-        ...normalized,
+        title: normalized.title,
+        description: normalized.description,
+        requestHash: normalized.requestHash,
       })
       .onConflictDoNothing({
         target: [
