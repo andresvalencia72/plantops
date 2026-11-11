@@ -5,6 +5,7 @@ import { AppService } from './app.service.js';
 import { DatabaseConnection } from './auth/database-connection.js';
 import { PlantOpsSessionAuth } from './auth/session-auth.provider.js';
 import { SessionController } from './auth/session.controller.js';
+import { MeController } from './auth/me.controller.js';
 import { SessionPersistence } from './auth/session-persistence.js';
 import { trustedOrigins } from './auth/trusted-origins.js';
 import { buildOidcConfig } from './auth/oidc.config.js';
@@ -29,7 +30,12 @@ const oidcConfig = buildOidcConfig();
       },
     }),
   ],
-  controllers: [AppController, SessionController, ...(oidcConfig ? [OidcController] : [])],
+  controllers: [
+    AppController,
+    SessionController,
+    MeController,
+    ...(oidcConfig ? [OidcController] : []),
+  ],
   providers: [
     AppService,
     DatabaseConnection,
