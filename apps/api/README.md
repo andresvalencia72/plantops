@@ -40,6 +40,17 @@ organización. Ninguna invitación o credencial real se ha creado.
 Consultar [guía de piloto OIDC](../../docs/architecture/oidc-local-validation.md)
 antes de encender Docker, configurar OAuth o migrar datos locales.
 
+## Logout de sesión (propuesto en PR draft)
+
+`POST /auth/logout` requiere sesión válida y usa
+`SignInService.signOut()` oficial: borra la sesión actual en PostgreSQL
+y expira su cookie `HttpOnly`/`Secure`. La cabecera HTTP se procesa por
+la protección CSRF global de NestJS; las peticiones cross-site se deniegan.
+No tiene parámetros ni admite un `userId` enviado por el navegador.
+No revoca otras sesiones del mismo usuario (eso sería otra operación,
+con su propia autorización). Sin sesión: `401`; con sesión: `204`.
+No se ha ejecutado contra la sesión personal abierta en Chrome.
+
 ## Comprobación local sin cuentas ni OAuth
 
 Con Docker Desktop, PostgreSQL descartable y la API ejecutándose en

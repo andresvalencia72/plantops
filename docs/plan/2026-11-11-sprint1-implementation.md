@@ -365,3 +365,19 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 - Pruebas directas con `OidcService.finish` simulado en PostgreSQL
   descartable y pruebas de React/Playwright separadas; sesión real
   del usuario no modificada. PR draft apilada sobre #46.
+
+## Logout seguro sin intervenir en la sesión personal — 2026-11-11
+
+- PR draft `feat/plantops-session-logout` apilada sobre la UI de rechazo:
+  `POST /auth/logout` con guard global y CSRF de NestJS;
+  `SignInService.signOut()` oficial revoca **solo** la sesión actual en BD
+  y expira la cookie con `HttpOnly/Secure`.
+- React expone «Cerrar sesión» en el área autenticada; usa
+  `POST /api/auth/logout` mismo origen, revalida `/me` tras 204
+  y no conserva datos de tenants tras logout; si falla, mantiene
+  sesión/pantalla y avisa sin anunciar éxito.
+- Test PostgreSQL de dos sesiones aisladas (logout una, conservar otra),
+  anónimo 401, cross-site 403 y sesión todavía válida. Pruebas UI
+  logout exitoso y fallo, y Playwright simulado.
+- Se evitó cerrar la sesión personal del propietario; la base
+  `plantops_dev` y el Chrome real no se tocaron por estos tests.

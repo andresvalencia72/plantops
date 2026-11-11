@@ -5,6 +5,24 @@ Microsoft y producción NO verificados.
 **Fecha:** 2026-11-11. Solo para desarrolladores autorizados; nunca producción.
 El código y las verificaciones PostgreSQL están en PR draft #29–#41.
 
+## Cierre de sesión seguro — PR draft posterior a #47
+
+- El cierre de sesión es `POST /auth/logout`, **no GET**, con cookie
+  de sesión y guard global. La protección CSRF de NestJS rechaza
+  `Sec-Fetch-Site: cross-site` y orígenes no confiables.
+- `SignInService.signOut()` oficial invalida el hash de **esa sesión**
+  en PostgreSQL y expira la cookie; no afecta a otras sesiones.
+  Sin sesión responde 401; con sesión, 204 y `Set-Cookie` de borrado.
+- React usa `POST /api/auth/logout` same-origin mediante el proxy local;
+  tras 204 reconsulta `/me` y ya no enseña recursos protegidos. Los
+  errores de transporte o de servidor se muestran, sin declarar éxito.
+- Pruebas de integración usan **exclusivamente `plantops_test`**
+  descartable con sesiones sintéticas. No se ejecutó logout en Chrome
+  del propietario ni se revocó su sesión real.
+- Pendiente la validación manual E2E de logout en una sesión real,
+  además de navegadores alternativos, HTTPS, auditoría y políticas
+  administrativas de invitación.
+
 ## UX para cuenta sin invitación — PR draft posterior a #46
 
 - Cuando el resolver OIDC devuelve específicamente `403 account not allowed`
