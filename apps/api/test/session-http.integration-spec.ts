@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { Pool } from 'pg';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
-import { afterAll, beforeAll, describe, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module.js';
 import { users } from '../src/database/organizations.js';
 
@@ -73,6 +73,59 @@ describe('HTTP session protection (PostgreSQL integration)', () => {
       .get('/auth/session')
       .set('Cookie', issued.cookie)
       .expect(401);
+  });
+
+  it('logs out only the current browser session and expires its cookie', async () => {
+    const first = await sessionService.create(userId);
+    const second = await sessionService.create(userId);
+    try {
+      await request(app.getHttpServer())
+        .get('/auth/session').set('Cookie', first.cookie)
+        .expect(200);
+      const response = await request(app.getHttpServer())
+        .post('/auth/logout')
+        .set('Cookie', first.cookie)
+        .set('Sec-Fetch-Site', 'same-origin')
+        .expect(204);
+      const cleared = response.headers['set-cookie'];
+      const cookies = Array.isArray(cleared) ? cleared : [cleared];
+      expect(cookies.some((cookie: string | undefined) =>
+        cookie?.includes('Max-Age=0') && cookie.includes('HttpOnly') &&
+        cookie.includes('Secure'))).toBe(true);
+      await request(app.getHttpServer())
+        .get('/auth/session').set('Cookie', first.cookie)
+        .expect(401);
+      await request(app.getHttpServer())
+        .get('/auth/session').set('Cookie', second.cookie)
+        .expect(200).expect({ userId });
+    } finally {
+      await sessionService.revokeAll(userId);
+    }
+  });
+
+  it('refuses a logout without a valid session', async () => {
+    await request(app.getHttpServer())
+      .post('/auth/logout')
+      .set('Sec-Fetch-Site', 'same-origin')
+      .expect(401);
+  });
+
+  it('refuses cross-site logout and preserves the existing session', async () => {
+    const current = await sessionService.create(userId);
+    try {
+      await request(app.getHttpServer())
+        .post('/auth/logout')
+        .set('Cookie', current.cookie)
+        .set('Origin', 'https://evil.invalid')
+        .set('Sec-Fetch-Site', 'cross-site')
+        .expect(403);
+      await request(app.getHttpServer())
+        .get('/auth/session')
+        .set('Cookie', current.cookie)
+        .expect(200).expect({ userId });
+    } finally {
+      await sessionService.revokeAll(userId);
+    }
   });
 
   it('does not trust cookies on an unsafe cross-origin request', async () => {
