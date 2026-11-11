@@ -38,39 +38,7 @@ export async function resolveInvitedIdentity(
       eq(oidcAccounts.provider, profile.provider),
       eq(oidcAccounts.subject, profile.subject),
     );
-    const existingAccount = async (): Promise<{
-      found: boolean;
-      principal: { id: string } | null;
-    }> => {
-      const [account] = await tx
-        .select({ userId: oidcAccounts.userId })
-        .from(oidcAccounts)
-        .where(lookup)
-        .limit(1);
-      if (!account) return { found: false, principal: null };
-      // Found-but-suspended must never fall through to new invitation signup.
-      const [active] = await tx
-        .select({ id: memberships.id })
-        .from(memberships)
-        .where(and(
-          eq(memberships.userId, account.userId),
-          eq(memberships.status, 'ACTIVE'),
-        ))
-        .limit(1);
-      return {
-        found: true,
-        principal: active ? { id: account.userId } : null,
-      };
-    };
-
-    const existing = await existingAccount();
-    if (existing.found) return existing.principal;
-
-    const email = verifiedInvitationEmail(profile);
-    if (!email) return null;
-
-    // Lock and consume all valid invitations for this verified email.
-    const pending = await tx.select({
+    const pendingInvitations = async (email: string) => tx.select({
       id: invitations.id,
       organizationId: invitations.organizationId,
       role: invitations.role,
@@ -84,6 +52,68 @@ export async function resolveInvitedIdentity(
       ))
       .orderBy(invitations.organizationId, invitations.id)
       .for('update');
+
+    const consumeInvitations = async (
+      userId: string,
+      pending: Awaited<ReturnType<typeof pendingInvitations>>,
+    ) => {
+      if (pending.length === 0) return;
+      const joined = await tx.select({ organizationId: memberships.organizationId })
+        .from(memberships)
+        .where(eq(memberships.userId, userId));
+      // Existing memberships, even SUSPENDED, are never altered by an invite.
+      const joinedOrganizations = new Set(joined.map((row) => row.organizationId));
+      const newOrganizations = pending.filter(
+        (invite) => !joinedOrganizations.has(invite.organizationId),
+      );
+      if (newOrganizations.length === 0) return;
+      await tx.insert(memberships).values(newOrganizations.map((invite) => ({
+        organizationId: invite.organizationId,
+        userId,
+        role: invite.role,
+      })));
+      await tx.update(invitations)
+        .set({ consumedAt: new Date(), consumedByUserId: userId })
+        .where(inArray(invitations.id, newOrganizations.map((invite) => invite.id)));
+    };
+
+    const existingAccount = async (): Promise<{
+      found: boolean;
+      principal: { id: string } | null;
+    }> => {
+      const [account] = await tx
+        .select({ userId: oidcAccounts.userId })
+        .from(oidcAccounts)
+        .where(lookup)
+        .limit(1)
+        .for('update');
+      if (!account) return { found: false, principal: null };
+      // Found-but-suspended must never fall through to new invitation signup.
+      const [active] = await tx
+        .select({ id: memberships.id })
+        .from(memberships)
+        .where(and(
+          eq(memberships.userId, account.userId),
+          eq(memberships.status, 'ACTIVE'),
+        ))
+        .limit(1);
+      if (!active) return { found: true, principal: null };
+
+      const email = verifiedInvitationEmail(profile);
+      if (email) {
+        // A proved identity may accept a new tenant invite, never auto-link
+        // a second provider by email or revive an existing suspended role.
+        await consumeInvitations(account.userId, await pendingInvitations(email));
+      }
+      return { found: true, principal: { id: account.userId } };
+    };
+
+    const existing = await existingAccount();
+    if (existing.found) return existing.principal;
+
+    const email = verifiedInvitationEmail(profile);
+    if (!email) return null;
+    const pending = await pendingInvitations(email);
 
     // A competing callback might have consumed the invitation while waiting.
     if (pending.length === 0) return (await existingAccount()).principal;
@@ -100,14 +130,7 @@ export async function resolveInvitedIdentity(
       provider: profile.provider,
       subject: profile.subject,
     });
-    await tx.insert(memberships).values(pending.map((invitation) => ({
-      organizationId: invitation.organizationId,
-      userId: person.id,
-      role: invitation.role,
-    })));
-    await tx.update(invitations)
-      .set({ consumedAt: new Date(), consumedByUserId: person.id })
-      .where(inArray(invitations.id, pending.map((invite) => invite.id)));
+    await consumeInvitations(person.id, pending);
 
     return { id: person.id };
   });
