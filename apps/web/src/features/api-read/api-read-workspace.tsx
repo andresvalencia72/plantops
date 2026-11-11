@@ -102,7 +102,7 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
             </span>
             <span className="text-[15px] font-semibold tracking-tight">plantops<span className="text-primary">.</span></span>
             <span className="hidden h-5 w-px bg-border sm:inline" aria-hidden="true" />
-            <Badge variant="outline" className="text-[10px]">{isolatedWrites ? 'API local · Laboratorio aislado' : 'API local · Solo lectura'}</Badge>
+            <Badge variant="outline" className="text-xs">{isolatedWrites ? 'API local · Laboratorio aislado' : 'API local · Solo lectura'}</Badge>
           </div>
           <div className="flex items-center gap-2">
             <a href="/" className="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
@@ -118,9 +118,9 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
       </header>
       <main id="api-main" className="mx-auto max-w-[1280px] space-y-7 px-4 py-9 sm:px-8">
         <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[.17em] text-primary">Integración HTTP · En desarrollo</p>
-          <h1 className="text-[29px] font-semibold tracking-[-.045em] sm:text-[36px]">Centro de operaciones</h1>
-          <p className="mt-2 max-w-[620px] text-[13px] leading-6 text-muted-foreground">
+          <p className="mb-2 text-xs font-medium text-primary">Integración HTTP · En desarrollo</p>
+          <h1 className="text-[28px] font-medium tracking-normal sm:text-[32px]">Centro de operaciones</h1>
+          <p className="mt-2 max-w-[620px] text-sm leading-6 text-muted-foreground">
             Datos consultados directamente en la API de PlantOps. No se mezclan registros ficticios
             y {isolatedWrites ? 'las escrituras solo se habilitan para pruebas aisladas.' :
               'no se permiten altas o modificaciones desde esta vista.'}

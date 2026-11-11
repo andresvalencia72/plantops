@@ -80,29 +80,29 @@ export function ApiIncidentsPanel({ client, organization, userId, allowWrites = 
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
         <section className="border border-border bg-card p-5">
-          <p className="text-[11px] font-medium text-muted-foreground">Organización autorizada</p>
-          <p className="mt-3 truncate text-lg font-semibold">{organization.name}</p>
-          <p className="mt-1 text-[11px] text-muted-foreground">Rol confirmado por el servidor: {organization.role}</p>
+          <p className="text-xs font-medium text-muted-foreground">Organización autorizada</p>
+          <p className="mt-3 truncate text-lg font-medium">{organization.name}</p>
+          <p className="mt-1 text-xs text-muted-foreground">Rol confirmado por el servidor: {organization.role}</p>
         </section>
         <section className="border border-border bg-card p-5">
-          <p className="text-[11px] font-medium text-muted-foreground">Activos registrados</p>
-          <p className="mt-3 text-3xl font-semibold tabular-nums">
+          <p className="text-xs font-medium text-muted-foreground">Activos registrados</p>
+          <p className="mt-3 text-3xl font-medium tabular-nums">
             {state.status === 'ready' ? assets.length : '—'}
           </p>
-          <p className="mt-1 text-[11px] text-muted-foreground">Datos consultados en esta organización</p>
+          <p className="mt-1 text-xs text-muted-foreground">Datos consultados en esta organización</p>
         </section>
         <section className="border border-border bg-card p-5">
-          <p className="text-[11px] font-medium text-muted-foreground">Incidencias en esta página</p>
-          <p className="mt-3 text-3xl font-semibold tabular-nums">
+          <p className="text-xs font-medium text-muted-foreground">Incidencias en esta página</p>
+          <p className="mt-3 text-3xl font-medium tabular-nums">
             {page ? page.items.length : '—'}
           </p>
-          <p className="mt-1 text-[11px] text-muted-foreground">Página {pageNumber} · No representa el total global</p>
+          <p className="mt-1 text-xs text-muted-foreground">Página {pageNumber} · No representa el total global</p>
         </section>
       </div>
       <section className="border border-border bg-card">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-5">
           <div>
-            <h2 className="text-[14px] font-semibold">Incidencias registradas</h2>
+            <h2 className="text-sm font-medium">Incidencias registradas</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               {allowWrites ? 'Consulta y reporte en entorno aislado de pruebas'
                 : 'Consulta paginada del servidor · sin operaciones de escritura'}
@@ -147,14 +147,14 @@ export function ApiIncidentsPanel({ client, organization, userId, allowWrites = 
                   onClick={() => setSelectedId(incident.id)}
                 >
                   <div className="min-w-0 flex-1 space-y-1">
-                    <p className="truncate text-[13px] font-semibold">{incident.title}</p>
-                    <p className="truncate text-[11px] text-muted-foreground">
+                    <p className="truncate text-sm font-medium">{incident.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">
                       {asset ? `${asset.code} · ${asset.name}` : 'Activo no disponible'}
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
                     <StatusBadge value={incident.status} />
-                    <span className="hidden text-[11px] text-muted-foreground sm:inline">
+                    <span className="hidden text-xs text-muted-foreground sm:inline">
                       {new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium' })
                         .format(new Date(incident.reportedAt))}
                     </span>
@@ -167,7 +167,7 @@ export function ApiIncidentsPanel({ client, organization, userId, allowWrites = 
         )}
         {page && (
           <footer className="flex items-center justify-between gap-3 border-t border-border px-5 py-3">
-            <p className="text-[11px] text-muted-foreground">Página {pageNumber} · {page.items.length} registros</p>
+            <p className="text-xs text-muted-foreground">Página {pageNumber} · {page.items.length} registros</p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" disabled={!previous.length} onClick={back}>
                 <ChevronLeft size={14} aria-hidden="true" /> Anterior

@@ -18,19 +18,19 @@ export function Topbar({
   screen, organization, onOrganizationChange, theme, onThemeChange, onMenuOpen, menuTriggerRef,
 }: TopbarProps) {
   return (
-    <header className="flex min-h-18 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border bg-card px-4 py-3 sm:px-7">
+    <header className="flex min-h-16 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border bg-card px-4 py-2 sm:px-7">
       <div className="flex items-center gap-3">
         <Button ref={menuTriggerRef} aria-label="Abrir menú" className="md:hidden" size="icon" variant="ghost" onClick={onMenuOpen}>
           <Menu size={19} />
         </Button>
-        <span className="text-[13px] font-medium text-muted-foreground">Workspace</span>
+        <span className="text-[13px] font-medium text-muted-foreground">Operaciones</span>
         <span aria-hidden="true" className="text-border">/</span>
         <span className="text-[13px] font-semibold">{screen === 'overview' ? 'Vista general' : 'Incidencias'}</span>
       </div>
       <div className="flex items-center gap-2">
         {import.meta.env.DEV && (
           <a href="/?source=api"
-            className="hidden h-9 items-center gap-2 rounded-md border border-border px-3 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground lg:inline-flex">
+            className="hidden h-9 items-center gap-2 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground lg:inline-flex">
             <Database size={14} aria-hidden="true" /> Vista API
           </a>
         )}

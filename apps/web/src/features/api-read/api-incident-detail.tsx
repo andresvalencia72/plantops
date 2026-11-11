@@ -44,8 +44,8 @@ export function ApiIncidentDetailSheet({
     <Sheet open={incidentId !== null} onOpenChange={(open) => { if (!open) onClose() }}>
       <SheetContent className="w-full gap-0 overflow-y-auto sm:max-w-[480px]">
         <SheetHeader className="border-b border-border px-6 py-8 pr-12">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">Registro de la API · Solo lectura</p>
-          <SheetTitle className="mt-2 text-xl font-semibold tracking-tight">
+          <p className="text-xs font-medium text-primary">Registro de la API · Solo lectura</p>
+          <SheetTitle className="mt-2 text-xl font-medium">
             {detail?.title ?? 'Detalle de incidencia'}
           </SheetTitle>
           <SheetDescription className="mt-2 font-mono text-xs">
@@ -63,18 +63,18 @@ export function ApiIncidentDetailSheet({
           {detail && (
             <>
               <section className="space-y-2">
-                <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Descripción</h3>
-                <p className="text-[13px] leading-6">{detail.description}</p>
+                <h3 className="text-xs font-medium text-muted-foreground">Descripción</h3>
+                <p className="text-sm leading-6">{detail.description}</p>
               </section>
               <section className="space-y-3 border-t border-border pt-6">
-                <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Activo</h3>
+                <h3 className="text-xs font-medium text-muted-foreground">Activo</h3>
                 <p className="flex items-center gap-2 text-sm">
                   <Wrench size={17} className="text-primary" aria-hidden="true"/>
                   {asset ? `${asset.code} · ${asset.name}` : 'Activo no disponible'}
                 </p>
               </section>
               <section className="space-y-3 border-t border-border pt-6">
-                <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Fecha de reporte</h3>
+                <h3 className="text-xs font-medium text-muted-foreground">Fecha de reporte</h3>
                 <p className="flex items-center gap-2 text-xs">
                   <CalendarDays size={17} className="text-primary" aria-hidden="true" />
                   {new Intl.DateTimeFormat('es-ES', { dateStyle: 'long', timeStyle: 'short' })
