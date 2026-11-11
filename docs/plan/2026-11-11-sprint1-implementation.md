@@ -182,3 +182,62 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   reales, contrato de POST incidente aún sin aprobar. No conectar mocks
   React a login no verificado. Ver
   [guía OIDC](../architecture/oidc-invitation-flow.md).
+
+## Piloto de invitaciones y login real — 2026-11-11
+
+- [PR #38](https://github.com/andresvalencia72/plantops/pull/38):
+  API **interna** para emitir/revocar/listar invitaciones, caducidad acotada
+  1–30 días, emails normalizados y rechazo de duplicados/concurrencia.
+  No crea endpoints HTTP ni permisos de administración dentro del producto.
+- [PR #39](https://github.com/andresvalencia72/plantops/pull/39):
+  CLI de operador con dry-run por defecto, confirmación de organización y
+  nombre esperado de BD, correos enmascarados en listados; ninguna invitación
+  real creada. No se imprime DATABASE_URL.
+- [PR #40](https://github.com/andresvalencia72/plantops/pull/40):
+  una cuenta ya verificada puede aceptar invitaciones a otras empresas
+  sin duplicarse; no revive membresías suspendidas. Tests PostgreSQL.
+- [PR #41](https://github.com/andresvalencia72/plantops/pull/41):
+  Docker Compose PostgreSQL 17 en loopback con base efímera en tmpfs,
+  script de migración solo para DB local `plantops_dev` con `--apply`.
+  Docker Desktop estaba instalado pero su daemon apagado, así que no se
+  ha creado contenedor ni migrado DB de Mac.
+- [PR #42](https://github.com/andresvalencia72/plantops/pull/42):
+  guía de puesta en marcha y registro de clientes Google/Entra sin secretos,
+  pruebas manuales esperadas y bloqueo específico `email_verified` Microsoft.
+- **Pendiente para login realmente probado:** crear clientes OAuth en las
+  consolas de los proveedores, aportar secretos mediante .env local seguro,
+  abrir Docker Desktop y completar el callback en un navegador. No reclamar
+  validación de IdP real hasta disponer de evidencia; ninguna PR fusionada.
+
+## TODO aplazado — login local y diagnóstico Docker (2026-11-11)
+
+- El usuario decidió **aplazar** la prueba del callback localhost de Google,
+  cookies Secure en Chrome/Safari y el login real; no habilitar soluciones
+  inseguras ni cambiar el contrato para evitar la prueba.
+- Diagnóstico de solo lectura en Mac: Docker Desktop instalado 4.64.0,
+  macOS 26.5.2 arm64; el backend persistía desde hacía 16 días con rutas de
+  log en `~/.Trash/Containers/com.docker.docker` (ubicación ausente ahora).
+  El contenedor de app activo en `~/Library/Containers/com.docker.docker`
+  sólo contiene logs, y falta `~/.docker/run/docker.sock`.
+  `open -g -a Docker` devolvió error `-1712` (tiempo de espera).
+- **No se han terminado procesos, limpiado volúmenes, borrado datos ni
+  reseteado la instalación.** Revisar copias del disco VM antes de
+  recuperación; Docker puede contener datos que el usuario necesite.
+  Guía y evidencia resumidas en
+  [piloto OIDC](../architecture/oidc-local-validation.md).
+
+## Recuperación de Docker Desktop — 2026-11-11
+
+- El usuario autorizó borrar/reiniciar Docker si fuera necesario y no
+  recuerda tener datos de Docker importantes.
+- Tras comprobar que `com.docker.backend` antiguo (PID 64827) apuntaba
+  con descriptores abiertos a `~/.Trash/Containers/com.docker.docker/Data`
+  y no existía el socket, se intentó cierre `SIGTERM` (sin respuesta).
+- Solo entonces se aplicó `SIGKILL` al proceso Docker antiguo y se lanzó
+  `open -g -a /Applications/Docker.app`. El nuevo backend quedó operativo.
+  `docker desktop status` = running; `docker info` informa Engine 29.2.1
+  y 0 contenedores; socket de Docker presente.
+- **No se borró nada, no se reinició macOS, no se reinstaló ni reseteó
+  Docker, no se creó contenedor ni ejecutó migración PlantOps.**
+- El piloto OAuth con callback local Google / cookies Secure continúa
+  **aplazado por decisión del usuario**. La guía de OIDC fue actualizada.

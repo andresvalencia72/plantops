@@ -8,9 +8,10 @@ invitaciones, despliegue final y recuperación de cuenta.
 
 ## Flujo de seguridad
 
-1. Un administrador autorizado (flujo **pendiente de implementar**) provisiona
-   una invitación vinculada a un email normalizado y una organización, con
-   rol y fecha de caducidad. No existe endpoint anónimo para crearla.
+1. Un operador de BD autorizado puede provisionar invitaciones con una
+   herramienta CLI privada (PR #38–#39), que exige confirmación explícita
+   para escribir. No hay endpoint anónimo ni interfaz administrativa web;
+   la política de roles de administradores continúa pendiente.
 2. `GET /auth/oidc/google/login` o `/microsoft/login` se habilita sólo
    cuando las credenciales de ese proveedor están **completas**.
    `OidcService` oficial genera PKCE, `state` y `nonce`, guarda la
@@ -90,8 +91,11 @@ códigos HTTP aún requieren aprobación.
 - PR #35–#36: HTTP autenticado, membresías activas y lectura de activos con
   aislamiento entre empresas comprobado con sesiones de test.
 - La migración `0003` no se aplicó a ninguna base persistente.
-- Pendiente antes de uso real: registrar clientes y callback, definir quién
-  invita y cómo, protección y rate limiting del flujo de invitación, revisar
+- El CLI de operador permite emitir/revocar/listar, pero falta decidir quién
+  puede invitar dentro del producto y cómo auditarlo a escala. Ver
+  [piloto de OIDC real](oidc-local-validation.md).
+- Pendiente antes de uso real: registrar clientes y callback, revisar
+  control de acceso/rate limiting de invitaciones, revisar
   políticas de sesión/CORS, test end-to-end contra proveedores reales en
   entorno aislado, desplegar DB, y cerrar auditoría e incidentes HTTP.
 
