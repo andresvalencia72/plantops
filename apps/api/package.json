@@ -22,7 +22,8 @@
     "typecheck": "tsc --noEmit --incremental false",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
-    "test:integration": "vitest run --config ./vitest.config.integration.ts"
+    "test:integration": "vitest run --config ./vitest.config.integration.ts",
+    "invites:operator": "npm run build && node ./scripts/invitations-operator.mjs"
   },
   "dependencies": {
     "@nestjs/authentication": "0.1.5",
