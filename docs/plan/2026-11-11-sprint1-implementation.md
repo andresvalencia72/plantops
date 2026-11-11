@@ -225,3 +225,19 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   recuperación; Docker puede contener datos que el usuario necesite.
   Guía y evidencia resumidas en
   [piloto OIDC](../architecture/oidc-local-validation.md).
+
+## Recuperación de Docker Desktop — 2026-11-11
+
+- El usuario autorizó borrar/reiniciar Docker si fuera necesario y no
+  recuerda tener datos de Docker importantes.
+- Tras comprobar que `com.docker.backend` antiguo (PID 64827) apuntaba
+  con descriptores abiertos a `~/.Trash/Containers/com.docker.docker/Data`
+  y no existía el socket, se intentó cierre `SIGTERM` (sin respuesta).
+- Solo entonces se aplicó `SIGKILL` al proceso Docker antiguo y se lanzó
+  `open -g -a /Applications/Docker.app`. El nuevo backend quedó operativo.
+  `docker desktop status` = running; `docker info` informa Engine 29.2.1
+  y 0 contenedores; socket de Docker presente.
+- **No se borró nada, no se reinició macOS, no se reinstaló ni reseteó
+  Docker, no se creó contenedor ni ejecutó migración PlantOps.**
+- El piloto OAuth con callback local Google / cookies Secure continúa
+  **aplazado por decisión del usuario**. La guía de OIDC fue actualizada.

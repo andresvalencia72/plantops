@@ -28,11 +28,33 @@ locales que deban recuperarse; comprobar copias y ubicación del disco VM.
 Ver [respaldo y recuperación de Docker Desktop](https://docs.docker.com/desktop/settings-and-maintenance/backup-and-restore/).
 
 
+## Docker Desktop recuperado (11/11/2026)
+
+**Estado actual verificado:** Docker Desktop 4.64.0 inicia correctamente;
+`docker desktop status` devuelve `running` y `docker info` responde con
+Docker Engine 29.2.1. El socket `~/.docker/run/docker.sock` existe.
+La instancia recién iniciada informa de 0 contenedores.
+
+Con autorización explícita del propietario, se envió `SIGTERM` al proceso
+antiguo `com.docker.backend` (PID 64827), que no terminó en 20 segundos.
+Se detuvo **solo ese proceso** mediante `SIGKILL`; a continuación
+`open -g -a /Applications/Docker.app` terminó con éxito y el nuevo
+backend arrancó sus servicios y la máquina virtual. No se reinstaló
+Docker, no se ejecutó factory reset, no se eliminaron ficheros ni
+se reinició macOS.
+
+El diagnóstico anterior queda como histórico: el proceso atascado
+referenciaba archivos abiertos de una ruta movida a la Papelera. No se ha
+confirmado cómo llegó allí ni si existían volúmenes previos.
+**No se han iniciado contenedores del proyecto ni aplicado migraciones.**
+El TODO de Google/localhost y cookies Secure permanece aplazado.
+
 ## Preparar la Mac y PostgreSQL
 
-El Docker CLI está instalado, pero el daemon de Docker Desktop no estaba
-activo durante esta sesión. Cuando puedas, abre Docker Desktop tú mismo.
-**No se ha creado ninguna base ni contenedor en tu Mac.**
+Docker Desktop ya está operativo tras la recuperación indicada arriba.
+**No se ha creado ninguna base ni contenedor de PlantOps en tu Mac.**
+La configuración local descrita a continuación queda opcional y pendiente
+mientras el piloto OAuth siga aplazado.
 
 En el repositorio:
 
