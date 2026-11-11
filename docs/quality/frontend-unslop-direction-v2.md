@@ -42,3 +42,16 @@ No se identificaron gradientes decorativos, emojis, `transition-all` abusivos ni
 9. **Motion:** sin movimiento decorativo; respetar foco, teclado y preferencias de reducción de movimiento.
 
 **Protecciones:** no cambiar `App.tsx`, adaptador HTTP, sesión, OAuth, RBAC, migraciones, API ni flujos de reporte. Comparar ambos temas y 320/375/768/1280 px. Esta propuesta no constituye aprobación final.
+
+## Resultado implementado y validación
+
+- **Composición:** dashboard conserva sus indicadores reales, pero destaca incidencias abiertas y sitúa una bitácora ancha a la izquierda, junto al aviso crítico real de esa organización.
+- **Identidad:** sidebar grafito tanto en tema claro como oscuro; base de contenido clara neutra; temas consistentes y sin gradientes.
+- **Señalización:** marcadores de prioridad reutilizados entre Dashboard, tabla y filas móviles; badges siguen mostrando el significado con texto.
+- **Sin invención:** no se introdujeron gráficos de tendencia, actividad en tiempo real, medias ni órdenes inexistentes.
+- **Código:** React, TypeScript, Tailwind y shadcn locales. Sin cambios en seguridad, API, sesión u OAuth. Unslop es una skill de instrucciones: sus scripts de snapshot/story permanecen instalados para uso posterior, pero no se ejecutan en esta auditoría.
+- **Pruebas locales:** TypeScript y build correctos; 44/44 pruebas Vitest/RTL; 14/14 escenarios Playwright/Chrome, incluidos cambio de tenant en panel prioritario, 320 px, formulario y navegador móvil. Lint: cero errores y dos avisos históricos de componentes shadcn.
+- **Límite de 400 líneas:** correcto para código propio; el script `story.mjs` de Unslop (503 líneas externas) queda excluido expresamente del comprobador, sin alterar otros límites.
+- **Capturas reales:** [Dashboard e Incidencias](../design/previews/unslop-v2-2026-11-11/), vistas 1440 y 375 px, claro/oscuro; se tomaron de Chrome sobre los datos ficticios de la demo. Sin solicitudes a API ni datos del piloto.
+
+**Limitaciones:** el usuario todavía no ha aprobado esta nueva dirección. Aún se debe auditar contraste por parejas de tokens/estados, zoom a 200 %, lectores de pantalla y datos largos. El modo API protegido solo se testó con respuestas interceptadas, nunca con sesiones personales. Se preservan versiones y PR previas.

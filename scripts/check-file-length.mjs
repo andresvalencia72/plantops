@@ -11,6 +11,8 @@ function inspect(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name)
     if (entry.isDirectory()) {
+      // Third-party Unslop skill is vendored verbatim, not hand-written PlantOps code.
+      if (relative(root, path) === '.agents/skills/unslop') continue
       if (!ignored.has(entry.name)) inspect(path)
       continue
     }
