@@ -381,3 +381,16 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   logout exitoso y fallo, y Playwright simulado.
 - Se evitó cerrar la sesión personal del propietario; la base
   `plantops_dev` y el Chrome real no se tocaron por estos tests.
+
+## HTTP POST de incidencias — borrador para revisar (2026-11-11)
+
+- Rama `feat/plantops-incidents-http-report` apilada sobre #48:
+  usa el caso de uso transaccional existente, sesión PostgreSQL y
+  autorización multiempresa en cada petición, con CSRF global.
+- Contrato propuesto `POST /organizations/:organizationId/incidents`
+  e `Idempotency-Key` UUIDv4; `201` también para replay idéntico;
+  `409` clave conflictiva. Body estricto, sin campos de autoridad.
+- Pruebas HTTP reales solamente contra `plantops_test`: concurrencia,
+  reintentos, rol, suspensión, activo extranjero/inactivo y cross-site.
+  No conectar todavía el formulario React ni fusionar sin revisión.
+- Fuente: [contrato HTTP](../architecture/incident-reporting-http.md).
