@@ -3,8 +3,8 @@
 **Industrial maintenance and operations management, designed as a multi-tenant SaaS.**  
 **Gestión de mantenimiento y operaciones industriales, diseñada como un SaaS multiempresa.**
 
-> **Project status / Estado:** Sprint 1 · frontend demo and API foundation in stacked draft PRs; authentication and database not implemented.
-> **Estado del proyecto:** Sprint 1 · frontend demo y base NestJS en PR draft encadenadas; sin autenticación ni base de datos.
+> **Project status / Estado:** Sprint 1 · draft PRs include UI, NestJS, proposed DB schema and tested tenant boundaries; no real login or deployed DB.
+> **Estado del proyecto:** Sprint 1 · PR draft de UI, NestJS, esquema SQL y pruebas de tenant; sin login real ni BD desplegada.
 
 [Español](#español) · [English](#english)
 
@@ -54,8 +54,8 @@ Estas son las decisiones funcionales de partida y pueden evolucionar con evidenc
 | Área | Candidato | Estado |
 | --- | --- | --- |
 | Frontend | React + TypeScript | Demo implementada, PR draft sin fusionar |
-| Backend | NestJS 12 + TypeScript | Fundación `/health` implementada en PR draft |
-| Base de datos | PostgreSQL compartida | Estrategia aceptada; no implementada |
+| Backend | NestJS 12 + TypeScript | Base y consultas de tenant en PR draft; sin API privada |
+| Base de datos | PostgreSQL compartida + Drizzle | Migración propuesta; validada en PostgreSQL efímero de CI |
 | Arquitectura | Monolito modular | ADR-0002 aceptado |
 | Desarrollo local | Docker Compose | Propuesto |
 | CI | GitHub Actions | Workflows por app en ramas draft |
@@ -132,8 +132,8 @@ These are baseline product decisions and may evolve based on evidence and ADRs.
 | Area | Candidate | Status |
 | --- | --- | --- |
 | Frontend | React + TypeScript | Demo implemented in draft PRs |
-| Backend | NestJS 12 + TypeScript | `/health` foundation in draft PR |
-| Database | Shared PostgreSQL | Strategy accepted; not implemented |
+| Backend | NestJS 12 + TypeScript | Foundation and tenant queries in draft PRs; no private API yet |
+| Database | Shared PostgreSQL + Drizzle | Draft migration tested on ephemeral CI PostgreSQL |
 | Architecture | Modular monolith | ADR-0002 accepted |
 | Local development | Docker Compose | Proposed |
 | CI | GitHub Actions | Per-app workflows in draft branches |

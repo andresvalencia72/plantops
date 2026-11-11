@@ -119,3 +119,23 @@ Falta de conexión con Mac/GitHub, instalación fallida, tests rotos no explicad
 - [GitHub Actions #42995242205](https://github.com/andresvalencia72/plantops/actions/runs/42995242205) falló inicialmente en `npm ci` Linux: faltaban entradas de dependencias opcionales de WASM `@emnapi/core` y `@emnapi/runtime` en el lockfile generado en macOS.
 - Commit `c60c041`: lockfile completado con metadatos resueltos por npm, **sin añadir dependencias directas**; `npm ci` y suite API verificados de nuevo en Mac.
 - [GitHub Actions #42995809942](https://github.com/andresvalencia72/plantops/actions/runs/42995809942): **SUCCESS** para `c60c041`. PR #13 draft apilada sobre PR #12 (ADR aceptados); no hay merge en `main`.
+
+## Sprints 1 · Modelo y límites backend — 2026-11-11
+
+- PR #14: ADR-0004 propuesta de identidad/sesiones; no aprobada como proveedor.
+- PR #15: esquema Drizzle/PostgreSQL de cinco tablas y FKs multitenant; no
+  aplicada a datos persistentes. Bloqueo de poco espacio `ENOSPC` detectado,
+  limpiado npm con autorización explícita y Downloads conservada.
+- PR #16: resolución de contexto de tenant, denegaciones y permisos (7 tests
+  de unidad); sin endpoint de auth/login.
+- PR #17: queries Drizzle de membresías y activos filtradas por tenant,
+  tests que comprueban SQL parametrizado (no equivalen a test DB).
+- PR #18: tests de integración en PostgreSQL 17 temporal de GitHub Actions:
+  5 escenarios de aislamiento y FK; [run #43000678007](https://github.com/andresvalencia72/plantops/actions/runs/43000678007)
+  completada con éxito. `main` no fusionada.
+- Quality: 16 pruebas unitarias de API en PR #17, 2 HTTP E2E de liveness;
+  validaciones typecheck/lint/build y límite de 400 líneas ejecutadas;
+  snapshots JSON de Drizzle generados excluidos explícitamente del límite.
+- **No se ha implementado autenticación ni autorización HTTP real:** falta
+  seleccionar proveedor de identidad y habilitar sesiones verificadas;
+  no hay activos/incidencias expuestos por API pública.

@@ -33,11 +33,12 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 | Bloque | Rama/PR | Resultado | Pruebas/bloqueos |
 | --- | --- | --- | --- |
 | 1 Identidad | `docs/plantops-auth-boundaries` · [PR #14](https://github.com/andresvalencia72/plantops/pull/14) | ADR-0004 propuesta; commit `619f798` | Sin login ficticio ni elección de proveedor |
-| 2 Modelo SQL | `feat/plantops-s1-database-schema` (sólo rama local) | **BLOQUEADO**, sin archivos ni commit | `npm install` → ENOSPC (sin espacio), 2026-11-11 10:43 CET |
-| 3 Autorización | pendiente | pendiente | pendiente |
-| 4 Repositorios | pendiente | pendiente | pendiente |
+| 2 Modelo SQL | `feat/plantops-s1-schema` · [PR #15](https://github.com/andresvalencia72/plantops/pull/15) | Migración Drizzle generada, no aplicada fuera de CI | 4 tests de esquema; CI API y web verdes; corrección lockfile `006c0d2` |
+| 3 Autorización | `feat/plantops-tenant-authorization` · [PR #16](https://github.com/andresvalencia72/plantops/pull/16) | Resolver tenant + membresía ACTIVE + permisos de reporte/cierre sin login mock | 7 tests; CI verde; no se exponen endpoints privados |
+| 4 Repositorios | `feat/plantops-tenant-repositories` · [PR #17](https://github.com/andresvalencia72/plantops/pull/17) | Lecturas de activos y membresías con filtro tenant obligatorio | 4 tests SQL; CI verde; aún sin integración con rutas |
+| 5 Integración DB | `test/plantops-postgres-isolation` · [PR #18](https://github.com/andresvalencia72/plantops/pull/18) | Test CI real contra PostgreSQL 17 temporal | [GitHub Actions #43000678007](https://github.com/andresvalencia72/plantops/actions/runs/43000678007) SUCCESS; no DB persistente tocada |
 
-## Bloqueo del entorno — 2026-11-11, 10:43 CET
+## Bloqueo histórico del entorno — 2026-11-11, 10:43 CET (resuelto)
 
 - Al instalar Drizzle/pg en `apps/api`, npm falló con `ENOSPC`.
 - `df -h` en Mac: volumen de datos de 228 GiB, **124 MiB libres**,
@@ -53,3 +54,29 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   por lo que tampoco debe borrarse indiscriminadamente.
 - Los bloques 2–4 quedan **sin implementar**. El diseño de sesiones de
   ADR-0004 sigue propuesto, pendiente de elección del mecanismo real.
+
+## Reanudación y resultados — 2026-11-11
+
+- Usuario autorizó limpiar caché descargable npm y basura inequívoca solo
+  en Descargas. Ejecutado `npm cache clean --force`: el espacio disponible
+  subió de ≈4,4 a ≈6,2 GiB. Descargas inspeccionada (≈778 MiB), **sin
+  borrados** porque predominan materiales de Razonko y documentos útiles.
+  `~/.npm/_npx` quedó intacto para preservar Node 26 temporal.
+- Instalados Drizzle ORM `0.45.4`, Drizzle Kit `0.31.11` y pg `8.23.1`.
+  Modelo SQL mínimo con 5 tablas y FKs compuestas de tenant.
+- El generador `drizzle-kit generate` creó la migración inicial; `db:check`
+  validó las migraciones. El snapshot JSON generado supera 400 líneas,
+  por lo que el chequeo excluye **únicamente** snapshots generados Drizzle;
+  continúa aplicando el límite a archivos escritos a mano.
+- Corregido el lockfile por dependencias opcionales WASM ausentes en Linux;
+  PR #15 API CI y web CI verdes; PR #16 y #17 API CI verdes.
+- PR #18 ejecuta 5 escenarios sobre PostgreSQL 17 efímero de GitHub Actions:
+  contexto A/B, listado restringido, rechazo de FK cruzada de activo,
+  rechazo de FK cruzada de autor y reporte legítimo. CI verde.
+- **No es un login ni API privada lista:** ADR-0004 sigue propuesto; sesiones
+  y credenciales reales no están elegidas. PostgreSQL no se desplegó en Mac,
+  ni se aplicó migración sobre datos persistentes; ningún cambio en `main`.
+- El trabajo autorizado se entrega en PR draft encadenadas #14 → #15 →
+  #16 → #17 → #18, con commits verificables. Los siguientes pasos
+  requieren revisión del proveedor de identidad, modelo físico y permisos
+  antes de conectar endpoints privados y frontend.

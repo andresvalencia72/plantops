@@ -56,7 +56,7 @@ PostgreSQL de pruebas con dos organizaciones y membresías independientes.
 - Estrategia de roles múltiples, revocación e historia de cambios de membresía.
 - Política de desactivación de activos y restricciones de longitud/no vacío
   en strings, validación de input.
-- Validar migración y FKs con PostgreSQL ejecutado en un entorno aislado.
+- Validación técnica de migración y FKs lograda en PostgreSQL efímero de CI (#43000678007); pendiente revisión de modelo físico antes de desplegar.
 
 ## Evidencia real de integración (PR de pruebas posterior)
 
