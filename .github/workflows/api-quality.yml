@@ -59,3 +59,43 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  postgres-integration:
+    name: PostgreSQL tenant isolation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/api
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: plantops_test
+          POSTGRES_PASSWORD: plantops_test
+          POSTGRES_DB: plantops_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U plantops_test -d plantops_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_TEST_URL: postgresql://plantops_test:plantops_test@localhost:5432/plantops_test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 26 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: apps/api/package-lock.json
+
+      - name: Install reproducibly
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify tenant isolation on PostgreSQL
+        run: npm run test:integration
