@@ -262,3 +262,25 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 - **No se ha activado OAuth Google/Microsoft**, no se han emitido
   invitaciones ni creado usuarios reales en `plantops_dev`. Mantener
   pendiente el TODO de callback localhost y cookies Secure.
+
+## Incidencias: consultas autorizadas y paginación — 2026-11-11
+
+- [PR #44](https://github.com/andresvalencia72/plantops/pull/44)
+  (draft, encadenada sobre #43): `GET /organizations/:id/incidents`
+  con `limit` 1–50, cursor opaco y keyset por `reportedAt DESC, id DESC`,
+  y `GET /organizations/:id/incidents/:incidentId`.
+- Cada petición obtiene usuario de sesión válida y consulta membresía ACTIVE
+  contra PostgreSQL; ninguna fila de otra empresa puede entrar al listado.
+  Detalle extranjero 404, organización no autorizada 403, anónimo 401.
+  No se envían campos internos `requestHash`, `idempotencyKey` ni
+  `reportedByMembershipId` al cliente.
+- Migración Drizzle `0004` genera índice
+  `(organization_id, reported_at DESC, id DESC)` para los listados;
+  se aplicó **solo** a `plantops_dev` descartable (5 migraciones totales).
+- Cinco escenarios HTTP PostgreSQL nuevos; las pruebas antiguas de OIDC
+  ahora utilizan emails distintos por ejecución para que no se filtren
+  fixtures de invocaciones anteriores. Pruebas completas: 71/71
+  **repetidas dos veces sin borrar `plantops_test`**, además de 26 unitarias,
+  lint y typecheck correctos.
+- `npm run dev:smoke` requiere al menos 5 migraciones tras este cambio.
+  OAuth real sigue como TODO y el POST de incidencias no se publicó.

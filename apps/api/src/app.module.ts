@@ -7,6 +7,7 @@ import { PlantOpsSessionAuth } from './auth/session-auth.provider.js';
 import { SessionController } from './auth/session.controller.js';
 import { MeController } from './auth/me.controller.js';
 import { AssetsController } from './assets/assets.controller.js';
+import { IncidentsController } from './incidents/incidents.controller.js';
 import { SessionPersistence } from './auth/session-persistence.js';
 import { trustedOrigins } from './auth/trusted-origins.js';
 import { buildOidcConfig } from './auth/oidc.config.js';
@@ -36,6 +37,7 @@ const oidcConfig = buildOidcConfig();
     SessionController,
     MeController,
     AssetsController,
+    IncidentsController,
     ...(oidcConfig ? [OidcController] : []),
   ],
   providers: [

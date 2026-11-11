@@ -21,6 +21,14 @@ const orgA = randomUUID();
 const orgB = randomUUID();
 const expiresAt = new Date(Date.now() + 3600_000);
 
+// Each suite run must use distinct emails: the disposable database can be
+// intentionally retained between runs without unrelated invitations leaking in.
+const suiteId = randomUUID().slice(0, 8);
+function address(alias: string): string {
+  return `${alias}.${suiteId}@example.test`;
+}
+
+
 function profile(email: string, options: Partial<OidcProfile> = {}): OidcProfile {
   return {
     provider: 'google',
@@ -60,7 +68,7 @@ describe('invite-only OIDC identity resolution', () => {
   });
 
   it('refuses an uninvited email even if the OIDC provider verified it', async () => {
-    const subject = profile('uninvited@example.test');
+    const subject = profile(address('uninvited'));
     expect(await resolveInvitedIdentity(db, subject, {})).toBeNull();
     const rows = await db.select().from(oidcAccounts)
       .where(eq(oidcAccounts.subject, subject.subject));
@@ -68,16 +76,16 @@ describe('invite-only OIDC identity resolution', () => {
   });
 
   it('does not trust an invitation if emailVerified is false', async () => {
-    await invitation('unverified@example.test');
+    await invitation(address('unverified'));
     expect(await resolveInvitedIdentity(
-      db, profile('unverified@example.test', { emailVerified: false }), {},
+      db, profile(address('unverified'), { emailVerified: false }), {},
     )).toBeNull();
   });
 
   it('accepts verified email once, creates memberships and reuses subject', async () => {
-    const inviteA = await invitation('both@example.test');
-    const inviteB = await invitation('both@example.test', orgB);
-    const subject = profile(' BOTH@EXAMPLE.TEST ');
+    const inviteA = await invitation(address('both'));
+    const inviteB = await invitation(address('both'), orgB);
+    const subject = profile(' ' + address('both').toUpperCase() + ' ');
     const linked = await resolveInvitedIdentity(db, subject, {});
     expect(linked?.id).toBeTruthy();
     expect(await resolveInvitedIdentity(db, subject, {})).toEqual(linked);
@@ -94,10 +102,10 @@ describe('invite-only OIDC identity resolution', () => {
   });
 
   it('adds a second tenant to the same proved subject without making another user', async () => {
-    const subject = profile('later@example.test');
-    await invitation('later@example.test', orgA);
+    const subject = profile(address('later'));
+    await invitation(address('later'), orgA);
     const original = await resolveInvitedIdentity(db, subject, {});
-    const next = await invitation('later@example.test', orgB);
+    const next = await invitation(address('later'), orgB);
     expect(await resolveInvitedIdentity(db, subject, {})).toEqual(original);
 
     const membershipsFound = await db.select().from(memberships)
@@ -112,15 +120,15 @@ describe('invite-only OIDC identity resolution', () => {
   });
 
   it('does not reactivate a suspended membership through another invitation', async () => {
-    const subject = profile('blocked-tenant@example.test');
-    await invitation('blocked-tenant@example.test', orgA);
-    await invitation('blocked-tenant@example.test', orgB);
+    const subject = profile(address('blocked-tenant'));
+    await invitation(address('blocked-tenant'), orgA);
+    await invitation(address('blocked-tenant'), orgB);
     const linked = await resolveInvitedIdentity(db, subject, {});
     await db.update(memberships).set({ status: 'SUSPENDED' }).where(and(
       eq(memberships.userId, linked!.id),
       eq(memberships.organizationId, orgB),
     ));
-    const ignored = await invitation('blocked-tenant@example.test', orgB);
+    const ignored = await invitation(address('blocked-tenant'), orgB);
     expect(await resolveInvitedIdentity(db, subject, {})).toEqual(linked);
     const [tenantB] = await db.select().from(memberships).where(and(
       eq(memberships.userId, linked!.id),
@@ -133,7 +141,7 @@ describe('invite-only OIDC identity resolution', () => {
   });
 
   it('denies re-linking by matching email with a different provider/subject', async () => {
-    const candidate = profile('both@example.test', { provider: 'microsoft' });
+    const candidate = profile(address('both'), { provider: 'microsoft' });
     expect(await resolveInvitedIdentity(db, candidate, {})).toBeNull();
     expect(await resolveInvitedIdentity(db, candidate, {
       linkTo: { id: randomUUID() },
@@ -141,19 +149,19 @@ describe('invite-only OIDC identity resolution', () => {
   });
 
   it('refuses expired and revoked invitations without creating a user', async () => {
-    await invitation('expired@example.test', orgA, {
+    await invitation(address('expired'), orgA, {
       createdAt: new Date(Date.now() - 7_200_000),
       expiresAt: new Date(Date.now() - 3_600_000),
     });
-    await invitation('revoked@example.test', orgA, { revokedAt: new Date() });
-    for (const email of ['expired@example.test', 'revoked@example.test']) {
+    await invitation(address('revoked'), orgA, { revokedAt: new Date() });
+    for (const email of [address('expired'), address('revoked')]) {
       expect(await resolveInvitedIdentity(db, profile(email), {})).toBeNull();
     }
   });
 
   it('concurrent callbacks for one invited subject yield the same local user', async () => {
-    await invitation('race@example.test');
-    const subject = profile('race@example.test');
+    await invitation(address('race'));
+    const subject = profile(address('race'));
     const results = await Promise.all(
       Array.from({ length: 5 }, () => resolveInvitedIdentity(db, subject, {})),
     );
@@ -166,13 +174,13 @@ describe('invite-only OIDC identity resolution', () => {
   });
 
   it('refuses sign-in if every membership of an existing identity is suspended', async () => {
-    const subject = profile('suspended@example.test');
-    await invitation('suspended@example.test');
+    const subject = profile(address('suspended'));
+    await invitation(address('suspended'));
     const linked = await resolveInvitedIdentity(db, subject, {});
     await db.update(memberships).set({ status: 'SUSPENDED' })
       .where(eq(memberships.userId, linked!.id));
     expect(await resolveInvitedIdentity(db, subject, {})).toBeNull();
-    const secondInvite = await invitation('suspended@example.test');
+    const secondInvite = await invitation(address('suspended'));
     expect(await resolveInvitedIdentity(db, subject, {})).toBeNull();
     const [stillPending] = await db.select().from(invitations)
       .where(eq(invitations.id, secondInvite.id));

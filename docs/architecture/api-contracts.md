@@ -1,6 +1,6 @@
 # Contratos de API — borrador para diseño frontend
 
-**Estado:** PARCIAL · hay HTTP autenticado para perfil, organizaciones y lectura de activos en PR draft; OIDC aún sin clientes reales, no hay POST de incidencias ni OpenAPI publicado. **Revisión:** 2026-11-11.
+**Estado:** PARCIAL · hay HTTP autenticado para perfil, organizaciones, activos e incidencias de solo lectura en PR draft; OIDC aún sin clientes reales, no hay POST de incidencias ni OpenAPI publicado. **Revisión:** 2026-11-11.
 
 Este documento permite diseñar fixtures y adaptadores **sin convertir propuestas en API pública comprometida**.
 
@@ -23,9 +23,9 @@ Este documento permite diseñar fixtures y adaptadores **sin convertir propuesta
 | Organizaciones accesibles | `GET /me/organizations` (implementado) | Sesión |
 | Listar activos | `GET /organizations/:organizationId/assets` (implementado) | Miembro ACTIVE |
 | Consultar activo | `GET /organizations/:organizationId/assets/:assetId` (implementado) | Miembro ACTIVE |
-| Listar incidencias | `GET /incidents` | Miembro autorizado |
+| Listar incidencias | `GET /organizations/:organizationId/incidents` (implementado) | Miembro ACTIVE |
 | Reportar incidencia | `POST /incidents` | Miembro habilitado |
-| Ver incidencia | `GET /incidents/:id` | Miembro autorizado |
+| Ver incidencia | `GET /organizations/:organizationId/incidents/:incidentId` (implementado) | Miembro ACTIVE |
 | Iniciar revisión | `POST /incidents/:id/review` | Supervisor |
 | Cerrar incidencia | `POST /incidents/:id/close` | Supervisor |
 | Crear orden | `POST /work-orders` | Supervisor |
@@ -38,7 +38,25 @@ Este documento permite diseñar fixtures y adaptadores **sin convertir propuesta
 El parámetro `organizationId` selecciona contexto, nunca concede permiso;
 el backend verifica membresía ACTIVE por identidad autenticada y filtra
 PostgreSQL. Sin sesión se responde 401, sin membresía 403 y un activo
-de otra organización se oculta con 404.
+o incidencia de otra organización se oculta con 404.
+
+### Lectura de incidencias (implementada en PR draft, no publicada)
+
+- `GET /organizations/:organizationId/incidents?limit=20&cursor=...`
+  devuelve `{ items, nextCursor }`. El límite predeterminado es 20,
+  rango permitido 1–50 y `nextCursor: null` indica final.
+- Orden estable por `reportedAt DESC, id DESC`, paginación keyset.
+  El cursor es opaco y **nunca concede acceso**: cada página filtra
+  organización y comprueba membresía ACTIVE en la base.
+- Cada item incluye `id`, `assetId`, `title`, `status` y `reportedAt`.
+  El detalle añade `description`, pero no devuelve `requestHash`,
+  `idempotencyKey` ni identificadores internos de membresías.
+- Cursor o límite inválidos ⇒ 400; sesión ausente ⇒ 401; sin membresía
+  ⇒ 403; incidencia extranjera o inexistente ⇒ 404.
+- PostgreSQL usa un índice para `(organization_id, reported_at DESC, id DESC)`
+  creado por migración Drizzle `0004`.
+- **No implementa escritura de incidencias**. `POST /incidents` y la
+  cabecera de reintento siguen como propuestas pendientes de revisión.
 
 **Alternativa:** transiciones mediante `PATCH` con comandos tipados. Evaluarla en ADR si simplifica auditabilidad, idempotencia y coherencia.
 
