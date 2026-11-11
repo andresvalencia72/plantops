@@ -1,6 +1,6 @@
 # ADR-0004 — Identidad, sesiones y autorización contextual
 
-**Estado:** PROPUESTO · **Fecha:** 2026-11-11 · Requiere revisión.
+**Estado:** PARCIALMENTE ACEPTADO · **Fecha:** 2026-11-11 · Sesiones servidor/PostgreSQL aprobadas; primer factor y puesta en servicio pendientes.
 **Relación:** [ADR-0003](0003-multi-tenancy.md), [Sprint 1](../plan/roadmap.md).
 
 ## Problema y límites de confianza
@@ -10,7 +10,7 @@ ni autoriza. Una identidad global puede pertenecer a varias organizaciones con
 roles diferentes. Hay que revocar sesiones y membresías sin confiar en un ID
 suministrado por el navegador. Esta decisión NO abre endpoints privados.
 
-## Alternativas (aún no aceptadas)
+## Alternativas (selección parcial)
 
 | Opción | Beneficio | Coste / riesgo |
 | --- | --- | --- |
@@ -18,11 +18,12 @@ suministrado por el navegador. Esta decisión NO abre endpoints privados.
 | Proveedor OIDC administrado + validación server-side | Reduce gestión de credenciales, MFA y recuperación | Dependencia externa, costes, callback y mapeo de identidad |
 | JWT propio y refresh tokens desarrollados desde cero | Control completo | Mayor superficie criptográfica y de revocación: no recomendado para MVP |
 
-**Recomendación para revisión:** `@nestjs/authentication` con sesiones
-persistentes de servidor y cookie HttpOnly/Secure/SameSite, si se acepta
-operar recuperación de cuentas; o proveedor OIDC si se prioriza externalizarla.
-No escribir un login mock o asumir JWT como autorización. La integración
-definitiva requiere aprobar proveedor, registro, recuperación y sesión.
+**Aprobado por el propietario (2026-11-11):** sesiones servidor PostgreSQL
+con `@nestjs/authentication` y cookies HttpOnly, Secure y SameSite.
+**No aprobado:** primer factor de autenticación (contraseña, invitación,
+OIDC o magic link), alta/recuperación, política exacta de TTL, CSRF/orígenes,
+flujo de despliegue de PostgreSQL y apertura de rutas privadas. Evitar login
+simulado o usar un JWT del navegador como fuente de permisos.
 
 ## Modelo de autorización previsto (independiente del proveedor)
 
@@ -56,7 +57,7 @@ definitiva requiere aprobar proveedor, registro, recuperación y sesión.
 8. Operación de doble tenant: seleccionar B sólo cuando la identidad pertenece
    de forma vigente a B; A no obtiene recursos de B por cambiar un header.
 
-## Pruebas de aceptación posteriores (no ejecutadas aún)
+## Pruebas de aceptación (parciales, no equivalen a login real)
 
 - Sin sesión → 401. Usuario activo de A puede leer A, no B.
 - IDOR por ID de activo/incidencia B → 404 sin revelar la existencia.
@@ -67,6 +68,22 @@ definitiva requiere aprobar proveedor, registro, recuperación y sesión.
 - CSRF, logout, vencimiento y rotación de sesión probados.
 - Los tests usan credenciales de test exclusivamente dentro de su infraestructura.
 
+### Evidencia técnica de la fundación de sesiones
+
+- [PR #25](https://github.com/andresvalencia72/plantops/pull/25):
+  tabla `sessions` con clave externa a `users`, campos absolutos y
+  actividad, MFA y metadatos, índices y migración Drizzle `0002`.
+- [PR #26](https://github.com/andresvalencia72/plantops/pull/26):
+  implementación PostgreSQL de las seis operaciones de `SessionStore`,
+  revocación y `touch` atómicos, pruebas de integración.
+- [PR #27](https://github.com/andresvalencia72/plantops/pull/27):
+  `SessionService` oficial con pruebas de hash SHA-256 (Base64URL),
+  vencimientos, rotación y revocación real en PostgreSQL temporal.
+- **No configurado en la aplicación HTTP:** aún no se ha registrado proveedor
+  de credenciales o conectada la base de datos a `AppModule`. Por tanto
+  el guard global no está habilitado, no se emiten cookies, no hay login
+  ni rutas privadas. El único endpoint continúa siendo `GET /health`.
+
 ## Fuentes consultadas (2026-11-11)
 
 - [NestJS 12 Authentication](https://docs.nestjs.com/security/authentication)
@@ -74,5 +91,6 @@ definitiva requiere aprobar proveedor, registro, recuperación y sesión.
 - [NestJS CSRF](https://docs.nestjs.com/security/csrf)
 - [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 
-**Bloqueo:** no dar por aprobada la opción de login hasta elegir proveedor,
-flujo de altas y recuperación. Mantener sin endpoints privados de producción.
+**Bloqueo:** elegir el primer factor, recuperación e invitaciones; revisar
+configuración CSRF, cookies y expiración antes de registrar proveedores y
+activar el guard global. No abrir endpoints privados antes de esa revisión.

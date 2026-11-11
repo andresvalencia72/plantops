@@ -12,6 +12,12 @@ Vitest y Oxlint. Generado a partir de la CLI oficial y ajustado para PlantOps.
 - Por defecto escucha en `127.0.0.1:3001`. `PORT` permite otro puerto local.
 - `curl http://127.0.0.1:3001/health` devuelve `{"status":"ok"}`.
 
+Las PR draft de autenticación incluyen `@nestjs/authentication`, una
+migración `sessions` y un `PostgresSessionStore` comprobado en CI. **No están
+conectados todavía al arranque HTTP**: sin proveedor de identidad, cookies
+emitidas, guard global ni endpoints de login. La prueba de sesiones corre
+contra un PostgreSQL descartable en CI y no requiere credenciales reales.
+
 La ruta `/health` **sólo prueba que el proceso responde**, no que haya una
 base de datos disponible ni aislamiento multiempresa. Las demás rutas aún
 no están creadas. Hay un esquema y repositorios Drizzle en PR draft, pero
