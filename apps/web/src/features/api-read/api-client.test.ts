@@ -8,6 +8,19 @@ function jsonResponse(value: unknown, status = 200) {
 }
 
 describe('API read-only adapter', () => {
+  it('discovers configured OIDC providers without exposing secrets', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(jsonResponse({ providers: ['google', 'experimental'] }))
+      .mockResolvedValueOnce(jsonResponse({ message: 'Not Found' }, 404))
+    const api = createApiReadClient(fetcher)
+    await expect(api.providers()).resolves.toEqual(['google'])
+    await expect(api.providers()).resolves.toEqual([])
+    expect(fetcher.mock.calls[0]?.[0]).toBe('/api/auth/oidc/providers')
+    expect(fetcher.mock.calls[0]?.[1]).toMatchObject({
+      method: 'GET', credentials: 'include', redirect: 'error',
+    })
+  })
+
   it('uses same-origin proxy, cookie session and GET only', async () => {
     const fetcher = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(jsonResponse({ id: 'user-1', displayName: 'Test user' }))

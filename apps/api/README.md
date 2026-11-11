@@ -20,6 +20,10 @@ exigen cookie de sesión y membresía de empresa comprobada.
 
 Las rutas OIDC de Google/Microsoft son **opt-in**: sin clientes
 configurados no se registran; con variables parciales el arranque falla.
+Con proveedores activos, `GET /auth/oidc/providers` publica **solo
+sus nombres**, sin IDs ni secretos. Para el piloto Google en React
+usa el origen fijo `http://127.0.0.1:5184` y el proxy Vite
+`/auth/oidc`; no cambies las cookies Secure para hacerlo funcionar.
 Actualmente no hay credenciales OAuth reales y no se ha verificado login
 de un usuario externo. Para configurar callbacks, invitaciones y
 restricciones consultar la

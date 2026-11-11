@@ -1,5 +1,6 @@
 import type { IncidentStatus } from '@/features/incidents/types'
 
+export type ApiLoginProvider = 'google' | 'microsoft'
 export type ApiProfile = Readonly<{ id: string; displayName: string }>
 export type ApiOrganization = Readonly<{
   id: string; name: string; role: 'MEMBER' | 'SUPERVISOR' | 'TECHNICIAN'
@@ -56,6 +57,19 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
 
   const orgPath = (orgId: string) => '/organizations/' + encodeURIComponent(orgId)
   return {
+    /** Public non-secret provider discovery. 404 means OIDC not yet configured. */
+    async providers(signal?: AbortSignal): Promise<ApiLoginProvider[]> {
+      try {
+        const value = await get('/auth/oidc/providers', signal)
+        if (!record(value) || !Array.isArray(value.providers) ||
+          !value.providers.every((provider) => string(provider))) invalid()
+        return value.providers.filter((provider): provider is ApiLoginProvider =>
+          provider === 'google' || provider === 'microsoft')
+      } catch (error) {
+        if (error instanceof ApiRequestError && error.status === 404) return []
+        throw error
+      }
+    },
     async profile(signal?: AbortSignal): Promise<ApiProfile> {
       const value = await get('/me', signal)
       if (!record(value) || !string(value.id) || !string(value.displayName)) invalid()

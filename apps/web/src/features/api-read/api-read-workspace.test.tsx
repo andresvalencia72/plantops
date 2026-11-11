@@ -56,13 +56,31 @@ function readyFetcher() {
 
 describe('API read-only workspace', () => {
   it('shows a real 401 as a blocked session without fallback to demo data', async () => {
-    const fetcher = vi.fn<typeof fetch>(async () => json({ message: 'Unauthorized' }, 401))
+    const fetcher = vi.fn<typeof fetch>(async (url) =>
+      String(url).endsWith('/auth/oidc/providers') ? json({}, 404)
+        : json({ message: 'Unauthorized' }, 401))
     render(<ApiReadWorkspace client={createApiReadClient(fetcher)} />)
     expect(await screen.findByRole('heading', { name: 'Se requiere una sesión válida' }))
       .toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('respondió 401')
     expect(screen.queryByText('Atlas Manufacturing')).not.toBeInTheDocument()
-    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(screen.getByText('No hay proveedores de acceso configurados todavía en esta API.'))
+      .toBeInTheDocument()
+  })
+
+  it('offers Google only when the backend explicitly reports it enabled', async () => {
+    const fetcher = vi.fn<typeof fetch>(async (url) =>
+      String(url).endsWith('/auth/oidc/providers')
+        ? json({ providers: ['google'] })
+        : json({ message: 'Unauthorized' }, 401))
+    render(<ApiReadWorkspace client={createApiReadClient(fetcher)} />)
+    const link = await screen.findByRole('link', { name: 'Continuar con Google' })
+    expect(link).toHaveAttribute('href',
+      '/auth/oidc/google/login?redirectTo=%2F%3Fsource%3Dapi')
+    expect(screen.queryByRole('link', { name: 'Continuar con Microsoft' }))
+      .not.toBeInTheDocument()
+    expect(fetcher).toHaveBeenCalledTimes(2)
   })
 
   it('renders authorized tenant A, switches to B and clears A without mixing demo', async () => {

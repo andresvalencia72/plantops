@@ -305,3 +305,50 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   `shadcn` por export de variantes, sin errores.
 - TODO OIDC/cookies Secure mantenido; no hay credenciales nuevas ni
   despliegue de una API pública, frontend prod todavía desconectado.
+
+## OIDC Google reanudado con React — 2026-11-11
+
+- El propietario aprobó retomar Google OIDC mientras está disponible
+  para usar Chrome; Microsoft Entra seguirá en la siguiente fase.
+- Rama draft `feat/plantops-google-oidc-local-flow`, apilada sobre
+  #45: Vite proxy `/auth/oidc` al Nest local en 127.0.0.1:3001 y
+  callback Google para UI `http://127.0.0.1:5184/auth/oidc/google/callback`.
+- La API expone `GET /auth/oidc/providers` con **solo nombres**
+  cuando hay configuración válida; sin OAuth permanece 404.
+  El frontend descubre proveedores después de un 401 y ofrece
+  «Continuar con Google» solo si está habilitado. Redirige a
+  `/?source=api` al terminar.
+- Se creó una empresa ficticia «PlantOps OAuth Pilot» en
+  `plantops_dev` **descartable**, con cero usuarios o invitaciones.
+  Hace falta identificar la cuenta verificada por Google antes de emitir
+  una invitación (sin guardar su email en código/Notion).
+- Script `apps/api/scripts/import-google-oidc.mjs` valida el
+  client_secret JSON tipo Web y callback exacto; dry-run por defecto,
+  `--apply` actualiza exclusivamente `.env` privado en modo 0600.
+  Pruebas del importador con credenciales sintéticas en directorio
+  temporal. No se han importado credenciales reales.
+- Verificaciones: 72/72 integración PostgreSQL local, 26 unitarias
+  backend, 4 E2E HTTP, 30 UI React y 8 Playwright; sin errores
+  TypeScript/lint, sin desactivar cookies seguras. **El login real
+  aún no está verificado** y la consola Google debe entregar el
+  cliente OAuth antes del E2E manual.
+
+## Google OIDC realmente validado en Chrome — 2026-11-11
+
+- Primera respuesta real `403 account not allowed` **procedía del
+  resolver de PlantOps** tras un callback correcto: PostgreSQL piloto
+  tenía 1 organización pero 0 invitaciones/usuarios.
+- Se emitió una invitación interna `MEMBER` de 7 días al correo
+  verificado del propietario mediante CLI privada (`--apply` y confirmación
+  de BD/organización). No se escribe el email en el repositorio.
+- Login repetido en el Chrome real: callback llegó a `/?source=api`;
+  se creó 1 usuario, 1 `oidc_accounts` Google, 1 membresía
+  `ACTIVE` y 1 sesión, y la única invitación pasó a consumida.
+- Se comprobaron las relaciones por joins SQL y la UI mostrando perfil,
+  organización y rol. Tras recargar la pestaña de Chrome siguió
+  autenticado. Activos e incidencias de la BD piloto: 0, correctamente.
+- No hubo cambios de código para permitir el acceso: se cumplió el
+  requisito de invitación previsto. Cookies `Secure` y CSRF intactos.
+- Sin OAuth codes, cookies, correo personal, credenciales ni capturas
+  versionados. Google solo verificado **localmente**: quedan logout
+  E2E, Safari, Microsoft y endurecimiento de despliegue HTTPS/CSRF.
