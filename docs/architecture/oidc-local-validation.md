@@ -4,6 +4,27 @@
 **Fecha:** 2026-11-11. Solo para desarrolladores autorizados; nunca producción.
 El código y las verificaciones PostgreSQL están en PR draft #29–#41.
 
+## Entorno local listo sin activar OIDC — 11/11/2026
+
+- Docker Desktop y PostgreSQL 17 Alpine iniciados: contenedor
+  `api-postgres-1` saludable, puerto exclusivo
+  `127.0.0.1:55432`, datos en `tmpfs` (descartables).
+- `apps/api/.env` creado en la Mac con permisos `0600`,
+  ignorado por Git, secreto aleatorio **no publicado**.
+- Aplicadas cuatro migraciones Drizzle **solo** a `plantops_dev`:
+  nueve tablas de dominio/autorización/sesiones/OIDC.
+- Base separada `plantops_test` creada en el mismo contenedor;
+  **66 de 66 pruebas de integración** ejecutadas correctamente
+  contra PostgreSQL local, sin utilizar cuentas reales.
+- API compilada y validada en `127.0.0.1:3001` con OAuth
+  desactivado: `/health` responde `200`, sesiones/recursos
+  protegidos `401`, login Google desactivado `404`.
+- Comprobación repetible: desde `apps/api`, `npm run dev:smoke`
+  (lecturas de esquema y siete peticiones HTTP; no escribe datos).
+- El login externo y las cookies Secure del navegador continúan
+  **aplazados**. Tampoco se han creado invitaciones o usuarios reales
+  ni se ha migrado una base persistente.
+
 ## TODO aplazado — callback local y navegadores (11/11/2026)
 
 **Decisión del propietario:** posponer la validación de OIDC real y el
@@ -30,10 +51,10 @@ Ver [respaldo y recuperación de Docker Desktop](https://docs.docker.com/desktop
 
 ## Docker Desktop recuperado (11/11/2026)
 
-**Estado actual verificado:** Docker Desktop 4.64.0 inicia correctamente;
-`docker desktop status` devuelve `running` y `docker info` responde con
-Docker Engine 29.2.1. El socket `~/.docker/run/docker.sock` existe.
-La instancia recién iniciada informa de 0 contenedores.
+**Verificación histórica inmediatamente después de recuperarlo:**
+Docker Desktop 4.64.0 volvió a iniciarse, `docker desktop status`
+devolvió `running`, y `docker info` respondió con Engine 29.2.1
+y 0 contenedores. Para el estado posterior con PostgreSQL, ver arriba.
 
 Con autorización explícita del propietario, se envió `SIGTERM` al proceso
 antiguo `com.docker.backend` (PID 64827), que no terminó en 20 segundos.
@@ -46,21 +67,23 @@ se reinició macOS.
 El diagnóstico anterior queda como histórico: el proceso atascado
 referenciaba archivos abiertos de una ruta movida a la Papelera. No se ha
 confirmado cómo llegó allí ni si existían volúmenes previos.
-**No se han iniciado contenedores del proyecto ni aplicado migraciones.**
-El TODO de Google/localhost y cookies Secure permanece aplazado.
+En aquel momento **aún no se habían iniciado contenedores PlantOps**.
+Posteriormente se levantó PostgreSQL descartable y se ejecutaron las
+migraciones locales indicadas arriba. El TODO de OAuth permanece aplazado.
 
 ## Preparar la Mac y PostgreSQL
 
-Docker Desktop ya está operativo tras la recuperación indicada arriba.
-**No se ha creado ninguna base ni contenedor de PlantOps en tu Mac.**
-La configuración local descrita a continuación queda opcional y pendiente
-mientras el piloto OAuth siga aplazado.
+Docker Desktop está operativo y la base de desarrollo descartable
+ya se ha creado. Estos pasos quedan como referencia para reproducir
+el entorno, **no hay que ejecutarlos de nuevo mientras siga iniciado**.
+El piloto OAuth externo permanece aplazado.
 
 En el repositorio:
 
 ```sh
 cd apps/api
-cp .env.example .env
+# Solo si no existe .env; no sobrescribir secretos locales
+test -f .env || cp .env.example .env
 ```
 
 Edita `.env` local con un editor. Ese fichero está ignorado por Git.
