@@ -25,8 +25,18 @@ npm run typecheck
 npm run lint
 npm test
 npm run test:e2e
+npm run db:check
 npm run build
 ```
+
+Las pruebas de integración PostgreSQL se ejecutan en GitHub Actions con
+un servicio efímero mediante `npm run test:integration`. Ese comando exige
+`DATABASE_TEST_URL` apuntando exclusivamente a `localhost` y a una base
+con nombre terminado en `_test`. **No usar una base persistente.**
+
+El caso de uso interno de incidencias admite un UUIDv4 `idempotencyKey`
+para deduplicar reintentos concurrentes. No existe aún un endpoint HTTP
+que acepte esa clave ni se ha aprobado el formato de cabecera.
 
 No iniciar recursos reales ni exponer API pública antes del diseño de
 identidad/membresías y migraciones. Ver [roadmap](../../docs/plan/roadmap.md),
