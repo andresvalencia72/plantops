@@ -8,6 +8,19 @@ function jsonResponse(value: unknown, status = 200) {
 }
 
 describe('API read-only adapter', () => {
+  it('posts a same-origin cookie-bound logout without a client user ID', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(jsonResponse({ message: 'Unauthorized' }, 401))
+    const api = createApiReadClient(fetcher)
+    await expect(api.logout()).resolves.toBeUndefined()
+    expect(fetcher.mock.calls[0]).toEqual(['/api/auth/logout', {
+      method: 'POST', credentials: 'include', redirect: 'error',
+      headers: { Accept: 'application/json' },
+    }])
+    await expect(api.logout()).rejects.toMatchObject({ status: 401 })
+  })
+
   it('discovers configured OIDC providers without exposing secrets', async () => {
     const fetcher = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(jsonResponse({ providers: ['google', 'experimental'] }))
