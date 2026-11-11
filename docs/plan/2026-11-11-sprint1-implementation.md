@@ -241,3 +241,24 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   Docker, no se creó contenedor ni ejecutó migración PlantOps.**
 - El piloto OAuth con callback local Google / cookies Secure continúa
   **aplazado por decisión del usuario**. La guía de OIDC fue actualizada.
+
+## Verificación local con Docker real — 2026-11-11
+
+- Aprobado continuar con trabajo independiente del login externo. Docker
+  Desktop ya recuperado y operativo, se inició `api-postgres-1` con
+  `postgres:17-alpine`, solo puerto loopback 55432 y `tmpfs`.
+  `apps/api/.env` ignorado por Git, modo 0600 y credencial aleatoria
+  no expuesta.
+- Migración con `scripts/migrate-dev.mjs --apply` exclusivamente contra
+  `plantops_dev` descartable: 9 tablas y 4 migraciones registradas.
+  Una BD **separada** `plantops_test` alojó 66/66 pruebas de integración
+  exitosas (12 archivos Vitest), sin tocar datos persistentes.
+- API NestJS iniciada solo en `127.0.0.1:3001`. Smoke HTTP: health 200;
+  `/auth/session`, `/me`, `/me/organizations` y activos sin
+  cookie 401; login Google no configurado y ruta raíz 404.
+- Comando añadido `npm run dev:smoke`: read-only SQL + siete controles
+  HTTP. Rechaza URL de BD externa o de producción antes de conectarse;
+  TypeScript, lint, 25 unit tests, 4 HTTP E2E y límite 400 líneas OK.
+- **No se ha activado OAuth Google/Microsoft**, no se han emitido
+  invitaciones ni creado usuarios reales en `plantops_dev`. Mantener
+  pendiente el TODO de callback localhost y cookies Secure.
