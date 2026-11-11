@@ -25,6 +25,17 @@ y de atributos de dominio aún abierta. Migración Drizzle en `apps/api/drizzle`
   `memberships(organization_id, id)`: bloquea autor de otra organización.
 - No hay cascadas destructivas; conservar auditoría e historial al evolucionar.
 
+## Evolución verificada de auditoría (PR draft, migración 0005)
+
+Se ha añadido `audit_events` para la transición
+`INCIDENT_REVIEW_STARTED`, con actor miembro, incidencia, estados anterior
+y nuevo, clave de idempotencia y marca temporal del servidor.
+Ambas FK compuestas exigen misma organización; un índice único protege
+la acción repetida. Un trigger prohíbe UPDATE/DELETE de eventos.
+La transacción de UC-03 persiste evento y estado juntos. Solo se verificó
+en PostgreSQL **descartable**; `main` y la base piloto no tienen esta
+migración aplicada. El resto de transiciones de negocio no está construido.
+
 ## Seguridad que el esquema NO resuelve
 
 - No autentica identidades; `users` no guarda contraseña ni sesión.

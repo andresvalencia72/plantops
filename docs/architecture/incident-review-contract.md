@@ -1,9 +1,9 @@
-# UC-03 — Iniciar revisión de incidencia (contrato candidato)
+# UC-03 — Iniciar revisión de incidencia (implementación en PR draft)
 
-**Estado: DISEÑO PROPUESTO, no implementado.** Actualizado 2026-11-11.
-Este corte NO añade endpoint, tabla de auditoría ni migración. Primero
-se verificará el diseño; nunca se cambiará sólo `incidents.status` sin
-persistir un evento de auditoría en la misma transacción (INV-10).
+**Estado: IMPLEMENTADO Y PROBADO EN PR DRAFT, NO FUSIONADO NI DESPLEGADO.**
+Actualizado 2026-11-11. Endpoint, caso de uso y migración versionada
+`0005_adorable_sage.sql`. La API nunca actualiza `incidents.status` sin
+insertar el evento de auditoría en la misma transacción (INV-10).
 
 ## Alcance funcional
 
@@ -16,7 +16,7 @@ persistir un evento de auditoría en la misma transacción (INV-10).
 - **Fuera de alcance:** asignar supervisor, crear OT, cerrar, reabrir,
   prioridades, notificaciones y conexión al frontend del piloto.
 
-## HTTP propuesto (no habilitado)
+## HTTP implementado en rama (no desplegado)
 
 ```http
 POST /organizations/:organizationId/incidents/:incidentId/review
@@ -31,7 +31,7 @@ Sin `userId`, `role`, `status`, `organizationId` ni `reason` en el body.
 La ruta indica contexto; sólo la sesión y la membresía autorizan.
 El cuerpo JSON debe ser `{}` sin campos extra; las URL llevan UUIDv4.
 
-**Resultado propuesto:** `200 OK`, `Cache-Control: no-store`, detalle
+**Resultado implementado:** `200 OK`, `Cache-Control: no-store`, detalle
 de incidencia con `id`, `assetId`, `status`, `reportedAt` y descripción;
 nunca revelar IDs privados de sesión ni datos de otros tenants.
 Un replay confirmado con igual clave/actor/tenant/incidencia obtiene 200,
@@ -58,10 +58,13 @@ la incidencia avanzó desde la acción original.
 4. Detectar replay de la misma acción mediante clave estable con índice
    único para `organization_id, actor_membership_id, action, key` y
    comparación del `incident_id`. Un reintento no crea otra auditoría.
-5. Para una primera acción: exigir estado `REPORTED`, cambiarlo a
-   `UNDER_REVIEW` y escribir el evento de auditoría en **la misma
-   transacción**. Si falla el evento, revertir el cambio de estado.
-6. Confirmar la transacción; devolver representación de la incidencia.
+5. Para una primera acción exigir `REPORTED`, **insertar primero el
+   evento** con `ON CONFLICT DO NOTHING` acotado al índice único; si
+   no inserta, devolver 409 y abortar la transacción.
+6. Actualizar `status=UNDER_REVIEW` usando el bloqueo de la fila
+   y confirmar; si falla cualquier paso se revierte también el evento.
+   Devolver el detalle actualizado. Una clave ya confirmada devuelve
+   el estado actual sin un segundo evento.
 
 **Dos supervisores concurrentes con claves distintas:** únicamente la
 primera transición puede confirmar. La segunda observa el estado
@@ -69,7 +72,7 @@ posterior y recibe 409, sin evento propio de éxito. Un replay de la
 primera clave devuelve 200 sin duplicar el evento. Nunca se crea una
 transición sin actor trazable.
 
-## Registro mínimo propuesto (requiere diseño físico posterior)
+## Registro físico implementado
 
 `AuditEvent` append-only: `id`, `organizationId`, `incidentId`,
 `actorMembershipId`, `action=INCIDENT_REVIEW_STARTED`,
@@ -77,10 +80,19 @@ transición sin actor trazable.
 `idempotencyKey`. Claves foráneas compuestas para actor/incidencia del
 mismo tenant; unicidad para acción+actor+clave. No incluir PII ni tokens.
 
-No se ha aprobado todavía el esquema físico: diseñar la migración y
-probarla sólo en `plantops_s1_test` antes de implementar esta transición.
+La tabla `audit_events` se crea en la migración `0005`, con FK
+compuestas `(organization_id, incident_id)` y
+`(organization_id, actor_membership_id)`. El índice único impide
+reutilizar una clave para otra incidencia del mismo actor/tenant/acción.
+La CHECK limita esta acción a `REPORTED → UNDER_REVIEW`; un trigger
+PostgreSQL rechaza **UPDATE y DELETE** de entradas existentes. El
+sistema no ofrece un endpoint de lectura del historial todavía.
 
-## Matriz de aceptación del siguiente corte
+La migración sólo se ha ejecutado en bases PostgreSQL de test
+descartables. **No ejecutar sobre `plantops_dev` ni sobre el piloto**
+sin revisar primero el plan de despliegue y el esquema pendiente.
+
+## Matriz de aceptación verificada
 
 - Supervisor ACTIVE en A inicia revisión de incidencia A → 200 +
   exactamente un evento.
@@ -92,12 +104,15 @@ probarla sólo en `plantops_s1_test` antes de implementar esta transición.
 - 20 solicitudes simultáneas, dos actores/varias claves → una transición,
   un evento para esa transición; sin estados intermedios visibles.
 - Error simulado al insertar el evento → rollback del estado.
-- Cabeceras/body adicionales, CSRF y métodos no permitidos → rechazo.
+- Body adicional, Idempotency-Key inválida, media type y CSRF → rechazo.
+- PostgreSQL rechaza eventos con actor o incidencia de otro tenant.
+- UPDATE/DELETE de la tabla de auditoría → prohibido por trigger.
 - Verificar PostgreSQL auténtico, no dobles in-memory.
 
 ## Orden de implementación siguiente
 
-Primero migración mínima + constraints + pruebas PostgreSQL; después caso
-de uso transaccional; luego endpoint HTTP y sus tests; finalmente
-adaptador/formulario del supervisor en laboratorio aislado. Cada fase
-en commits pequeños sobre PR apiladas, sin fusionar `main`.
+**Siguiente corte:** adaptador HTTP y botón de supervisor en la UI
+de laboratorio aislado, con E2E de acción confirmada y denegación para
+miembro/técnico. Más adelante, lectura paginada del historial y una
+estrategia de migración real revisada antes de usar datos persistentes.
+No fusionar `main` sin aprobación explícita.
