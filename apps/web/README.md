@@ -47,6 +47,10 @@ npm run dev -- --host 127.0.0.1 --port 5184 --strictPort
 - Con sesión válida, solo lectura: selector de organizaciones devueltas por
   el servidor, activos, listado paginado (20 por página), detalle y errores
   401/403. No hay formulario de creación ni permisos simulados.
+- El botón «Cerrar sesión» envía exclusivamente `POST /api/auth/logout`
+  al mismo origen, con cookie nativa y sin ID de usuario. El servidor revoca
+  únicamente esa sesión en PostgreSQL, expira la cookie y la vista deja de
+  mostrar datos privados. Si el logout falla, informa sin declarar éxito.
 - No se habilita en builds de producción: antes de desplegar hará falta
   un proxy HTTPS `/api` revisado, flujos OIDC reales y política de sesión.
 - Las pruebas unitarias emplean respuestas simuladas explícitas. El E2E

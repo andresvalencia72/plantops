@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Activity, ArrowLeft, LockKeyhole, Moon, RefreshCw, Sun } from 'lucide-react'
+import { Activity, ArrowLeft, LockKeyhole, LogOut, Moon, RefreshCw, Sun } from 'lucide-react'
 import { useTheme } from '@/app/use-theme'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,8 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
   const [attempt, setAttempt] = useState(0)
   const [connection, setConnection] = useState<Connection>({ status: 'loading' })
   const [organizationId, setOrganizationId] = useState('')
+  const [signingOut, setSigningOut] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
 
   useEffect(() => {
     const controller = new AbortController()
@@ -62,6 +64,23 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
   // It is informational only and never grants access.
   const accessDenied = new URLSearchParams(window.location.search)
     .get('auth') === 'access-denied'
+
+  async function logout() {
+    if (signingOut) return
+    setSigningOut(true)
+    setLogoutError('')
+    try {
+      await client.logout()
+      setConnection({ status: 'loading' })
+      setOrganizationId('')
+      setAttempt((n) => n + 1)
+    } catch {
+      // If the request failed, leave the authenticated view intact.
+      setLogoutError('No se pudo cerrar la sesión. Revisa la conexión e inténtalo de nuevo.')
+    } finally {
+      setSigningOut(false)
+    }
+  }
 
   const organization = connection.status === 'ready'
     ? connection.organizations.find((item) => item.id === organizationId)
@@ -176,7 +195,14 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
                   </select>
                 </div>
               )}
+              <Button variant="outline" size="sm" disabled={signingOut} onClick={() => { void logout() }}>
+                <LogOut size={14} aria-hidden="true" />
+                {signingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
+              </Button>
             </div>
+            {logoutError && (
+              <p role="alert" className="text-sm text-destructive">{logoutError}</p>
+            )}
             {organization
               ? <ApiIncidentsPanel key={organization.id} organization={organization} client={client} />
               : <p className="border border-border bg-card p-8 text-sm text-muted-foreground">

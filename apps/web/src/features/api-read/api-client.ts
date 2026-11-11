@@ -57,6 +57,16 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
 
   const orgPath = (orgId: string) => '/organizations/' + encodeURIComponent(orgId)
   return {
+    /** State-changing, same-origin, cookie-based action. No user ID is supplied. */
+    async logout(): Promise<void> {
+      const response = await fetcher('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        redirect: 'error',
+        headers: { Accept: 'application/json' },
+      })
+      if (!response.ok) throw new ApiRequestError(response.status)
+    },
     /** Public non-secret provider discovery. 404 means OIDC not yet configured. */
     async providers(signal?: AbortSignal): Promise<ApiLoginProvider[]> {
       try {
