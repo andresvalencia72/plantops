@@ -93,6 +93,45 @@ describe('invite-only OIDC identity resolution', () => {
     }
   });
 
+  it('adds a second tenant to the same proved subject without making another user', async () => {
+    const subject = profile('later@example.test');
+    await invitation('later@example.test', orgA);
+    const original = await resolveInvitedIdentity(db, subject, {});
+    const next = await invitation('later@example.test', orgB);
+    expect(await resolveInvitedIdentity(db, subject, {})).toEqual(original);
+
+    const membershipsFound = await db.select().from(memberships)
+      .where(eq(memberships.userId, original!.id));
+    expect(membershipsFound.map((row) => row.organizationId).sort())
+      .toEqual([orgA, orgB].sort());
+    const [used] = await db.select().from(invitations)
+      .where(eq(invitations.id, next.id));
+    expect(used.consumedByUserId).toBe(original!.id);
+    expect(await db.select().from(oidcAccounts)
+      .where(eq(oidcAccounts.subject, subject.subject))).toHaveLength(1);
+  });
+
+  it('does not reactivate a suspended membership through another invitation', async () => {
+    const subject = profile('blocked-tenant@example.test');
+    await invitation('blocked-tenant@example.test', orgA);
+    await invitation('blocked-tenant@example.test', orgB);
+    const linked = await resolveInvitedIdentity(db, subject, {});
+    await db.update(memberships).set({ status: 'SUSPENDED' }).where(and(
+      eq(memberships.userId, linked!.id),
+      eq(memberships.organizationId, orgB),
+    ));
+    const ignored = await invitation('blocked-tenant@example.test', orgB);
+    expect(await resolveInvitedIdentity(db, subject, {})).toEqual(linked);
+    const [tenantB] = await db.select().from(memberships).where(and(
+      eq(memberships.userId, linked!.id),
+      eq(memberships.organizationId, orgB),
+    ));
+    expect(tenantB.status).toBe('SUSPENDED');
+    const [unchanged] = await db.select().from(invitations)
+      .where(eq(invitations.id, ignored.id));
+    expect(unchanged.consumedAt).toBeNull();
+  });
+
   it('denies re-linking by matching email with a different provider/subject', async () => {
     const candidate = profile('both@example.test', { provider: 'microsoft' });
     expect(await resolveInvitedIdentity(db, candidate, {})).toBeNull();
