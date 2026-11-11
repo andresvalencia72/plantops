@@ -88,17 +88,21 @@ La vista `/?source=api` mantiene **solo lectura por defecto**. El formulario
 arranca con `VITE_PLANTOPS_ENABLE_REPORTS=isolated-test`. En ese modo el
 proxy apunta **exclusivamente** a `127.0.0.1:3002`, separado del piloto
 Google OIDC que usa `127.0.0.1:3001`. No configurar el laboratorio con
-`plantops_dev`: usar una base temporal terminada en `_test`, sesiones
-sintéticas y activos ficticios.
+`plantops_dev`: el servidor de prueba sólo acepta la base temporal exacta
+`plantops_s1_test`, sesiones sintéticas y activos ficticios.
 
-El formulario conserva la misma `Idempotency-Key` y el mismo payload entre
-reintentos mientras permanece montado, incluso si se cierra y se reabre el
-diálogo. **No persiste contenido del reporte en localStorage.** Si se recarga
-la página tras una respuesta incierta, revisar la lista antes de volver a
-registrar; el protocolo no puede garantizar deduplicación sin conservar la
-clave anterior. El backend sigue siendo el único responsable de permisos.
+El formulario conserva la misma `Idempotency-Key` y el mismo payload
+cuando la respuesta es incierta. Para recargas de **la misma pestaña**
+conserva en `sessionStorage` sólo la clave y una huella SHA-256 del
+payload normalizado, **nunca los campos de la incidencia ni la cookie**.
+El usuario debe volver a introducir los mismos datos: si la huella
+coincide se reutiliza la clave y se evita crear otro incidente; si no,
+la UI bloquea un nuevo envío hasta que el usuario descarte expresamente
+el intento después de consultar el listado. No hay garantía entre
+pestañas distintas o si se borra el almacenamiento del navegador.
+El backend sigue siendo el único responsable de permisos.
 
 Para una prueba completamente aislada, iniciar Nest en el puerto 3002 con
-`DATABASE_URL` de una BD de test (nunca el piloto) y arrancar el frontend
+`DATABASE_TEST_URL` dirigido a `plantops_s1_test` (nunca al piloto) y arrancar el frontend
 con la variable anterior. No dejar ese modo habilitado en sesiones de uso
 habitual ni en builds de producción.

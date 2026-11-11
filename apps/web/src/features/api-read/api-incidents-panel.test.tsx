@@ -32,7 +32,7 @@ describe('API incident list behavior', () => {
       return response({ items: [incidentA], nextCursor: 'page-2' })
     })
     const user = userEvent.setup()
-    render(<ApiIncidentsPanel client={createApiReadClient(fetcher)} organization={orgA} />)
+    render(<ApiIncidentsPanel client={createApiReadClient(fetcher)} userId='synthetic-user' organization={orgA} />)
     expect(await screen.findByRole('button', { name: /Aviso A/ })).toBeInTheDocument()
     expect(screen.getByText('Página 1 · 1 registros')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Reportar incidencia' })).not.toBeInTheDocument()
@@ -59,8 +59,8 @@ describe('API incident list behavior', () => {
       return response({ items: [incidentB], nextCursor: null })
     })
     const client = createApiReadClient(fetcher)
-    const { rerender } = render(<ApiIncidentsPanel key="org-a" client={client} organization={orgA} />)
-    rerender(<ApiIncidentsPanel key="org-b" client={client} organization={orgB} />)
+    const { rerender } = render(<ApiIncidentsPanel key="org-a" client={client} userId='synthetic-user' organization={orgA} />)
+    rerender(<ApiIncidentsPanel key="org-b" client={client} userId='synthetic-user' organization={orgB} />)
     expect(await screen.findByRole('button', { name: /Aviso B/ })).toBeInTheDocument()
     resolveOld?.(response([{ id: 'a1', code: 'A-1', name: 'Pump A', active: true }]))
     await waitFor(() => {
@@ -76,7 +76,7 @@ describe('API incident list behavior', () => {
       return response({ items: [incidentA], nextCursor: null })
     })
     const user = userEvent.setup()
-    render(<ApiIncidentsPanel client={createApiReadClient(fetcher)} organization={orgA} />)
+    render(<ApiIncidentsPanel client={createApiReadClient(fetcher)} userId='synthetic-user' organization={orgA} />)
     expect(await screen.findByRole('button', { name: /Aviso A/ })).toBeInTheDocument()
     fail = true
     await user.click(screen.getByRole('button', { name: 'Actualizar' }))

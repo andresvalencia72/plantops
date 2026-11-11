@@ -209,7 +209,7 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
             )}
             {organization
               ? <ApiIncidentsPanel key={organization.id} organization={organization}
-                  client={client} allowWrites={isolatedWrites} />
+                  client={client} userId={connection.profile.id} allowWrites={isolatedWrites} />
               : <p className="border border-border bg-card p-8 text-sm text-muted-foreground">
                   No tienes ninguna organización activa. El servidor no ha autorizado datos.
                 </p>}

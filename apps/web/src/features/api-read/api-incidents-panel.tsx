@@ -12,14 +12,14 @@ type State =
   | { status: 'error'; message: string }
   | { status: 'ready'; page: ApiIncidentPage; assets: ApiAsset[] }
 
-type Props = { client: ApiReadClient; organization: ApiOrganization; allowWrites?: boolean }
+type Props = { client: ApiReadClient; organization: ApiOrganization; userId: string; allowWrites?: boolean }
 
 function errorMessage(error: unknown) {
   return error instanceof ApiRequestError ? error.message
     : 'No se pudieron obtener datos de la API. Revisa la conexión y vuelve a intentar.'
 }
 
-export function ApiIncidentsPanel({ client, organization, allowWrites = false }: Props) {
+export function ApiIncidentsPanel({ client, organization, userId, allowWrites = false }: Props) {
   const [reportOpen, setReportOpen] = useState(false)
   const [cursor, setCursor] = useState<string | undefined>()
   const [previous, setPrevious] = useState<(string | undefined)[]>([])
@@ -109,7 +109,7 @@ export function ApiIncidentsPanel({ client, organization, allowWrites = false }:
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {allowWrites && state.status === 'ready' && (
+            {allowWrites && userId && state.status === 'ready' && (
               <Button size="sm" disabled={!assets.some((item) => item.active)}
                 onClick={() => setReportOpen(true)}>Reportar incidencia</Button>
             )}
@@ -179,9 +179,9 @@ export function ApiIncidentsPanel({ client, organization, allowWrites = false }:
           </footer>
         )}
       </section>
-      {allowWrites && (
+      {allowWrites && userId && (
         <ApiReportDialog
-          client={client} assets={assets} organizationId={organization.id}
+          client={client} assets={assets} organizationId={organization.id} userId={userId}
           open={reportOpen} onOpenChange={setReportOpen} onCreated={created}
         />
       )}

@@ -116,3 +116,46 @@ test('lost HTTP response is replayed with one record, not a second insert', asyn
   }, { orgId: fixture.orgA, reportTitle: title })
   expect(count).toBe(1)
 })
+
+test('tab reload recovers the same write key without storing report content', async ({ context, page }) => {
+  await authenticated(context, page)
+  const title = 'E2E reload retry ' + randomUUID().slice(0, 8)
+  let firstKey: string | undefined
+  let intercepted = false
+  await page.route('**/api/organizations/*/incidents', async (route) => {
+    if (route.request().method() !== 'POST') return route.continue()
+    const key = route.request().headers()['idempotency-key']
+    if (!intercepted) {
+      intercepted = true
+      firstKey = key
+      const response = await route.fetch()
+      expect(response.status()).toBe(201)
+      return route.abort('failed')
+    }
+    expect(key).toBe(firstKey)
+    await route.continue()
+  })
+  await page.getByRole('button', { name: 'Reportar incidencia' }).click()
+  await page.getByLabel('Activo afectado').selectOption(fixture.assetA)
+  await page.getByLabel('Título').fill(title)
+  await page.getByLabel('Descripción').fill('Prueba de recuperación tras recargar la pestaña')
+  await page.getByRole('button', { name: 'Registrar incidencia' }).click()
+  await expect(page.getByRole('alert')).toBeVisible()
+  const raw = await page.evaluate(() => JSON.stringify(sessionStorage))
+  expect(raw).not.toContain(title)
+  expect(raw).not.toContain('Prueba de recuperación')
+  await page.reload()
+  await expect(page.getByRole('button', { name: 'Reportar incidencia' })).toBeVisible()
+  await page.getByRole('button', { name: 'Reportar incidencia' }).click()
+  await expect(page.getByText(/Hay un envío anterior sin confirmar/)).toBeVisible()
+  await page.getByLabel('Activo afectado').selectOption(fixture.assetA)
+  await page.getByLabel('Título').fill(title)
+  await page.getByLabel('Descripción').fill('Prueba de recuperación tras recargar la pestaña')
+  await page.getByRole('button', { name: 'Registrar incidencia' }).click()
+  const detail = page.getByRole('dialog', { name: title })
+  await expect(detail).toBeVisible()
+  expect(firstKey).toMatch(/^[\da-f-]{36}$/i)
+  expect(await page.evaluate(() => sessionStorage.length)).toBe(0)
+  await detail.getByRole('button', { name: 'Close' }).click()
+  await expect(page.getByRole('button', { name: title })).toHaveCount(1)
+})
