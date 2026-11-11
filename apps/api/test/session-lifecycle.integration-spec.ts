@@ -43,7 +43,7 @@ describe('official NestJS SessionService with persistent PostgreSQL', () => {
     const issued = await service.create(userId);
     expect(issued.token).not.toBe(issued.session.id);
     expect(issued.session.id).toBe(
-      createHash('sha256').update(issued.token).digest('hex'),
+      createHash('sha256').update(issued.token).digest('base64url'),
     );
     expect((await service.validate(issued.token))?.userId).toBe(userId);
     expect(await service.validate(randomUUID())).toBeNull();
