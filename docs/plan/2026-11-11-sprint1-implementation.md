@@ -182,3 +182,29 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   reales, contrato de POST incidente aún sin aprobar. No conectar mocks
   React a login no verificado. Ver
   [guía OIDC](../architecture/oidc-invitation-flow.md).
+
+## Piloto de invitaciones y login real — 2026-11-11
+
+- [PR #38](https://github.com/andresvalencia72/plantops/pull/38):
+  API **interna** para emitir/revocar/listar invitaciones, caducidad acotada
+  1–30 días, emails normalizados y rechazo de duplicados/concurrencia.
+  No crea endpoints HTTP ni permisos de administración dentro del producto.
+- [PR #39](https://github.com/andresvalencia72/plantops/pull/39):
+  CLI de operador con dry-run por defecto, confirmación de organización y
+  nombre esperado de BD, correos enmascarados en listados; ninguna invitación
+  real creada. No se imprime DATABASE_URL.
+- [PR #40](https://github.com/andresvalencia72/plantops/pull/40):
+  una cuenta ya verificada puede aceptar invitaciones a otras empresas
+  sin duplicarse; no revive membresías suspendidas. Tests PostgreSQL.
+- [PR #41](https://github.com/andresvalencia72/plantops/pull/41):
+  Docker Compose PostgreSQL 17 en loopback con base efímera en tmpfs,
+  script de migración solo para DB local `plantops_dev` con `--apply`.
+  Docker Desktop estaba instalado pero su daemon apagado, así que no se
+  ha creado contenedor ni migrado DB de Mac.
+- [PR #42](https://github.com/andresvalencia72/plantops/pull/42):
+  guía de puesta en marcha y registro de clientes Google/Entra sin secretos,
+  pruebas manuales esperadas y bloqueo específico `email_verified` Microsoft.
+- **Pendiente para login realmente probado:** crear clientes OAuth en las
+  consolas de los proveedores, aportar secretos mediante .env local seguro,
+  abrir Docker Desktop y completar el callback en un navegador. No reclamar
+  validación de IdP real hasta disponer de evidencia; ninguna PR fusionada.
