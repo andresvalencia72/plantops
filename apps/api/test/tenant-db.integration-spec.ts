@@ -1,6 +1,7 @@
 import { ForbiddenException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Pool } from 'pg';
@@ -113,6 +114,49 @@ describe('real PostgreSQL tenant constraints', () => {
         title: 'Wrong reporter',
         description: 'Cross-tenant actor is forbidden',
       }),
+    ).rejects.toThrow();
+  });
+
+
+  it('permits switching to B only after a real active B membership exists', async () => {
+    await expect(
+      resolveTenantContext(sessionA, id.orgB, membershipLookup),
+    ).rejects.toThrow(ForbiddenException);
+
+    const additionalMembershipId = randomUUID();
+    await db.insert(memberships).values({
+      id: additionalMembershipId,
+      organizationId: id.orgB,
+      userId: id.userA,
+      role: 'TECHNICIAN',
+    });
+
+    const contextB = await resolveTenantContext(sessionA, id.orgB, membershipLookup);
+    expect(contextB.membershipId).toBe(additionalMembershipId);
+    expect((await reader.list(contextB)).map((asset) => asset.id)).toEqual([id.assetB]);
+    expect(await reader.findById(contextB, id.assetA)).toBeNull();
+  });
+
+  it('rejects a revoked membership on the next context resolution', async () => {
+    await db.update(memberships)
+      .set({ status: 'SUSPENDED' })
+      .where(eq(memberships.id, id.memberA));
+    try {
+      await expect(
+        resolveTenantContext(sessionA, id.orgA, membershipLookup),
+      ).rejects.toThrow(ForbiddenException);
+    } finally {
+      await db.update(memberships)
+        .set({ status: 'ACTIVE' })
+        .where(eq(memberships.id, id.memberA));
+    }
+    expect((await resolveTenantContext(sessionA, id.orgA, membershipLookup)).membershipId)
+      .toBe(id.memberA);
+  });
+
+  it('rejects a missing session even when a valid membership exists', async () => {
+    await expect(
+      resolveTenantContext(null, id.orgA, membershipLookup),
     ).rejects.toThrow();
   });
 
