@@ -29,10 +29,10 @@ function NavigationContent({
     <>
       <div className="flex h-18 items-center justify-between border-b border-sidebar-border px-5">
         <div className="flex items-center gap-2.5">
-          <span className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
             <Activity size={18} strokeWidth={2.2} aria-hidden="true" />
           </span>
-          <span className="text-[15px] font-semibold tracking-tight">plantops<span className="text-primary">.</span></span>
+          <span className="text-base font-semibold tracking-tight">plantops<span className="text-sidebar-primary">.</span></span>
         </div>
         {mobile && (
           <Button aria-label="Cerrar menú" size="icon" variant="ghost" onClick={onClose}>
@@ -40,20 +40,20 @@ function NavigationContent({
           </Button>
         )}
       </div>
-      <nav aria-label="Navegación principal" className="flex-1 space-y-6 px-3 py-6">
+      <nav aria-label="Navegación principal" className="flex-1 space-y-7 px-3 py-6">
         <section aria-label="Operaciones">
-          <p className="px-3 pb-2 text-xs font-medium text-muted-foreground">Operaciones</p>
+          <p className="px-3 pb-2 text-xs font-medium text-sidebar-foreground/65">Operaciones</p>
           <div className="space-y-1">
             {available.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 aria-current={screen === id ? 'page' : undefined}
                 className={[
-                  'flex h-10 w-full items-center gap-3 rounded-md px-3 text-left text-[13px] transition-colors',
+                  'flex h-10 w-full items-center gap-3 rounded-md border-l-2 px-3 text-left text-sm transition-colors',
                   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
                   screen === id
-                    ? 'bg-sidebar-accent font-semibold text-sidebar-accent-foreground'
-                    : 'text-sidebar-foreground/75 hover:bg-sidebar-accent/75',
+                    ? 'border-sidebar-primary bg-sidebar-accent font-medium text-sidebar-accent-foreground'
+                    : 'border-transparent text-sidebar-foreground/80 hover:bg-sidebar-accent/75 hover:text-sidebar-accent-foreground',
                 ].join(' ')}
                 onClick={() => { onNavigate(id); onClose() }}
               >
@@ -63,21 +63,21 @@ function NavigationContent({
           </div>
         </section>
         <section aria-label="Próximamente">
-          <p className="px-3 pb-2 text-xs font-medium text-muted-foreground">Próximamente</p>
+          <p className="px-3 pb-2 text-xs font-medium text-sidebar-foreground/65">Próximamente</p>
           {upcoming.map(({ label, icon: Icon }) => (
-            <div key={label} className="flex h-10 items-center gap-3 px-3 text-[13px] text-muted-foreground/70">
+            <div key={label} className="flex h-10 items-center gap-3 border-l-2 border-transparent px-3 text-sm text-sidebar-foreground/45">
               <Icon size={16} strokeWidth={1.5} aria-hidden="true" />{label}
             </div>
           ))}
         </section>
       </nav>
       <div className="border-t border-sidebar-border p-3">
-        <div className="flex items-center gap-3 rounded-md px-3 py-3 text-xs text-muted-foreground">
+        <div className="flex items-center gap-3 rounded-md px-3 py-3 text-xs text-sidebar-foreground/75">
           <Settings2 size={16} aria-hidden="true" />
           <span>Entorno de demostración</span>
         </div>
-        <div className="flex items-center gap-2 px-3 pb-1 text-xs text-muted-foreground">
-          <span className="size-1.5 rounded-full bg-muted-foreground" />
+        <div className="flex items-center gap-2 px-3 pb-1 text-xs text-sidebar-foreground/65">
+          <span className="size-1.5 rounded-full bg-sidebar-foreground/50" />
           Sin conexión a producción
         </div>
       </div>

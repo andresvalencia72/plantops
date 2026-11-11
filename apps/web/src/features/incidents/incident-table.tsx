@@ -1,5 +1,6 @@
 import { ArrowUpRight } from 'lucide-react'
 import { PriorityBadge, StatusBadge } from './incident-badges'
+import { priorityMarker } from './priority-marker'
 import type { IncidentView } from './types'
 
 interface IncidentTableProps {
@@ -29,7 +30,12 @@ export function IncidentTable({ incidents, onSelect }: IncidentTableProps) {
           <tbody className="divide-y divide-border">
             {incidents.map((incident) => (
               <tr key={incident.id} className="transition-colors hover:bg-secondary/45">
-                <td className="px-5 py-4 font-mono text-xs text-muted-foreground">{incident.id}</td>
+                <td className="px-5 py-4 font-mono text-xs text-muted-foreground">
+                  <span className="flex items-center gap-3">
+                    <span aria-hidden="true" className={['h-7 w-0.5 rounded-full', priorityMarker[incident.priority]].join(' ')} />
+                    {incident.id}
+                  </span>
+                </td>
                 <td className="px-3 py-4">
                   <button onClick={() => onSelect(incident)} className="text-left font-medium leading-5 text-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-ring">
                     {incident.title}
@@ -52,8 +58,9 @@ export function IncidentTable({ incidents, onSelect }: IncidentTableProps) {
           <button
             key={incident.id}
             onClick={() => onSelect(incident)}
-            className="flex w-full flex-col gap-3 px-4 py-4 text-left hover:bg-secondary/45 focus-visible:outline-2 focus-visible:outline-ring"
+            className="relative flex w-full flex-col gap-3 px-4 py-4 text-left hover:bg-secondary/45 focus-visible:outline-2 focus-visible:outline-ring"
           >
+            <span aria-hidden="true" className={['absolute inset-y-4 left-0 w-1 rounded-full', priorityMarker[incident.priority]].join(' ')} />
             <span className="flex w-full items-center justify-between gap-2">
               <span className="font-mono text-xs text-muted-foreground">{incident.id}</span>
               <ArrowUpRight size={15} className="text-muted-foreground" aria-hidden="true" />

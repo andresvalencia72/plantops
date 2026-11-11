@@ -36,7 +36,7 @@ export function AppShell({
           onMenuOpen={() => setMobileOpen(true)}
           menuTriggerRef={menuTriggerRef}
         />
-        <main id="main-content" className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-7 sm:px-7 lg:py-9">
+        <main id="main-content" className="mx-auto w-full max-w-[1560px] flex-1 px-4 py-7 sm:px-8 lg:py-9">
           {children}
         </main>
       </div>

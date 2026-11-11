@@ -42,8 +42,8 @@ export function IncidentsPage({ organization }: { organization: DemoOrganization
         <p><span className="mr-2 text-muted-foreground">Abiertas</span><strong className="font-semibold">{loading ? '—' : summary.open}</strong></p>
         <p><span className="mr-2 text-muted-foreground">Críticas</span><strong className="font-semibold text-destructive">{loading ? '—' : summary.critical}</strong></p>
       </div>
-      <section aria-label="Listado de incidencias" className="border border-border bg-card">
-        <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-4 sm:px-5">
+      <section aria-label="Listado de incidencias" className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/20 px-4 py-4 sm:px-5">
           <div className="relative min-w-[190px] flex-1 sm:max-w-[350px]">
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true"/>
             <Input
