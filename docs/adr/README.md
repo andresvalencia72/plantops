@@ -14,8 +14,8 @@ Los ADR registran **decisiones importantes y sus consecuencias**, no todas las p
 | ADR | Tema | Estado |
 | --- | --- | --- |
 | [0001](0001-frontend-first.md) | Estrategia frontend-first | **Aceptado** (preferencia confirmada 2026-11-07) |
-| [0002](0002-modular-monolith.md) | Arquitectura monolito modular | Propuesto |
-| [0003](0003-multi-tenancy.md) | Aislamiento multiempresa | Propuesto |
+| [0002](0002-modular-monolith.md) | Arquitectura monolito modular | **Aceptado** (2026-11-11) |
+| [0003](0003-multi-tenancy.md) | Aislamiento multiempresa | **Aceptado** (estrategia base, 2026-11-11) |
 
 **Regla:** nunca declarar aceptado un ADR técnico sólo porque parezca lo habitual. Debe existir una decisión explícita o un acuerdo del usuario, y una justificación reproducible.
 
