@@ -1,6 +1,6 @@
 # Arquitectura candidata de PlantOps
 
-**Estado:** PROPUESTA de arquitectura; requiere ADR para multi-tenancy, seguridad y límites. **Revisión:** 2026-11-10.
+**Estado:** ADR-0002 y ADR-0003 aceptados como estrategia; identidad y modelo físico pendientes. **Revisión:** 2026-11-11.
 
 ## Principios de decisión
 
@@ -69,7 +69,7 @@ sequenceDiagram
 
 ## Aislamiento multiempresa (decisión crítica pendiente)
 
-Recomendación inicial: modelo shared database / shared schema con `organization_id` en datos operativos, un contexto de organización autenticado y controles redundantes a nivel consulta e integridad. Esto **no se ha aprobado como ADR definitivo**. Comparar con esquema-por-tenant, BD-por-tenant y posible Row Level Security de PostgreSQL.
+Recomendación inicial: modelo shared database / shared schema con `organization_id` en datos operativos, un contexto de organización autenticado y controles redundantes a nivel consulta e integridad. Estrategia base **aprobada el 2026-11-11**, aún sin implementar ni acreditar su aislamiento real. Esquemas por tenant, BD por tenant y RLS se evaluarán sólo ante necesidades justificadas.
 
 Requisitos independientemente de la alternativa:
 - Identidad y membresía auténticas, nunca un selector de empresa confiado.
@@ -92,7 +92,7 @@ El cierre de una incidencia y la creación de una nueva orden asociada son opera
 ## ADR vinculados
 
 - [ADR-0001 — Frontend first](../adr/0001-frontend-first.md) · ACEPTADO como estrategia de entrega.
-- [ADR-0002 — Monolito modular](../adr/0002-modular-monolith.md) · PROPUESTO.
-- [ADR-0003 — Aislamiento multiempresa](../adr/0003-multi-tenancy.md) · PROPUESTO.
+- [ADR-0002 — Monolito modular](../adr/0002-modular-monolith.md) · ACEPTADO.
+- [ADR-0003 — Aislamiento multiempresa](../adr/0003-multi-tenancy.md) · ACEPTADO.
 
 El primer commit de código debería aportar una capacidad observable y una prueba. No una arquitectura vacía.

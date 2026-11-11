@@ -1,6 +1,6 @@
 # ADR-0002 — Monolito modular en el backend
 
-**Estado:** PROPUESTO · **Fecha:** 2026-11-10.
+**Estado:** ACEPTADO · **Fecha:** 2026-11-10 · **Aprobación:** 2026-11-11.
 
 ## Contexto
 
@@ -14,7 +14,7 @@ El MVP cubre activos, incidencias, órdenes, roles, auditoría y aislamiento mul
 | **Monolito modular NestJS** | Despliegue simple + límites de negocio + transacciones locales | Disciplina para preservar límites, refactorización posterior |
 | Microservicios | Despliegue independiente por equipo | Red, observabilidad, consistencia distribuida y costes innecesarios |
 
-## Decisión recomendada
+## Decisión aceptada
 
 Una API NestJS desplegable, módulos alrededor de Identity/Membership, Assets, Incidents, WorkOrders y Audit. PostgreSQL común; transacciones para operaciones críticas. No crear todas las carpetas vacías por adelantado.
 
@@ -25,6 +25,6 @@ Una API NestJS desplegable, módulos alrededor de Identity/Membership, Assets, I
 - Módulos y DTO se refinarán al construir el primer flujo.
 - Sin colas, eventos externos ni microservicios en el inicio.
 
-## Verificación que podría aprobarlo
+## Verificación pendiente de la implementación
 
-Primer vertical slice implementado con separación clara y pruebas de negocio; mapa de dependencias sin ciclos; operaciones de cierre coherentes. **No adoptar hasta comparar con necesidades reales.**
+Primer vertical slice implementado con separación clara y pruebas de negocio; mapa de dependencias sin ciclos; operaciones de cierre coherentes. **La selección arquitectónica está aprobada;** no implica que el backend esté implementado, ni que las pruebas estén superadas.
