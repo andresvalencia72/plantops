@@ -29,6 +29,13 @@
       "when": 1794395292257,
       "tag": "0003_high_lady_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794400637711,
+      "tag": "0004_overconfident_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }

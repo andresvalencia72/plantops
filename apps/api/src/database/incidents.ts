@@ -1,5 +1,6 @@
 import {
   foreignKey,
+  index,
   pgEnum,
   pgTable,
   text,
@@ -41,6 +42,12 @@ export const incidents = pgTable(
     unique('incidents_organization_id_id').on(
       table.organizationId,
       table.id,
+    ),
+    // Descending keyset scans stay bounded inside one organization.
+    index('incidents_org_reported_id_idx').on(
+      table.organizationId,
+      table.reportedAt.desc(),
+      table.id.desc(),
     ),
     // One report per retry key AND membership, even with concurrent requests.
     unique('incidents_actor_idempotency_key').on(

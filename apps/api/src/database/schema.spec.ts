@@ -99,6 +99,13 @@ describe('shared-schema tenant constraints', () => {
     ]);
   });
 
+  it('indexes incident keyset scans by organization and report time', () => {
+    const indexes = getTableConfig(incidents).indexes.map(
+      (entry) => entry.config.name,
+    );
+    expect(indexes).toContain('incidents_org_reported_id_idx');
+  });
+
   it('assigns a new incident the reported state by default', () => {
     expect(incidents.status.default).toBe('REPORTED');
   });
