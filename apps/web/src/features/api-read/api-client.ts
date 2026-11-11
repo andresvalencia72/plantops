@@ -36,6 +36,7 @@ function string(value: unknown): value is string {
 function validIncident(value: unknown): value is ApiIncident {
   return record(value) && string(value.id) && string(value.assetId) &&
     string(value.title) && string(value.reportedAt) &&
+    Number.isFinite(Date.parse(value.reportedAt)) &&
     ['REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'CLOSED'].includes(String(value.status))
 }
 function invalid(): never {

@@ -59,6 +59,13 @@ describe('API read-only adapter', () => {
     const malformed = createApiReadClient(vi.fn<typeof fetch>()
       .mockResolvedValue(jsonResponse({ items: [], nextCursor: 45 })))
     await expect(malformed.incidents('a')).rejects.toThrow('Respuesta inesperada')
+    const badDate = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({
+        items: [{ id: 'i1', assetId: 'a1', title: 'Bad date', status: 'REPORTED',
+          reportedAt: 'invalid-date' }],
+        nextCursor: null,
+      })))
+    await expect(badDate.incidents('a')).rejects.toThrow('Respuesta inesperada')
   })
 
   it('never sends a client-supplied user ID or authorization header', async () => {

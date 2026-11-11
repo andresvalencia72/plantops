@@ -57,4 +57,9 @@ test('API preview lists only the selected tenant with intercepted test responses
   await expect(page.getByText('Incidencia privada A')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Nueva incidencia' })).toHaveCount(0)
   expect(calls.some((path) => path.startsWith('/api/organizations/org-b/'))).toBe(true)
+
+  await page.setViewportSize({ width: 375, height: 812 })
+  await expect(page.getByText('Incidencia privada B')).toBeVisible()
+  expect(await page.evaluate(() =>
+    document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
