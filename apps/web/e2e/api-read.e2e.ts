@@ -43,6 +43,21 @@ test('Google login link is shown only for a configured provider', async ({ page 
   await expect(page.getByText('Atlas Manufacturing')).toHaveCount(0)
 })
 
+test('invite denial is informative, no account enumeration or demo fallback', async ({ page }) => {
+  await page.route('**/api/me', (route) =>
+    route.fulfill({ status: 401, contentType: 'application/json',
+      body: JSON.stringify({ message: 'Unauthorized' }) }))
+  await page.route('**/api/auth/oidc/providers', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json',
+      body: JSON.stringify({ providers: ['google'] }) }))
+  await page.goto('/?source=api&auth=access-denied')
+  await expect(page.getByRole('heading', { name: 'Acceso pendiente de invitación' }))
+    .toBeVisible()
+  await expect(page.getByRole('alert')).toContainText('invitación vigente')
+  await expect(page.getByText('Atlas Manufacturing')).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Continuar con Google' })).toBeVisible()
+})
+
 test('API preview lists only the selected tenant with intercepted test responses', async ({ page }) => {
   const calls: string[] = []
   await page.route('**/api/**', async (route) => {
