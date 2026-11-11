@@ -71,6 +71,9 @@ describe('tenant authorization boundary', () => {
     expect(Object.isFrozen(context)).toBe(true);
     expect(source.findMembership).toHaveBeenCalledWith('user-A', 'org-A');
     expect(() => requireTenantPermission(context, 'REPORT_INCIDENT')).not.toThrow();
+    expect(() => requireTenantPermission(context, 'START_INCIDENT_REVIEW')).toThrow(
+      ForbiddenException,
+    );
     expect(() => requireTenantPermission(context, 'CLOSE_INCIDENT')).toThrow(
       ForbiddenException,
     );
@@ -84,6 +87,9 @@ describe('tenant authorization boundary', () => {
       actor, 'org-A', lookup({ ...activeA, role: 'TECHNICIAN' }),
     );
     expect(() => requireTenantPermission(supervisor, 'CLOSE_INCIDENT')).not.toThrow();
+    expect(() => requireTenantPermission(supervisor, 'START_INCIDENT_REVIEW')).not.toThrow();
+    expect(() => requireTenantPermission(technician, 'START_INCIDENT_REVIEW'))
+      .toThrow(ForbiddenException);
     expect(() => requireTenantPermission(technician, 'REPORT_INCIDENT')).not.toThrow();
     expect(() => requireTenantPermission(technician, 'CLOSE_INCIDENT')).toThrow(
       ForbiddenException,

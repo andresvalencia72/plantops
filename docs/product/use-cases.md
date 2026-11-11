@@ -50,6 +50,8 @@ Usar estas historias tanto para prototipos frontend como para pruebas de aceptac
 
 **No permitir:** modificar incidencia CLOSED o cambiar a estado no autorizado.
 
+**Diseño del siguiente corte:** [contrato candidato de inicio de revisión](../architecture/incident-review-contract.md). No existe todavía endpoint ni auditoría persistida.
+
 ## UC-04 — Crear orden correctiva
 
 **Actor:** supervisor.

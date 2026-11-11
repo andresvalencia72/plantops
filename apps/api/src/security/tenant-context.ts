@@ -70,7 +70,7 @@ export async function resolveTenantContext(
   });
 }
 
-export type TenantAction = 'REPORT_INCIDENT' | 'CLOSE_INCIDENT';
+export type TenantAction = 'REPORT_INCIDENT' | 'START_INCIDENT_REVIEW' | 'CLOSE_INCIDENT';
 
 export function requireTenantPermission(
   context: TenantContext,
@@ -86,6 +86,7 @@ export function requireTenantPermission(
     }
     deny();
   }
-  if (action === 'CLOSE_INCIDENT' && context.role === 'SUPERVISOR') return;
+  if ((action === 'START_INCIDENT_REVIEW' || action === 'CLOSE_INCIDENT') &&
+      context.role === 'SUPERVISOR') return;
   deny();
 }
