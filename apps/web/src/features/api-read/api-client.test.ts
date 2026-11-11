@@ -21,6 +21,35 @@ describe('API read-only adapter', () => {
     await expect(api.logout()).rejects.toMatchObject({ status: 401 })
   })
 
+  it('sends only the three report fields with a caller-supplied retry key', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
+      id: 'inc1', organizationId: 'org1', assetId: 'a1',
+      title: 'Vibración', description: 'Vibración extraña', status: 'REPORTED',
+    }, 201))
+    const api = createApiReadClient(fetcher)
+    const input = { assetId: 'a1', title: 'Vibración', description: 'Vibración extraña' }
+    const result = await api.reportIncident('org1', input, 'fixed-test-uuid')
+    expect(result.id).toBe('inc1')
+    expect(fetcher).toHaveBeenCalledWith('/api/organizations/org1/incidents', {
+      method: 'POST', credentials: 'include', redirect: 'error',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json',
+        'Idempotency-Key': 'fixed-test-uuid' },
+      body: JSON.stringify(input),
+    })
+  })
+
+  it('does not treat HTTP conflict or an invalid report response as success', async () => {
+    const input = { assetId: 'a1', title: 'Vibración', description: 'Vibración extraña' }
+    const conflict = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ message: 'Conflict' }, 409)))
+    await expect(conflict.reportIncident('a', input, 'key')).rejects
+      .toMatchObject({ status: 409, name: 'ApiRequestError' })
+    const invalidReply = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ id: 'inc-1', status: 'REPORTED' }, 201)))
+    await expect(invalidReply.reportIncident('a', input, 'key')).rejects
+      .toThrow('Respuesta inesperada')
+  })
+
   it('discovers configured OIDC providers without exposing secrets', async () => {
     const fetcher = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(jsonResponse({ providers: ['google', 'experimental'] }))
