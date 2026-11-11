@@ -1,6 +1,6 @@
 # ADR-0004 — Identidad, sesiones y autorización contextual
 
-**Estado:** PARCIALMENTE ACEPTADO · **Fecha:** 2026-11-11 · Sesiones servidor/PostgreSQL aprobadas; primer factor y puesta en servicio pendientes.
+**Estado:** ACEPTADO COMO DIRECCIÓN · **Fecha:** 2026-11-11 · Sesiones PostgreSQL y OIDC por invitación Google/Microsoft aprobados; despliegue, provisión de invitaciones y contrato HTTP de mutaciones pendientes.
 **Relación:** [ADR-0003](0003-multi-tenancy.md), [Sprint 1](../plan/roadmap.md).
 
 ## Problema y límites de confianza
@@ -19,11 +19,11 @@ suministrado por el navegador. Esta decisión NO abre endpoints privados.
 | JWT propio y refresh tokens desarrollados desde cero | Control completo | Mayor superficie criptográfica y de revocación: no recomendado para MVP |
 
 **Aprobado por el propietario (2026-11-11):** sesiones servidor PostgreSQL
-con `@nestjs/authentication` y cookies HttpOnly, Secure y SameSite.
-**No aprobado:** primer factor de autenticación (contraseña, invitación,
-OIDC o magic link), alta/recuperación, política exacta de TTL, CSRF/orígenes,
-flujo de despliegue de PostgreSQL y apertura de rutas privadas. Evitar login
-simulado o usar un JWT del navegador como fuente de permisos.
+con `@nestjs/authentication`, cookies HttpOnly/Secure/SameSite y primer
+factor **OIDC Google/Microsoft por invitación**.
+**Pendiente:** política administrativa de invitaciones, provisión de cuentas
+externas reales, recuperación, despliegue PostgreSQL, CORS y contrato HTTP
+de mutaciones. No escribir login simulado ni confiar en JWT del navegador.
 
 ## Modelo de autorización previsto (independiente del proveedor)
 
@@ -79,10 +79,17 @@ simulado o usar un JWT del navegador como fuente de permisos.
 - [PR #27](https://github.com/andresvalencia72/plantops/pull/27):
   `SessionService` oficial con pruebas de hash SHA-256 (Base64URL),
   vencimientos, rotación y revocación real en PostgreSQL temporal.
-- **No configurado en la aplicación HTTP:** aún no se ha registrado proveedor
-  de credenciales o conectada la base de datos a `AppModule`. Por tanto
-  el guard global no está habilitado, no se emiten cookies, no hay login
-  ni rutas privadas. El único endpoint continúa siendo `GET /health`.
+- [PR #29](https://github.com/andresvalencia72/plantops/pull/29):
+  guard HTTP global, sesión PostgreSQL y CSRF nativo activos en la API.
+- [PR #30–#34](https://github.com/andresvalencia72/plantops/pull/34):
+  esquema de invitaciones, OIDC state PKCE persistente, resolver de cuentas
+  con identidad por (provider, subject), rutas condicionales por proveedor,
+  tests negativos y de concurrencia.
+- [PR #35–#36](https://github.com/andresvalencia72/plantops/pull/36):
+  identidad y organizaciones accesibles, activos filtrados por tenant.
+- **No configurado en servicios externos:** sin clientes OAuth reales ni
+  invitaciones administrativas; ningún login real contra proveedores
+  verificado. Las pruebas usan PostgreSQL efímero en CI.
 
 ## Fuentes consultadas (2026-11-11)
 
@@ -91,6 +98,7 @@ simulado o usar un JWT del navegador como fuente de permisos.
 - [NestJS CSRF](https://docs.nestjs.com/security/csrf)
 - [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 
-**Bloqueo:** elegir el primer factor, recuperación e invitaciones; revisar
-configuración CSRF, cookies y expiración antes de registrar proveedores y
-activar el guard global. No abrir endpoints privados antes de esa revisión.
+**Bloqueo para uso real:** registrar clientes OIDC reales, definir
+emisión de invitaciones, verificar Microsoft `emailVerified`, desplegar
+PostgreSQL y aprobar contrato de mutaciones/CSRF. No conectar frontend
+como si existiera login operativo antes de esas validaciones.
