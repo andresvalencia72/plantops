@@ -1,7 +1,7 @@
 # Acceso OIDC por invitación — estado verificable de Sprint 1
 
-**Fecha:** 2026-11-11 · **Estado:** implementado en PR draft apiladas,
-sin integración con proveedores de identidad reales ni producción.
+**Fecha:** 2026-11-11 · **Estado:** Google OIDC validado en Chrome
+contra NestJS/PostgreSQL locales (PR draft #46); Microsoft y producción pendientes.
 **Aprobado:** Google y Microsoft OIDC + invitación, con sesión segura en
 PostgreSQL. **Aún no aprobado:** política administrativa para emitir
 invitaciones, despliegue final y recuperación de cuenta.
@@ -79,9 +79,10 @@ https://api.plantops.example/auth/oidc/microsoft/callback
 | `GET /organizations/:orgId/assets` | Sesión + membresía ACTIVE | Filtrado por tenant |
 | `GET /organizations/:orgId/assets/:assetId` | Sesión + membresía ACTIVE | ID ajeno ⇒ 404 |
 
-`POST` de incidencias y UI React conectada **no están implementados**.
-El caso de uso transaccional existe, pero su cabecera de idempotencia y
-códigos HTTP aún requieren aprobación.
+`POST` de incidencias **no está implementado**. React dispone de una
+vista API de solo lectura en desarrollo; el login Google por invitación
+ya fue comprobado con Chrome y PostgreSQL efímero el 11/11/2026.
+El contrato de escritura e idempotencia sigue pendiente.
 
 ## Evidencia y pendientes
 
@@ -94,10 +95,15 @@ códigos HTTP aún requieren aprobación.
 - El CLI de operador permite emitir/revocar/listar, pero falta decidir quién
   puede invitar dentro del producto y cómo auditarlo a escala. Ver
   [piloto de OIDC real](oidc-local-validation.md).
-- Pendiente antes de uso real: registrar clientes y callback, revisar
-  control de acceso/rate limiting de invitaciones, revisar
-  políticas de sesión/CORS, test end-to-end contra proveedores reales en
-  entorno aislado, desplegar DB, y cerrar auditoría e incidentes HTTP.
+- [PR #46](https://github.com/andresvalencia72/plantops/pull/46):
+  Google OAuth Web real en Chrome/loopback, callback, invitación consumida,
+  sesión persistente y membresía autorizada verificadas localmente.
+  Primera respuesta 403 explicada por ausencia de invitación; se
+  resolvió emitiendo una, sin relajar seguridad.
+- Pendiente antes de producción: políticas y rate limiting de invitación,
+  CORS/cookies/CSRF con HTTPS, despliegue de PostgreSQL, auditoría,
+  logout/revocación E2E en navegador y contrato POST de incidencias.
+  Microsoft Entra continúa sin validación real.
 
 Fuentes:
 [NestJS 12 Authentication](https://docs.nestjs.com/security/authentication),

@@ -1,8 +1,36 @@
 # Piloto OIDC real, limitado a una base local descartable
 
-**Estado:** preparado, NO ejecutado contra Google ni Microsoft.
+**Estado:** Google validado de extremo a extremo en Chrome local (11/11/2026);
+Microsoft y producción NO verificados.
 **Fecha:** 2026-11-11. Solo para desarrolladores autorizados; nunca producción.
 El código y las verificaciones PostgreSQL están en PR draft #29–#41.
+
+## Resultado real y causa del primer 403 — 11/11/2026
+
+- Google completó el callback en `127.0.0.1:5184`, pero el primer
+  intento devolvió `403 account not allowed` **emitido por PlantOps**:
+  había 1 organización y 0 invitaciones/usuarios en `plantops_dev`.
+  Esto era la política prevista de acceso por invitación, **no** un
+  rechazo de credenciales por Google ni un error de redirect URI.
+- El operador generó una invitación `MEMBER` válida por 7 días para el
+  correo verificado del propietario (el email no figura en este repo)
+  usando `invitations-operator.mjs --apply` y confirmación de la
+  organización piloto. Se verificó pendiente=1, usuarios=0.
+- Se volvió a iniciar el flujo desde una pestaña nueva del Chrome real:
+  Google retornó a `/?source=api` con la sesión activa. NestJS creó
+  1 usuario, 1 vínculo `(google, subject)`, 1 membresía `ACTIVE`
+  y 1 sesión PostgreSQL; la única invitación quedó consumida.
+- Consulta SQL por joins comprobó que identidad Google, `consumedByUserId`,
+  membresía del tenant piloto y sesión activa pertenecen al **mismo
+  usuario**. En Chrome se verificó visualmente el perfil y el rol
+  `MEMBER`, y tras una recarga continuó autenticado.
+- Activos=0 e incidencias=0 es el resultado real esperado: no se han
+  insertado datos de negocio ficticios. No se cambió el resolver, las
+  cookies `Secure` ni el guard para corregir el rechazo.
+- **Límite:** validación local en Chrome y PostgreSQL efímero solamente.
+  Falta probar Safari, logout/revocación con navegador real, HTTPS de
+  producción y Microsoft. No se guardan códigos OAuth, cookies,
+  secretos ni capturas en Git o Notion.
 
 ## OIDC Google reanudado — piloto interactivo en Mac (11/11/2026)
 
@@ -16,18 +44,18 @@ El código y las verificaciones PostgreSQL están en PR draft #29–#41.
 - `GET /auth/oidc/providers` enumera únicamente nombres de proveedores
   activos. La vista React `/?source=api` ofrece el botón de Google
   solo cuando NestJS lo anuncia; si no, conserva el estado 401.
-- Se creó **una organización piloto ficticia** en la BD efímera local;
-  no se ha creado ninguna cuenta de usuario ni invitación hasta conocer
-  la dirección que Google verificará.
+- Al empezar el piloto solo existía la organización ficticia.
+  Posteriormente se creó una invitación y Google completó el alta,
+  tal como consta en el resultado real anterior.
 - Existe un importador seguro `apps/api/scripts/import-google-oidc.mjs`:
   valida el archivo JSON descargado del cliente web y su callback;
   su modo predeterminado es dry-run y `--apply` modifica únicamente
   el `apps/api/.env` privado (0600), sin imprimir secretos.
-- **Aún no verificado:** registro real del cliente, emisión de invitación
-  y consentimiento/retorno en navegador, cookies `Secure` en loopback.
-  No se ha cambiado la política de cookies ni habilitado OAuth ficticio.
+- **Ya verificado:** cliente Google real, invitación, consentimiento,
+  callback, sesión `Secure` en Chrome y acceso al tenant. No se cambió
+  la política de cookies. Quedan Safari/producción/Microsoft.
 
-## Entorno local listo sin activar OIDC — 11/11/2026
+## Histórico: entorno local antes de activar OIDC — 11/11/2026
 
 - Docker Desktop y PostgreSQL 17 Alpine iniciados: contenedor
   `api-postgres-1` saludable, puerto exclusivo
@@ -98,7 +126,7 @@ migraciones locales indicadas arriba. El piloto de Google se reanudó posteriorm
 Docker Desktop está operativo y la base de desarrollo descartable
 ya se ha creado. Estos pasos quedan como referencia para reproducir
 el entorno, **no hay que ejecutarlos de nuevo mientras siga iniciado**.
-El piloto Google está reabierto; no se ha validado el login real.
+El piloto de Google ya está validado localmente (ver resultado anterior).
 
 En el repositorio:
 
