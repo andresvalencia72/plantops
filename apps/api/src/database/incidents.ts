@@ -26,6 +26,10 @@ export const incidents = pgTable(
       .references(() => organizations.id),
     assetId: uuid('asset_id').notNull(),
     reportedByMembershipId: uuid('reported_by_membership_id').notNull(),
+    // Nullable only for records from before the idempotency contract.
+    // The new report use case will require a key and a request hash.
+    idempotencyKey: uuid('idempotency_key'),
+    requestHash: text('request_hash'),
     title: text('title').notNull(),
     description: text('description').notNull(),
     status: incidentStatus('status').notNull().default('REPORTED'),
@@ -37,6 +41,12 @@ export const incidents = pgTable(
     unique('incidents_organization_id_id').on(
       table.organizationId,
       table.id,
+    ),
+    // One report per retry key AND membership, even with concurrent requests.
+    unique('incidents_actor_idempotency_key').on(
+      table.organizationId,
+      table.reportedByMembershipId,
+      table.idempotencyKey,
     ),
     foreignKey({
       name: 'incidents_asset_same_organization_fk',
