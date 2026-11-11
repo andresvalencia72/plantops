@@ -1,26 +1,31 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { NodeAdapter } from '@nestjs/platform-node';
+import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
-import { AppModule } from './../src/app.module.js';
+import { AppModule } from '../src/app.module.js';
 
-describe('AppController (e2e)', () => {
+describe('Foundation API (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const fixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = fixture.createNestApplication(new NodeAdapter());
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
+  it('GET /health returns only process liveness', async () => {
+    await request(app.getHttpServer())
+      .get('/health')
       .expect(200)
-      .expect('Hello World!');
+      .expect({ status: 'ok' });
+  });
+
+  it('does not expose the generated root Hello World route', async () => {
+    await request(app.getHttpServer()).get('/').expect(404);
   });
 
   afterEach(async () => {

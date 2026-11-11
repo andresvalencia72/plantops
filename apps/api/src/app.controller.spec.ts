@@ -3,20 +3,18 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
 describe('AppController', () => {
-  let appController: AppController;
+  let controller: AppController;
 
   beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
       providers: [AppService],
     }).compile();
 
-    appController = app.get<AppController>(AppController);
+    controller = module.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
-    });
+  it('reports process liveness without claiming dependency readiness', () => {
+    expect(controller.getHealth()).toEqual({ status: 'ok' });
   });
 });
