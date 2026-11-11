@@ -4,12 +4,12 @@ import { useTheme } from '@/app/use-theme'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ApiRequestError, apiReadClient } from './api-client'
-import type { ApiReadClient, ApiProfile, ApiOrganization } from './api-client'
+import type { ApiReadClient, ApiProfile, ApiOrganization, ApiLoginProvider } from './api-client'
 import { ApiIncidentsPanel } from './api-incidents-panel'
 
 type Connection =
   | { status: 'loading' }
-  | { status: 'unauthenticated' }
+  | { status: 'unauthenticated'; providers: ApiLoginProvider[] }
   | { status: 'error'; message: string }
   | { status: 'ready'; profile: ApiProfile; organizations: ApiOrganization[] }
 
@@ -30,10 +30,22 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
         setConnection({ status: 'ready', profile, organizations })
       } catch (error) {
         if (controller.signal.aborted) return
-        setConnection(error instanceof ApiRequestError && error.status === 401
-          ? { status: 'unauthenticated' }
-          : { status: 'error', message: error instanceof Error
+        if (error instanceof ApiRequestError && error.status === 401) {
+          try {
+            const providers = await client.providers(controller.signal)
+            if (!controller.signal.aborted) {
+              setConnection({ status: 'unauthenticated', providers })
+            }
+          } catch {
+            if (!controller.signal.aborted) {
+              setConnection({ status: 'error',
+                message: 'No se pudo comprobar la configuración del login.' })
+            }
+          }
+        } else {
+          setConnection({ status: 'error', message: error instanceof Error
             ? error.message : 'No se pudo conectar con la API.' })
+        }
       }
     }
     void connect()
@@ -98,9 +110,28 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
             </span>
             <h2 className="text-[20px] font-semibold">Se requiere una sesión válida</h2>
             <p role="alert" className="text-sm leading-6 text-muted-foreground">
-              La API respondió 401. El inicio de sesión con Google o Microsoft sigue pendiente,
-              así que aquí no se muestran organizaciones ni incidencias ficticias.
+              La API respondió 401. Solo podrás ver organizaciones e incidencias
+              cuando un proveedor autorizado haya verificado tu identidad.
             </p>
+            {connection.providers.includes('google') && (
+              <Button asChild className="w-full sm:w-auto">
+                <a href="/auth/oidc/google/login?redirectTo=%2F%3Fsource%3Dapi">
+                  Continuar con Google
+                </a>
+              </Button>
+            )}
+            {connection.providers.includes('microsoft') && (
+              <Button asChild className="w-full sm:w-auto">
+                <a href="/auth/oidc/microsoft/login?redirectTo=%2F%3Fsource%3Dapi">
+                  Continuar con Microsoft
+                </a>
+              </Button>
+            )}
+            {connection.providers.length === 0 && (
+              <p className="text-xs leading-5 text-muted-foreground">
+                No hay proveedores de acceso configurados todavía en esta API.
+              </p>
+            )}
             <div className="flex flex-wrap gap-3">
               <Button variant="outline" onClick={retryConnection}>
                 <RefreshCw size={15} aria-hidden="true"/> Comprobar de nuevo

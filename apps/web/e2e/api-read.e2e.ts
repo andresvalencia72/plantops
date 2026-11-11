@@ -6,6 +6,9 @@ test('API preview rejects missing session without leaking demo fixtures', async 
     await page.route('**/api/me', (route) =>
       route.fulfill({ status: 401, contentType: 'application/json',
         body: JSON.stringify({ message: 'Unauthorized' }) }))
+    await page.route('**/api/auth/oidc/providers', (route) =>
+      route.fulfill({ status: 404, contentType: 'application/json',
+        body: JSON.stringify({ message: 'No provider configured' }) }))
   }
   const calls: string[] = []
   page.on('request', (request) => {
@@ -21,6 +24,23 @@ test('API preview rejects missing session without leaking demo fixtures', async 
   expect(calls.some((url) => url.endsWith('/api/me'))).toBe(true)
   expect(calls.some((url) => url.includes('/api/organizations/'))).toBe(false)
   await page.screenshot({ path: info.outputPath('api-session-required.png'), fullPage: true })
+})
+
+test('Google login link is shown only for a configured provider', async ({ page }) => {
+  await page.route('**/api/me', (route) =>
+    route.fulfill({ status: 401, contentType: 'application/json',
+      body: JSON.stringify({ message: 'Unauthorized' }) }))
+  await page.route('**/api/auth/oidc/providers', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json',
+      body: JSON.stringify({ providers: ['google'] }) }))
+  await page.goto('/?source=api')
+  const link = page.getByRole('link', { name: 'Continuar con Google' })
+  await expect(link).toBeVisible()
+  await expect(link).toHaveAttribute('href',
+    '/auth/oidc/google/login?redirectTo=%2F%3Fsource%3Dapi')
+  await expect(page.getByRole('link', { name: 'Continuar con Microsoft' }))
+    .toHaveCount(0)
+  await expect(page.getByText('Atlas Manufacturing')).toHaveCount(0)
 })
 
 test('API preview lists only the selected tenant with intercepted test responses', async ({ page }) => {
