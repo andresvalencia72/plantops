@@ -45,6 +45,15 @@ describe('opt-in OIDC HTTP routing without real provider credentials', () => {
     }
   });
 
+  it('lists enabled provider names without exposing credentials', async () => {
+    const result = await request(app.getHttpServer())
+      .get('/auth/oidc/providers')
+      .expect(200);
+    expect(result.body).toEqual({ providers: ['google'] });
+    expect(result.text).not.toContain('fixture-only-secret');
+    expect(result.text).not.toContain('fixture-only-google-client');
+  });
+
   it('still exposes only health without authentication', async () => {
     await request(app.getHttpServer()).get('/health')
       .expect(200).expect({ status: 'ok' });
