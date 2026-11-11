@@ -12,6 +12,7 @@ import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module.js';
+import { trustedOrigins } from '../src/auth/trusted-origins.js';
 import { assets } from '../src/database/assets.js';
 import { incidents } from '../src/database/incidents.js';
 import { memberships, organizations, users } from '../src/database/organizations.js';
@@ -70,7 +71,7 @@ describe('authenticated HTTP incident reporting and idempotency', () => {
     ]);
     const fixture = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = fixture.createNestApplication(new NodeAdapter());
-    app.enableCsrfProtection();
+    app.enableCsrfProtection({ trustedOrigins: trustedOrigins() });
     await app.init();
     sessionService = app.get(SessionService);
     cookie = (await sessionService.create(ids.userA)).cookie;
@@ -125,6 +126,32 @@ describe('authenticated HTTP incident reporting and idempotency', () => {
     await report(randomUUID(), { assetId: ids.assetA, title: 'X', description: 'short' })
       .expect(400);
     await report(randomUUID(), []).expect(400);
+  });
+
+  it('rejects a non-JSON Content-Type before creating a report', async () => {
+    await request(app.getHttpServer()).post(routeA)
+      .set('Cookie', cookie).set('Sec-Fetch-Site', 'same-origin')
+      .set('Idempotency-Key', randomUUID()).set('Content-Type', 'text/plain')
+      .send(JSON.stringify(data)).expect(415);
+  });
+
+  it('replays equivalent UUIDs regardless of letter casing', async () => {
+    const key = randomUUID();
+    const first = await report(key).expect(201);
+    const replay = await report(key, { ...data, assetId: ids.assetA.toUpperCase() })
+      .expect(201);
+    expect(replay.body.id).toBe(first.body.id);
+    const rows = await db.select().from(incidents).where(eq(incidents.idempotencyKey, key));
+    expect(rows).toHaveLength(1);
+  });
+
+  it('returns the current incident status when replaying a committed report', async () => {
+    const key = randomUUID();
+    const first = await report(key).expect(201);
+    await db.update(incidents).set({ status: 'UNDER_REVIEW' })
+      .where(eq(incidents.id, first.body.id));
+    const replay = await report(key).expect(201);
+    expect(replay.body).toMatchObject({ id: first.body.id, status: 'UNDER_REVIEW' });
   });
 
   it('creates a scoped REPORTED incident, and returns a stable response on replay', async () => {
