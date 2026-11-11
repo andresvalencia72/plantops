@@ -5,20 +5,22 @@ import { StatusBadge } from '@/features/incidents/incident-badges'
 import { ApiRequestError } from './api-client'
 import type { ApiAsset, ApiIncidentPage, ApiReadClient, ApiOrganization } from './api-client'
 import { ApiIncidentDetailSheet } from './api-incident-detail'
+import { ApiReportDialog } from './api-report-dialog'
 
 type State =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'ready'; page: ApiIncidentPage; assets: ApiAsset[] }
 
-type Props = { client: ApiReadClient; organization: ApiOrganization }
+type Props = { client: ApiReadClient; organization: ApiOrganization; allowWrites?: boolean }
 
 function errorMessage(error: unknown) {
   return error instanceof ApiRequestError ? error.message
     : 'No se pudieron obtener datos de la API. Revisa la conexión y vuelve a intentar.'
 }
 
-export function ApiIncidentsPanel({ client, organization }: Props) {
+export function ApiIncidentsPanel({ client, organization, allowWrites = false }: Props) {
+  const [reportOpen, setReportOpen] = useState(false)
   const [cursor, setCursor] = useState<string | undefined>()
   const [previous, setPrevious] = useState<(string | undefined)[]>([])
   const [revision, setRevision] = useState(0)
@@ -60,6 +62,14 @@ export function ApiIncidentsPanel({ client, organization }: Props) {
     setPrevious((list) => list.slice(0, -1))
   }
 
+  function created(id: string) {
+    setSelectedId(id)
+    setCursor(undefined)
+    setPrevious([])
+    setState({ status: 'loading' })
+    setRevision((value) => value + 1)
+  }
+
   function refresh() {
     setSelectedId(null)
     setState({ status: 'loading' })
@@ -94,12 +104,19 @@ export function ApiIncidentsPanel({ client, organization }: Props) {
           <div>
             <h2 className="text-[14px] font-semibold">Incidencias registradas</h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              Consulta paginada del servidor · sin operaciones de escritura
+              {allowWrites ? 'Consulta y reporte en entorno aislado de pruebas'
+                : 'Consulta paginada del servidor · sin operaciones de escritura'}
             </p>
           </div>
+          <div className="flex flex-wrap gap-2">
+            {allowWrites && state.status === 'ready' && (
+              <Button size="sm" disabled={!assets.some((item) => item.active)}
+                onClick={() => setReportOpen(true)}>Reportar incidencia</Button>
+            )}
           <Button variant="outline" size="sm" onClick={refresh}>
             <RefreshCw size={14} aria-hidden="true" /> Actualizar
           </Button>
+          </div>
         </header>
         {state.status === 'loading' && (
           <div role="status" className="p-10 text-center text-sm text-muted-foreground">
@@ -162,6 +179,12 @@ export function ApiIncidentsPanel({ client, organization }: Props) {
           </footer>
         )}
       </section>
+      {allowWrites && (
+        <ApiReportDialog
+          client={client} assets={assets} organizationId={organization.id}
+          open={reportOpen} onOpenChange={setReportOpen} onCreated={created}
+        />
+      )}
       <ApiIncidentDetailSheet
         key={selectedId ?? 'closed'}
         client={client}

@@ -79,3 +79,26 @@ Desde `apps/web`:
 - [Plan de ejecución por bloques](../../docs/plan/2026-11-10-execution.md)
 
 El objetivo es una UI de referencia testable, no un sistema industrial seguro ya desplegado.
+
+
+## Escritura de incidencias — solo laboratorio aislado
+
+La vista `/?source=api` mantiene **solo lectura por defecto**. El formulario
+`POST /organizations/:id/incidents` solo aparece en `DEV` cuando Vite
+arranca con `VITE_PLANTOPS_ENABLE_REPORTS=isolated-test`. En ese modo el
+proxy apunta **exclusivamente** a `127.0.0.1:3002`, separado del piloto
+Google OIDC que usa `127.0.0.1:3001`. No configurar el laboratorio con
+`plantops_dev`: usar una base temporal terminada en `_test`, sesiones
+sintéticas y activos ficticios.
+
+El formulario conserva la misma `Idempotency-Key` y el mismo payload entre
+reintentos mientras permanece montado, incluso si se cierra y se reabre el
+diálogo. **No persiste contenido del reporte en localStorage.** Si se recarga
+la página tras una respuesta incierta, revisar la lista antes de volver a
+registrar; el protocolo no puede garantizar deduplicación sin conservar la
+clave anterior. El backend sigue siendo el único responsable de permisos.
+
+Para una prueba completamente aislada, iniciar Nest en el puerto 3002 con
+`DATABASE_URL` de una BD de test (nunca el piloto) y arrancar el frontend
+con la variable anterior. No dejar ese modo habilitado en sesiones de uso
+habitual ni en builds de producción.

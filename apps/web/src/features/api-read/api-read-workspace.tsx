@@ -14,6 +14,9 @@ type Connection =
   | { status: 'ready'; profile: ApiProfile; organizations: ApiOrganization[] }
 
 export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadClient }) {
+  // Explicit local opt-in only: never expose writes in production or the pilot preview.
+  const isolatedWrites = import.meta.env.DEV &&
+    import.meta.env.VITE_PLANTOPS_ENABLE_REPORTS === 'isolated-test'
   const { theme, setTheme } = useTheme()
   const [attempt, setAttempt] = useState(0)
   const [connection, setConnection] = useState<Connection>({ status: 'loading' })
@@ -99,7 +102,7 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
             </span>
             <span className="text-[15px] font-semibold tracking-tight">plantops<span className="text-primary">.</span></span>
             <span className="hidden h-5 w-px bg-border sm:inline" aria-hidden="true" />
-            <Badge variant="outline" className="text-[10px]">API local · Solo lectura</Badge>
+            <Badge variant="outline" className="text-[10px]">{isolatedWrites ? 'API local · Laboratorio aislado' : 'API local · Solo lectura'}</Badge>
           </div>
           <div className="flex items-center gap-2">
             <a href="/" className="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
@@ -119,7 +122,8 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
           <h1 className="text-[29px] font-semibold tracking-[-.045em] sm:text-[36px]">Centro de operaciones</h1>
           <p className="mt-2 max-w-[620px] text-[13px] leading-6 text-muted-foreground">
             Datos consultados directamente en la API de PlantOps. No se mezclan registros ficticios
-            ni se permiten altas o modificaciones desde esta vista.
+            y {isolatedWrites ? 'las escrituras solo se habilitan para pruebas aisladas.' :
+              'no se permiten altas o modificaciones desde esta vista.'}
           </p>
         </div>
         {connection.status === 'loading' && (
@@ -204,7 +208,8 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
               <p role="alert" className="text-sm text-destructive">{logoutError}</p>
             )}
             {organization
-              ? <ApiIncidentsPanel key={organization.id} organization={organization} client={client} />
+              ? <ApiIncidentsPanel key={organization.id} organization={organization}
+                  client={client} allowWrites={isolatedWrites} />
               : <p className="border border-border bg-card p-8 text-sm text-muted-foreground">
                   No tienes ninguna organización activa. El servidor no ha autorizado datos.
                 </p>}

@@ -35,6 +35,7 @@ describe('API incident list behavior', () => {
     render(<ApiIncidentsPanel client={createApiReadClient(fetcher)} organization={orgA} />)
     expect(await screen.findByRole('button', { name: /Aviso A/ })).toBeInTheDocument()
     expect(screen.getByText('Página 1 · 1 registros')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Reportar incidencia' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Siguiente' }))
     expect(await screen.findByRole('button', { name: /Aviso B/ })).toBeInTheDocument()
     expect(screen.queryByText('Aviso A')).not.toBeInTheDocument()
