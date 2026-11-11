@@ -15,6 +15,8 @@ function inspect(dir) {
       continue
     }
     if (!entry.isFile() || !suffixes.has(extname(path)) || generated.has(entry.name)) continue
+    // Drizzle generates snapshots; this exception never applies to hand-written code.
+    if (/^apps\/api\/drizzle\/meta\/\d+_snapshot\.json$/.test(relative(root, path))) continue
     const lines = readFileSync(path, 'utf8').split(/\r?\n/).length
     if (lines > 400) violations.push({ file: relative(root, path), lines })
   }
