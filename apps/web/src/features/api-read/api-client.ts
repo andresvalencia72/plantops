@@ -15,11 +15,21 @@ export type ApiIncidentDetail = ApiIncident & Readonly<{ description: string }>
 export type ApiIncidentPage = Readonly<{
   items: ApiIncident[]; nextCursor: string | null
 }>
+export type ApiReportInput = Readonly<{
+  assetId: string; title: string; description: string
+}>
+export type ApiReportResult = Readonly<{
+  id: string; organizationId: string; assetId: string
+  title: string; description: string; status: IncidentStatus
+}>
 
 export class ApiRequestError extends Error {
   readonly status: number
   constructor(status: number) {
-    super(status === 401 ? 'Se necesita una sesión válida.'
+    super(status === 400 ? 'Revisa los datos introducidos.'
+      : status === 409 ? 'Esta solicitud ya se usó con datos distintos.'
+        : status === 415 ? 'El servidor rechazó el formato enviado.'
+          : status === 401 ? 'Se necesita una sesión válida.'
       : status === 403 ? 'No tienes acceso a esta organización.'
         : status === 404 ? 'El recurso no está disponible.'
           : 'No se pudo consultar la API. Intenta de nuevo.')
@@ -66,6 +76,28 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
         headers: { Accept: 'application/json' },
       })
       if (!response.ok) throw new ApiRequestError(response.status)
+    },
+    /** Same-origin, authenticated write. Caller owns and reuses the retry key. */
+    async reportIncident(
+      orgId: string, input: ApiReportInput, retryKey: string,
+    ): Promise<ApiReportResult> {
+      const response = await fetcher('/api' + orgPath(orgId) + '/incidents', {
+        method: 'POST', credentials: 'include', redirect: 'error',
+        headers: {
+          Accept: 'application/json', 'Content-Type': 'application/json',
+          'Idempotency-Key': retryKey,
+        },
+        body: JSON.stringify(input),
+      })
+      if (!response.ok) throw new ApiRequestError(response.status)
+      const value: unknown = await response.json()
+      if (!record(value) || !string(value.id) || !string(value.organizationId) ||
+        !string(value.assetId) || !string(value.title) ||
+        !string(value.description) ||
+        !['REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'CLOSED'].includes(String(value.status))) {
+        invalid()
+      }
+      return value as ApiReportResult
     },
     /** Public non-secret provider discovery. 404 means OIDC not yet configured. */
     async providers(signal?: AbortSignal): Promise<ApiLoginProvider[]> {
