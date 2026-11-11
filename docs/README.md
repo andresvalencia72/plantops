@@ -22,6 +22,7 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 7 | [Borrador de API](architecture/api-contracts.md) | Recursos implementados en PR draft y propuestas pendientes |
 | 8 | [ADR y decisiones pendientes](adr/README.md) | Hipótesis, alternativas, razones |
 | 9 | [Estrategia de pruebas](quality/testing.md) | Qué verificar, desde el primer corte |
+| 9b | [E2E real de incidencias](quality/incident-report-browser-e2e.md) | Navegador, PostgreSQL temporal y seguridad del laboratorio |
 | 10 | [Estándares de ingeniería](quality/engineering.md) | CI, PR, seguridad y definición de terminado |
 | 10b | [Revisión real del frontend](quality/frontend-review-2026-11-10.md) | Pruebas, capturas y riesgos restantes |
 | 11 | [Roadmap y primer corte](plan/roadmap.md) | Secuencia de ejecución, sin fechas artificiales |

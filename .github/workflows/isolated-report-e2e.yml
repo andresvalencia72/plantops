@@ -1,0 +1,82 @@
+name: Isolated incident report E2E
+
+on:
+  pull_request:
+    paths:
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - '.github/workflows/isolated-report-e2e.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: incident-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-postgres:
+    name: Real browser + disposable PostgreSQL
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: plantops_test
+          POSTGRES_PASSWORD: plantops_test
+          POSTGRES_DB: plantops_s1_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U plantops_test -d plantops_s1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_TEST_URL: postgresql://plantops_test:plantops_test@127.0.0.1:5432/plantops_s1_test
+      PLANTOPS_ISOLATED_FIXTURE: /tmp/plantops-isolated-e2e.json
+    steps:
+      - uses: actions/checkout@v4
+      - name: Node 26
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - name: Install API
+        working-directory: apps/api
+        run: npm ci --no-audit --no-fund
+      - name: Compile isolated API
+        working-directory: apps/api
+        run: npm run build
+      - name: Install web
+        working-directory: apps/web
+        run: npm ci --no-audit --no-fund
+      - name: Start disposable Nest test server
+        working-directory: apps/api
+        run: |
+          nohup node scripts/isolated-report-lab.mjs >/tmp/plantops-lab.log 2>&1 &
+          echo $! >/tmp/plantops-lab.pid
+          for i in $(seq 1 40); do
+            if [ -s "$PLANTOPS_ISOLATED_FIXTURE" ]; then
+              exit 0
+            fi
+            if ! kill -0 "$(cat /tmp/plantops-lab.pid)" 2>/dev/null; then
+              cat /tmp/plantops-lab.log
+              exit 1
+            fi
+            sleep 1
+          done
+          echo "Synthetic server startup timeout"
+          exit 1
+      - name: Check preinstalled Chrome
+        run: google-chrome --version
+      - name: Browser tests against actual Nest and PostgreSQL
+        working-directory: apps/web
+        run: npm run test:e2e -- --config playwright.isolated.config.ts
+      - name: Clean isolated session and server
+        if: always()
+        run: |
+          if [ -f /tmp/plantops-lab.pid ]; then
+            kill "$(cat /tmp/plantops-lab.pid)" 2>/dev/null || true
+          fi
+          rm -f "$PLANTOPS_ISOLATED_FIXTURE" /tmp/plantops-lab.pid
