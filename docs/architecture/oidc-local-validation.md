@@ -4,6 +4,29 @@
 **Fecha:** 2026-11-11. Solo para desarrolladores autorizados; nunca producción.
 El código y las verificaciones PostgreSQL están en PR draft #29–#41.
 
+## OIDC Google reanudado — piloto interactivo en Mac (11/11/2026)
+
+- El propietario reabrió el trabajo de OIDC para comprobar un login
+  auténtico con Google, mientras Microsoft queda en una fase posterior.
+- El callback local de Google para el **frontend integrado** es
+  `http://127.0.0.1:5184/auth/oidc/google/callback`.
+  Vite reenvía `/auth/oidc` a NestJS en loopback, sin modificar el
+  origen del navegador. Google permite HTTP para loopback en
+  clientes OAuth de tipo **Web application** (documentación oficial).
+- `GET /auth/oidc/providers` enumera únicamente nombres de proveedores
+  activos. La vista React `/?source=api` ofrece el botón de Google
+  solo cuando NestJS lo anuncia; si no, conserva el estado 401.
+- Se creó **una organización piloto ficticia** en la BD efímera local;
+  no se ha creado ninguna cuenta de usuario ni invitación hasta conocer
+  la dirección que Google verificará.
+- Existe un importador seguro `apps/api/scripts/import-google-oidc.mjs`:
+  valida el archivo JSON descargado del cliente web y su callback;
+  su modo predeterminado es dry-run y `--apply` modifica únicamente
+  el `apps/api/.env` privado (0600), sin imprimir secretos.
+- **Aún no verificado:** registro real del cliente, emisión de invitación
+  y consentimiento/retorno en navegador, cookies `Secure` en loopback.
+  No se ha cambiado la política de cookies ni habilitado OAuth ficticio.
+
 ## Entorno local listo sin activar OIDC — 11/11/2026
 
 - Docker Desktop y PostgreSQL 17 Alpine iniciados: contenedor
@@ -22,19 +45,18 @@ El código y las verificaciones PostgreSQL están en PR draft #29–#41.
 - Comprobación repetible: desde `apps/api`, `npm run dev:smoke`
   (lecturas de esquema y siete peticiones HTTP; no escribe datos).
 - El login externo y las cookies Secure del navegador continúan
-  **aplazados**. Tampoco se han creado invitaciones o usuarios reales
+  **pendientes de verificación real**. Tampoco se han creado invitaciones o usuarios reales
   ni se ha migrado una base persistente.
 
-## TODO aplazado — callback local y navegadores (11/11/2026)
+## Histórico: callback local pospuesto y reabierto (11/11/2026)
 
-**Decisión del propietario:** posponer la validación de OIDC real y el
-comportamiento de cookies `Secure` en Chrome/Safari. No registrar clientes
-OAuth ni cambiar ahora el callback solo por la incertidumbre del loopback.
-Google permite el callback HTTP en `127.0.0.1` para pruebas locales con
-clientes OAuth web, pero el flujo extremo a extremo **no se ha validado**.
-Antes de retomar: confirmar callback exacto y política de cookies en los
-navegadores objetivo; si falla, configurar HTTPS de desarrollo. En producción
-siempre HTTPS. Los pasos de este documento quedan **en espera**.
+**Decisión histórica:** el propietario pospuso temporalmente la
+validación real de OIDC y de cookies `Secure` en Chrome/Safari.
+**Decisión posterior:** reanudó el piloto el mismo día. Google permite el
+callback HTTP en `127.0.0.1` para un cliente OAuth web; el flujo en
+navegador sigue sin comprobarse. Si las cookies seguras no funcionan en
+loopback, preparar HTTPS local en lugar de eliminar atributos de seguridad.
+En producción siempre HTTPS.
 
 **Bloqueo Docker Desktop detectado (11/11/2026):** macOS conserva un
 `com.docker.backend` antiguo cuyos archivos abiertos apuntan a
@@ -69,14 +91,14 @@ referenciaba archivos abiertos de una ruta movida a la Papelera. No se ha
 confirmado cómo llegó allí ni si existían volúmenes previos.
 En aquel momento **aún no se habían iniciado contenedores PlantOps**.
 Posteriormente se levantó PostgreSQL descartable y se ejecutaron las
-migraciones locales indicadas arriba. El TODO de OAuth permanece aplazado.
+migraciones locales indicadas arriba. El piloto de Google se reanudó posteriormente.
 
 ## Preparar la Mac y PostgreSQL
 
 Docker Desktop está operativo y la base de desarrollo descartable
 ya se ha creado. Estos pasos quedan como referencia para reproducir
 el entorno, **no hay que ejecutarlos de nuevo mientras siga iniciado**.
-El piloto OAuth externo permanece aplazado.
+El piloto Google está reabierto; no se ha validado el login real.
 
 En el repositorio:
 
@@ -140,23 +162,39 @@ en BD que se consume cuando el IdP verifica la identidad.
    está en modo de pruebas, agrega el correo como test user.
 2. Crea un cliente OAuth 2.0 tipo **Web application**.
 3. Registra exactamente la URI de retorno:
-   `http://127.0.0.1:3001/auth/oidc/google/callback`.
-4. En tu `.env` local, configura `GOOGLE_OIDC_CLIENT_ID`,
-   `GOOGLE_OIDC_CLIENT_SECRET` y
-   `OIDC_CALLBACK_ORIGIN=http://127.0.0.1:3001`.
-   No pegues los secretos en esta conversación.
-5. Compila y ejecuta la API dentro de la carpeta `apps/api`:
+   `http://127.0.0.1:5184/auth/oidc/google/callback`.
+   No se necesita un *Authorized JavaScript origin* para este flujo
+   de autorización en servidor.
+4. Descarga el JSON del cliente OAuth. **Nunca compartas su contenido
+   por chat ni lo subas a Git.** Desde `apps/api`, con la ruta real
+   del archivo descargado, valida y luego importa:
+
+```sh
+node scripts/import-google-oidc.mjs /ruta/al/cliente-google.json
+node scripts/import-google-oidc.mjs /ruta/al/cliente-google.json --apply
+```
+
+El segundo comando deja `GOOGLE_OIDC_CLIENT_ID`,
+`GOOGLE_OIDC_CLIENT_SECRET` y
+`OIDC_CALLBACK_ORIGIN=http://127.0.0.1:5184` en `.env` privado.
+No imprime credenciales, se niega a sobrescribir una configuración
+distinta y exige `plantops_dev` de loopback. Importante: la copia
+descargada del JSON también contiene el secreto; mantenla privada.
+
+5. Reinicia **solo la API NestJS** después de importar el archivo.
+   Desde `apps/api`:
 
 ```sh
 npm run build
 node --env-file=.env dist/main.js
 ```
 
-En un navegador, abre
-`http://127.0.0.1:3001/auth/oidc/google/login?redirectTo=/me`.
-El servicio oficial valida state/nonce/PKCE, firma, issuer, audience y
-expiración del token. Si tu cuenta tiene el correo invitado verificado,
-deberías terminar en `/me` con cookie de sesión HttpOnly.
+6. Verifica la configuración con `GET /auth/oidc/providers`, que debe
+   enumerar `google`. Inicia el navegador en
+   `http://127.0.0.1:5184/?source=api` y pulsa
+   **Continuar con Google**. Google regresará por el proxy Vite y
+   `redirectTo=/?source=api` llevará a la vista React con la cookie
+   de sesión HttpOnly si la invitación es válida.
 `/me/organizations` debe listar solo las membresías activas. Sin cookie,
 `/me` debe responder 401. Con un correo no invitado, el login debe fallar.
 

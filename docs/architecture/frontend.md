@@ -64,8 +64,11 @@ No es obligatorio crear todos los directorios antes de tener código. Evitar una
   la UI no inventa prioridad, responsable ni ubicación si la API no
   proporciona esos campos.
 - El detalle exige otra petición autenticada. No se ha habilitado
-  mutación ni navegación por OAuth. La conexión completa depende de
-  completar el TODO sobre callback/cookie Secure y deployment HTTPS.
+  mutación. Google OIDC se puede iniciar mediante un enlace de
+  desarrollo al proxy `/auth/oidc` **solo** cuando NestJS publica
+  `google` en `/auth/oidc/providers`; eso no supone que haya un
+  login real comprobado. La conexión completa depende de validar
+  callback y cookie `Secure` en navegador, y del despliegue HTTPS.
 - Pruebas React del adaptador, cambios de tenant, paginación y errores;
   Playwright valida el `401` real local y respuestas interceptadas en CI.
 
