@@ -5,6 +5,23 @@ Microsoft y producción NO verificados.
 **Fecha:** 2026-11-11. Solo para desarrolladores autorizados; nunca producción.
 El código y las verificaciones PostgreSQL están en PR draft #29–#41.
 
+## UX para cuenta sin invitación — PR draft posterior a #46
+
+- Cuando el resolver OIDC devuelve específicamente `403 account not allowed`
+  tras verificar la identidad, el callback redirige mediante `303` a
+  `/?source=api&auth=access-denied` para mostrar una explicación comprensible
+  y no un JSON sin contexto. No traslada correo, códigos, `state`,
+  `id_token` ni datos sensibles a la URL final.
+- El aviso solicita una invitación válida al responsable de la organización,
+  pero no confirma si existe una dirección o una cuenta concreta.
+- Los fallos de PKCE/`state`, proveedor, CSRF, firma y cualquier otro `403`
+  **no se convierten en redirecciones**: continúan cerrados por seguridad.
+- El callback usa `Cache-Control: no-store` y
+  `Referrer-Policy: no-referrer`. La política de invitaciones no cambia.
+- El cambio solo afecta a UI/errores; no crea usuarios, invitaciones ni
+  modifica la sesión Chrome personal del piloto. Incluye pruebas HTTP,
+  React y Playwright con respuestas simuladas.
+
 ## Resultado real y causa del primer 403 — 11/11/2026
 
 - Google completó el callback en `127.0.0.1:5184`, pero el primer

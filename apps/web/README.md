@@ -34,6 +34,9 @@ npm run dev -- --host 127.0.0.1 --port 5184 --strictPort
   proxy Vite exclusivamente local a `127.0.0.1:3001`. Solo tras una sesión
   válida consulta `/api/me/organizations`, activos e incidencias de las
   empresas autorizadas. No envía tokens ni user IDs desde el cliente.
+- Un callback rechazado por no disponer de invitación activa vuelve a
+  `/?source=api&auth=access-denied` (sin datos sensibles); React explica
+  cómo solicitar acceso y no revela el correo ni datos de otros tenants.
 - Sin sesión la API responde 401; se muestra un estado de acceso pendiente
   **sin caer en los mocks**. Si el backend anuncia Google en
   `GET /api/auth/oidc/providers`, aparece un enlace

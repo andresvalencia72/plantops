@@ -352,3 +352,16 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 - Sin OAuth codes, cookies, correo personal, credenciales ni capturas
   versionados. Google solo verificado **localmente**: quedan logout
   E2E, Safari, Microsoft y endurecimiento de despliegue HTTPS/CSRF.
+
+## Mensaje seguro en acceso OIDC denegado — 2026-11-11
+
+- En lugar de devolver JSON 403 al usuario por una cuenta autenticada
+  pero no invitada, el callback transforma **solo**
+  `ForbiddenException('account not allowed')` en redirect 303 a
+  `/?source=api&auth=access-denied`. React informa que se requiere
+  invitación vigente sin mencionar correos ni confirmar usuarios.
+- Los demás fallos OAuth, de cookie/estado o CSRF siguen devolviendo
+  el error original: no se suaviza ninguna barrera del protocolo.
+- Pruebas directas con `OidcService.finish` simulado en PostgreSQL
+  descartable y pruebas de React/Playwright separadas; sesión real
+  del usuario no modificada. PR draft apilada sobre #46.
