@@ -124,3 +124,25 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   cambios de activo durante una carrera extrema necesitan revisión.
   Se conserva `ADR-0004` propuesto, sin proveedor de sesión ni endpoints
   privados; `main` sigue sin fusiones.
+
+## Fundación de sesiones PostgreSQL — 2026-11-11
+
+- Aprobado por el usuario: almacenar sesiones del lado del servidor con
+  `@nestjs/authentication` 0.1.5 / NestJS 12 y cookies HttpOnly/Secure/SameSite.
+  Se actualizaron ADR-0004 e índice sin aceptar aún el primer factor.
+- [PR #25](https://github.com/andresvalencia72/plantops/pull/25):
+  esquema y migración PostgreSQL de sesiones; clave foránea UUID a usuarios,
+  índices, metadatos y validación MFA. No aplicada a BD persistente.
+  Dependencias WASM de lockfile reparadas para `npm ci` Linux.
+- [PR #26](https://github.com/andresvalencia72/plantops/pull/26):
+  `SessionStore` con operaciones CRUD, avance monotónico de lastActiveAt,
+  revocación por usuario y borrado atómico; pruebas en PostgreSQL efímero.
+- [PR #27](https://github.com/andresvalencia72/plantops/pull/27):
+  `SessionService` oficial verifica hash SHA-256 Base64URL, vencimiento
+  absoluto/inactividad, rotación y revocación; las pruebas usan usuarios
+  ficticios, nunca credenciales de producción.
+- **Frontera:** aún no se activa `AuthenticationModule` en `AppModule`,
+  no existen formularios/endpoints de login ni cookie real emitida. Falta
+  elegir primer factor de login, invitaciones, recuperación, TTL y CSRF.
+  No dar por entregada autenticación real ni conectar React hasta cerrar
+  ese diseño y realizar E2E de protección HTTP. `main` intacta.
