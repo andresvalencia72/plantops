@@ -15,6 +15,13 @@
       "when": 1794392544506,
       "tag": "0001_common_pyro",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794393373656,
+      "tag": "0002_minor_gorilla_man",
+      "breakpoints": true
     }
   ]
 }

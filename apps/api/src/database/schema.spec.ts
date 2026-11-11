@@ -10,6 +10,20 @@ function uniqueColumnSets(table: typeof assets | typeof memberships) {
   );
 }
 
+import { sessions } from '../auth/sessions.schema.js';
+
+describe('session database constraints', () => {
+  it('stores the session token digest, never the cookie token', () => {
+    const schema = getTableConfig(sessions);
+    expect(schema.columns.find((column) => column.name === 'id')?.primary).toBe(true);
+    expect(schema.foreignKeys).toHaveLength(1);
+    expect(schema.foreignKeys[0]?.reference().columns.map((column) => column.name))
+      .toEqual(['user_id']);
+    expect(schema.indexes.map((index) => index.config.name))
+      .toContain('sessions_expires_at_idx');
+  });
+});
+
 describe('shared-schema tenant constraints', () => {
   it('uniquely identifies a membership within its organization', () => {
     expect(uniqueColumnSets(memberships)).toContainEqual([
