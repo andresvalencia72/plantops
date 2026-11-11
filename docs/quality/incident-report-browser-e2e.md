@@ -17,7 +17,9 @@ No se usa sesión Google real, organización piloto ni `plantops_dev`.
 ## Fronteras del laboratorio
 
 - `apps/api/scripts/isolated-report-lab.mjs` valida que la URL PostgreSQL
-  sea de localhost y la base termine en `_test`; rechaza producción.
+  sea de localhost y la base sea exactamente `plantops_s1_test`,
+  con usuario `plantops_test` y puertos permitidos 5432/55433;
+  rechaza `plantops_dev`, el puerto 55432 y entornos de producción.
 - Arranca en puerto 3002, no toca la API del piloto de 3001.
 - Emite una sesión ficticia de prueba y escribe su cookie en un archivo
   temporal `0600` fuera del repositorio. Nunca imprime tokens.
@@ -31,7 +33,8 @@ No se usa sesión Google real, organización piloto ni `plantops_dev`.
 ## Ejecución local controlada
 
 Requisitos: PostgreSQL 17 descartable accesible con una base `*_test`,
-API compilada y Chrome instalado. **Nunca ejecutar con `plantops_dev`.**
+API compilada y Chrome instalado. El arranque aborta si se heredan
+`DATABASE_URL` o `PORT` del piloto. **Nunca ejecutar con `plantops_dev`.**
 
 En la terminal 1, desde `apps/api`:
 
