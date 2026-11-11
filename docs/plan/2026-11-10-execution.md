@@ -95,3 +95,11 @@ Los siguientes registros se añadirán **solo tras ejecutar y verificar** los ca
 ## Criterios de parada
 
 Falta de conexión con Mac/GitHub, instalación fallida, tests rotos no explicados, archivos >400 líneas, worktree modificado por terceros o conflictos con cambios nuevos: parar y documentar, **nunca forzar**.
+
+## Continuación del Sprint 1 — 2026-11-11
+
+- **Siguiente bloque definido, no backend implementado:** [puerta de decisión](2026-11-11-backend-gate.md) sobre identidad, organización y persistencia segura. ADR-0002 y ADR-0003 siguen **PROPUESTOS**.
+- Rama `docs/plantops-s1-backend-gate` basada en `fix/plantops-mobile-navigation`; commit de contenido `a7cab71`; [PR #11 draft](https://github.com/andresvalencia72/plantops/pull/11) apilada sobre #10. Sin merge en `main`.
+- Antes del commit: `git diff --check` correcto; `npm --prefix apps/web run typecheck`, `lint`, `test`, `build`, `check:lines` ejecutados y correctos (17/17 tests; lint con 0 errores y 2 advertencias preexistentes de shadcn; archivos manuales ≤400 líneas).
+- Estado al iniciar: worktree limpio, un solo worktree, sin sesiones terminales de Desktop Commander activas; servidor Vite de visualización existente, no detenido.
+- **Bloqueo de la fase siguiente:** aceptar decisiones de arquitectura y tenancy; elegir mecanismo de identidad y modelo físico antes de persistir datos. Los tests de UI no acreditan aislamiento seguro.
