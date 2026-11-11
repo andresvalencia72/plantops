@@ -103,3 +103,19 @@ Falta de conexión con Mac/GitHub, instalación fallida, tests rotos no explicad
 - Antes del commit: `git diff --check` correcto; `npm --prefix apps/web run typecheck`, `lint`, `test`, `build`, `check:lines` ejecutados y correctos (17/17 tests; lint con 0 errores y 2 advertencias preexistentes de shadcn; archivos manuales ≤400 líneas).
 - Estado al iniciar: worktree limpio, un solo worktree, sin sesiones terminales de Desktop Commander activas; servidor Vite de visualización existente, no detenido.
 - **Bloqueo de la fase siguiente:** aceptar decisiones de arquitectura y tenancy; elegir mecanismo de identidad y modelo físico antes de persistir datos. Los tests de UI no acreditan aislamiento seguro.
+
+## Fundación NestJS 12 — 2026-11-11
+
+- Aprobados por el propietario ADR-0002 y ADR-0003 como estrategia base; aceptación documentada en `docs/plantops-s1-accepted-adrs` (PR #12).
+- CLI global comprobada: `nest 12.0.12` y Node global `25.2.0`. La CLI de Nest 12 exige generadores bajo Node 22.22.3+, 24.15+ o 26+; se usó Node `26.13.0` de forma **temporal** mediante npm, sin modificar instalación global.
+- Scaffolding oficial en `apps/api`: `nest new api --directory apps/api --skip-git --skip-install --package-manager npm --no-observe` con `CI=1` y PATH de Node 26. ESM, TS estricto, Vitest, Oxlint y lockfile npm.
+- Commits: `cd0cacf` (CLI), `6c8811f` (NodeAdapter 12.4.2, `/health`, README, bloqueo local, ignorar `*.tsbuildinfo`) y `1746244` (CI API con Node 26).
+- Verificación real: `npm ci`; typecheck y lint **0 errores/0 advertencias**; Vitest **1/1** unitarias y **2/2** HTTP E2E; build Nest exitoso; script de límite manual ≤400 líneas correcto. Smoke HTTP: `GET /health` → 200 `{"status":"ok"}` y `GET /` → 404.
+- Se conservan `main` y las PR anteriores sin merge; servidor Vite previo intacto. `/health` acredita sólo vida del proceso, **no** seguridad, autenticación, readiness ni base de datos.
+- **Bloqueo siguiente:** seleccionar sesión/identidad real y modelo físico de membresías, activos y claves compuestas antes de desarrollar rutas protegidas y persistencia. No se ejecutaron pruebas A/B reales porque no existe servidor multitenant.
+
+### Seguimiento CI de API — 2026-11-11
+
+- [GitHub Actions #42995242205](https://github.com/andresvalencia72/plantops/actions/runs/42995242205) falló inicialmente en `npm ci` Linux: faltaban entradas de dependencias opcionales de WASM `@emnapi/core` y `@emnapi/runtime` en el lockfile generado en macOS.
+- Commit `c60c041`: lockfile completado con metadatos resueltos por npm, **sin añadir dependencias directas**; `npm ci` y suite API verificados de nuevo en Mac.
+- [GitHub Actions #42995809942](https://github.com/andresvalencia72/plantops/actions/runs/42995809942): **SUCCESS** para `c60c041`. PR #13 draft apilada sobre PR #12 (ADR aceptados); no hay merge en `main`.

@@ -9,7 +9,8 @@ Una persona autenticada y habilitada reporta una incidencia sobre un activo de s
 organización. La incidencia queda guardada y puede consultarse sin exponer los datos
 de otras empresas. Se debe demostrar con pruebas negativas, no sólo con la UI.
 
-No se ha implementado todavía backend, autenticación, base de datos ni seguridad real.
+Desde el 2026-11-11 existe la **fundación NestJS con `GET /health`**, pero no
+endpoints de negocio, autenticación, base de datos ni seguridad multiempresa real.
 El formulario actual sigue usando un repositorio mock en memoria.
 
 ## Decisiones que deben cerrarse antes de persistir datos
