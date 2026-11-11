@@ -284,3 +284,24 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   lint y typecheck correctos.
 - `npm run dev:smoke` requiere al menos 5 migraciones tras este cambio.
   OAuth real sigue como TODO y el POST de incidencias no se publicó.
+
+## Frontend: lector React desde API sin romper la demo — 2026-11-11
+
+- Nueva PR draft apilada sobre #44:
+  `feat/plantops-api-read-preview`. La demo React anterior se mantiene
+  inalterada en `/` con datos ficticios identificados.
+- Modo API explícito en desarrollo con `/?source=api`, link discreto
+  en el topbar; en build de producción no se habilita.
+- Adaptador HTTP exclusivo de GET same-origin `/api` (Vite proxy local
+  a Nest 127.0.0.1:3001); solicita perfil y organizaciones del usuario
+  autenticado. Sesión ausente ⇒ 401 y vista bloqueada, **sin datos demo**.
+- Vista de solo lectura para empresa autorizada: activos, 20 incidencias
+  por página mediante cursor de servidor, detalle de incidencia y estados
+  vacíos, carga, error y reintento; sin crear incidencias ni campos inventados.
+  Se cancelan consultas pendientes al cambiar de empresa.
+- Pruebas: 28 unitarias/UI React, 7 Playwright sobre navegador (mock API
+  explícito en CI), 1 E2E adicional con 401 real contra Nest local, build
+  y typecheck correctos. Lint mantiene 2 advertencias previas de
+  `shadcn` por export de variantes, sin errores.
+- TODO OIDC/cookies Secure mantenido; no hay credenciales nuevas ni
+  despliegue de una API pública, frontend prod todavía desconectado.
