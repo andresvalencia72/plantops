@@ -35,6 +35,12 @@ async function mockIsolatedApi(page: import('@playwright/test').Page, role: Role
     if (path === `/api/organizations/${orgId}/incidents/${incidentId}`) {
       return respond(detail())
     }
+    // UC-04: the incident inspector now reads related orders independently.
+    // Keep this review-only mocked suite isolated from the real order API.
+    if (path === `/api/organizations/${orgId}/incidents/${incidentId}/work-orders`) {
+      expect(request.method()).toBe('GET')
+      return respond({ items: [], nextCursor: null })
+    }
     if (path === `/api/organizations/${orgId}/incidents/${incidentId}/review`) {
       expect(request.method()).toBe('POST')
       expect(request.postDataJSON()).toEqual({})

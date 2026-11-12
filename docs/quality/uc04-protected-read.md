@@ -49,6 +49,11 @@ previo. Una respuesta no válida falla cerrada sin rellenar con fixtures.
   `plantops_s1_test`, fixture privado `0600` bajo `/tmp` y puerto
   `127.0.0.1:3002`. No reutilizar `plantops_dev`, OAuth personal ni
   `api-postgres-1` del piloto (puerto 55432).
+- La primera CI del frontend detectó un **mock previo de UC-03** que no
+  reconocía el nuevo GET de órdenes al abrir la ficha. Se actualizó solo el
+  enrutador de la suite simulada, retornando una lista vacía explícita; se
+  reprodujo en local el modo CI de ese grupo y las cinco pruebas pasaron.
+  No se ocultaron errores de la API ni se cambió la lógica de negocio.
 - Las pruebas cubren paginación de microsegundos, respuestas malformadas,
   tenant B inaccesible desde A, vista de miembro, vista de técnico,
   error 503 recuperable y anónimo 401. La PR mantiene controles de los
