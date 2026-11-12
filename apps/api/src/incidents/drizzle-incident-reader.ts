@@ -73,7 +73,11 @@ export class DrizzleIncidentReader {
     context: TenantContext,
     limitParam?: string,
     cursorParam?: string,
+    assetId?: string,
   ) {
+    if (assetId !== undefined && !uuidV4.test(assetId)) {
+      throw new BadRequestException('Invalid asset filter');
+    }
     const limit = parseLimit(limitParam);
     const cursor = parseCursor(cursorParam);
     const earlier = cursor
@@ -87,7 +91,8 @@ export class DrizzleIncidentReader {
       : undefined;
     const rows = await this.database.select(summary)
       .from(incidents)
-      .where(and(eq(incidents.organizationId, context.organizationId), earlier))
+      .where(and(eq(incidents.organizationId, context.organizationId),
+        assetId ? eq(incidents.assetId, assetId) : undefined, earlier))
       .orderBy(desc(incidents.reportedAt), desc(incidents.id))
       .limit(limit + 1);
 

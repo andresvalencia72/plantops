@@ -103,15 +103,17 @@ export class IncidentsController {
   }
 
   @Get()
+  @Header('Cache-Control', 'no-store')
   async list(
     @CurrentUser('id') userId: string,
     @Param('organizationId', new ParseUUIDPipe({ version: '4' }))
     organizationId: string,
     @Query('limit') limit?: string,
     @Query('cursor') cursor?: string,
+    @Query('assetId') assetId?: string,
   ) {
     const context = await this.scope(userId, organizationId);
-    return this.incidents.list(context, limit, cursor);
+    return this.incidents.list(context, limit, cursor, assetId);
   }
 
   @Get(':incidentId')

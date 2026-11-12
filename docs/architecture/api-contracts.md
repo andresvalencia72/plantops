@@ -260,3 +260,17 @@ Primero: fixtures tipadas de UC-02. Segundo: definir contrato estable en los ada
 - No sustituye el GET de órdenes vinculadas a cada incidencia ni sus
   POST transaccionales (UC-04 a 07). No hay nuevas mutaciones.
 - [Contrato, filtros y pruebas](organization-work-orders.md).
+
+### Inventario y ficha de activo (PR draft tras #69)
+
+- `GET /organizations/:org/assets/catalog?limit=20&cursor=...&status=...&query=...`:
+  catálogo de solo lectura por tenant activo, búsqueda literal código/nombre,
+  `ACTIVE/INACTIVE` y paginación cursor de código+ID, respuesta con campos
+  públicos de activo. Compatible con `GET /assets` anterior.
+- `GET /organizations/:org/incidents?assetId=:uuid` filtra desde PostgreSQL
+  incidencias del equipo de la misma organización; `400` ante UUID inválido;
+  el cursor existente y el GET sin assetId permanecen compatibles.
+- La ficha usa el `GET /assets/:assetId` ya existente y el
+  `GET /work-orders?assetId` de la PR #69. Todas las respuestas incluyen
+  no-store y se protege cada consulta con sesión y tenant.
+- [Reglas, seguridad y pruebas](asset-catalog-history.md).

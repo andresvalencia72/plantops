@@ -169,3 +169,67 @@ test('production authenticated order module reads tenant-scoped list without exp
   expect(calls.some((call) => call.path.includes('org-one/work-orders'))).toBe(true)
   await expect(page.getByText('Atlas Manufacturing')).toHaveCount(0)
 })
+
+test('production authenticated asset catalog shows only scoped histories with no writes', async ({ page }) => {
+  const paths: { path: string; method: string; search: string }[] = []
+  const asset = { id: 'asset-one', code: 'PMP-77', name: 'Synthetic Pump', active: false }
+  const incident = { id: 'inc-one', assetId: asset.id,
+    title: 'Seal leak protected', status: 'IN_PROGRESS',
+    reportedAt: '2026-11-12T13:00:00.000Z' }
+  const order = { id: 'order-one', incidentId: incident.id, assetId: asset.id,
+    assetCode: asset.code, assetName: asset.name, incidentTitle: incident.title,
+    responsibleName: null, title: 'Replace seals protected', status: 'PENDING',
+    createdAt: '2026-11-12T13:10:00.000Z', assignmentVersion: 0,
+    responsibleMembershipId: null }
+  await page.route('**/api/**', (route) => {
+    const request = route.request()
+    const uri = new URL(request.url())
+    paths.push({ path: uri.pathname, method: request.method(), search: uri.search })
+    if (uri.pathname === '/api/me') return route.fulfill(response({
+      id: 'user-one', displayName: 'Synthetic Inspector',
+    }))
+    if (uri.pathname === '/api/me/organizations') return route.fulfill(response([
+      { id: 'org-one', name: 'Authorized Org', role: 'SUPERVISOR' },
+    ]))
+    if (uri.pathname.endsWith('/org-one/assets/catalog')) {
+      return route.fulfill(response({ items: uri.searchParams.get('status') === 'ACTIVE'
+        ? [] : [asset], nextCursor: null }))
+    }
+    if (uri.pathname.endsWith('/org-one/assets/' + asset.id)) {
+      return route.fulfill(response(asset))
+    }
+    if (uri.pathname.endsWith('/org-one/incidents') &&
+      uri.searchParams.get('assetId') === asset.id) {
+      return route.fulfill(response({ items: [incident], nextCursor: null }))
+    }
+    if (uri.pathname.endsWith('/org-one/work-orders') &&
+      uri.searchParams.get('assetId') === asset.id) {
+      return route.fulfill(response({ items: [order], nextCursor: null }))
+    }
+    if (uri.pathname.endsWith('/org-one/assets')) return route.fulfill(response([asset]))
+    if (uri.pathname.endsWith('/org-one/incidents')) {
+      return route.fulfill(response({ items: [], nextCursor: null }))
+    }
+    throw new Error('Unexpected authenticated endpoint ' + uri.pathname + uri.search)
+  })
+  await page.goto('/')
+  await page.getByRole('navigation', { name: 'Secciones del centro de operaciones' })
+    .getByRole('button', { name: 'Activos' }).click()
+  await expect(page.getByRole('heading', { name: 'Catálogo de activos' })).toBeVisible()
+  await expect(page.getByText('Synthetic Pump')).toBeVisible()
+  await expect(page.getByRole('button', { name: /Synthetic Pump PMP-77 Inactivo/ })).toBeVisible()
+  await page.getByLabel('Filtrar estado del activo').selectOption('ACTIVE')
+  await expect(page.getByText('No hay activos para estos filtros')).toBeVisible()
+  await page.getByLabel('Filtrar estado del activo').selectOption('INACTIVE')
+  await page.getByRole('button', { name: /Synthetic Pump/ }).click()
+  const sheet = page.getByRole('dialog', { name: 'Ficha del activo' })
+  await expect(sheet.getByText('Seal leak protected')).toBeVisible()
+  await expect(sheet.getByText('Replace seals protected')).toBeVisible()
+  await expect(sheet.getByRole('button', { name: /Crear activo/ })).toHaveCount(0)
+  await expect(page.getByText('CNC-004')).toHaveCount(0)
+  expect(paths.every((item) => item.method === 'GET')).toBe(true)
+  expect(paths.some((item) => item.path.endsWith('/incidents') &&
+    item.search.includes('assetId=asset-one'))).toBe(true)
+  expect(paths.some((item) => item.path.endsWith('/work-orders') &&
+    item.search.includes('assetId=asset-one'))).toBe(true)
+})

@@ -1,3 +1,4 @@
+import { assetCatalogApi } from './asset-catalog-api'
 import { organizationOrdersApi } from './organization-orders-api'
 import { record, string, validIncident, validWorkOrder, validAssignment,
   validExecution, validCancellation, validClosure, invalid } from './api-client-guards'
@@ -118,6 +119,7 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
   const orgPath = (orgId: string) => '/organizations/' + encodeURIComponent(orgId)
   return {
     ...organizationOrdersApi(get, orgPath),
+    ...assetCatalogApi(get, orgPath),
     /** State-changing, same-origin, cookie-based action. No user ID is supplied. */
     async logout(): Promise<void> {
       const response = await fetcher('/api/auth/logout', {

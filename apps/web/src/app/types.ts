@@ -1,4 +1,4 @@
-export type Screen = 'overview' | 'incidents' | 'orders'
+export type Screen = 'overview' | 'incidents' | 'orders' | 'assets'
 export type DemoOrganization = 'atlas' | 'north'
 export type ColorTheme = 'light' | 'dark'
 

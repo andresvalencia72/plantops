@@ -148,6 +148,14 @@ por rol/empresa; Chrome build autenticado en solo lectura y separación de
 fixtures demo. Sin cambiar migraciones ni habilitar permisos nuevos.
 [Contrato del módulo](../architecture/organization-work-orders.md).
 
+## Inventario, ficha e historial por activo
+
+Nueva integración PostgreSQL para catálogo paginado, filtro de incidencias
+por `assetId`, permisos tenant y validaciones; unitarias React para catálogo,
+links, demo y rechazo de filas de otro activo; navegador Chrome con Nest/
+PostgreSQL sintético y build autenticado Vite solo lectura, sin filtración
+de fixtures. [Contrato del módulo](../architecture/asset-catalog-history.md).
+
 ## Seguridad: defensa en profundidad
 
 - Identidad autenticada y membresía vigente para el tenant activo.

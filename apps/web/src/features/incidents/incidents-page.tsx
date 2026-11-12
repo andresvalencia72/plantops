@@ -13,11 +13,13 @@ import type { IncidentFilters, IncidentPriority, IncidentStatus } from './types'
 
 const initialFilters: IncidentFilters = { query: '', status: 'ALL', priority: 'ALL' }
 
-export function IncidentsPage({ organization }: { organization: DemoOrganization }) {
+export function IncidentsPage({ organization, initialIncidentId = null }: {
+  organization: DemoOrganization; initialIncidentId?: string | null
+}) {
   const { records, loading, error, refresh } = useIncidents(organization)
   const [formOpen, setFormOpen] = useState(false)
   const [filters, setFilters] = useState<IncidentFilters>(initialFilters)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(initialIncidentId)
   const filtered = useMemo(() => filterIncidents(records, filters), [records, filters])
   const summary = summarizeIncidents(records)
   const selected = records.find((incident) => incident.id === selectedId) ?? null

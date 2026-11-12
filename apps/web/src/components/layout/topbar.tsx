@@ -25,7 +25,7 @@ export function Topbar({
         </Button>
         <span className="text-[13px] font-medium text-muted-foreground">Workspace</span>
         <span aria-hidden="true" className="text-border">/</span>
-        <span className="text-[13px] font-semibold">{screen === 'overview' ? 'Vista general' : screen === 'orders' ? 'Órdenes de trabajo' : 'Incidencias'}</span>
+        <span className="text-[13px] font-semibold">{screen === 'overview' ? 'Vista general' : screen === 'orders' ? 'Órdenes de trabajo' : screen === 'assets' ? 'Activos' : 'Incidencias'}</span>
       </div>
       <div className="flex items-center gap-2">
         {import.meta.env.DEV && (

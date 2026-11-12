@@ -1,6 +1,8 @@
 import {
   Controller,
   Get,
+  Header,
+  Query,
   NotFoundException,
   Param,
   ParseUUIDPipe,
@@ -13,15 +15,18 @@ import {
 } from '../security/tenant-context.js';
 import { DatabaseConnection } from '../auth/database-connection.js';
 import { DrizzleAssetReader } from './drizzle-asset-reader.js';
+import { DrizzleAssetCatalogReader } from './drizzle-asset-catalog-reader.js';
 
 @Controller('organizations/:organizationId/assets')
 export class AssetsController {
   private readonly members: DrizzleMembershipLookup;
   private readonly assets: DrizzleAssetReader;
+  private readonly catalog: DrizzleAssetCatalogReader;
 
   constructor(connection: DatabaseConnection) {
     this.members = new DrizzleMembershipLookup(connection.db);
     this.assets = new DrizzleAssetReader(connection.db);
+    this.catalog = new DrizzleAssetCatalogReader(connection.db);
   }
 
   private async scope(userId: string, organizationId: string) {
@@ -31,6 +36,7 @@ export class AssetsController {
   }
 
   @Get()
+  @Header('Cache-Control', 'no-store')
   async list(
     @CurrentUser('id') userId: string,
     @Param('organizationId', new ParseUUIDPipe({ version: '4' }))
@@ -40,7 +46,23 @@ export class AssetsController {
     return this.assets.list(context);
   }
 
+  @Get('catalog')
+  @Header('Cache-Control', 'no-store')
+  async catalogList(
+    @CurrentUser('id') userId: string,
+    @Param('organizationId', new ParseUUIDPipe({ version: '4' }))
+    organizationId: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+    @Query('status') status?: string,
+    @Query('query') query?: string,
+  ) {
+    const context = await this.scope(userId, organizationId);
+    return this.catalog.list(context, { limit, cursor, status, query });
+  }
+
   @Get(':assetId')
+  @Header('Cache-Control', 'no-store')
   async find(
     @CurrentUser('id') userId: string,
     @Param('organizationId', new ParseUUIDPipe({ version: '4' }))

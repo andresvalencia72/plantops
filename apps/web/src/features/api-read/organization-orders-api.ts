@@ -34,7 +34,8 @@ export function organizationOrdersApi(get: (path: string,
       if (cursor) params.set('cursor', cursor)
       const value = await get(orgPath(orgId) + '/work-orders?' + params, signal)
       if (!record(value) || !Array.isArray(value.items) ||
-        !value.items.every(isOrder) ||
+        !value.items.every((item) => isOrder(item) &&
+          (!filters.assetId || item.assetId === filters.assetId)) ||
         !(value.nextCursor === null || string(value.nextCursor))) invalid()
       return { items: value.items, nextCursor: value.nextCursor }
     },
