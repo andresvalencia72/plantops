@@ -139,6 +139,15 @@ que debe estar vacío, permite solo loopback `plantops_s1_test` y requiere
 confirmación explícita. No utiliza ni modifica el piloto ni bases persistentes.
 [Resultado de auditoría y límites](mvp-integration-readiness.md).
 
+## Órdenes globales por organización
+
+Nueva integración PostgreSQL con sesión/tenant y filtros server-side;
+Vitest para panel y demo; Chrome real Nest+PG para recorrido desde
+reporte hasta listado global, asignación, historial, incidencia y visibilidad
+por rol/empresa; Chrome build autenticado en solo lectura y separación de
+fixtures demo. Sin cambiar migraciones ni habilitar permisos nuevos.
+[Contrato del módulo](../architecture/organization-work-orders.md).
+
 ## Seguridad: defensa en profundidad
 
 - Identidad autenticada y membresía vigente para el tenant activo.
