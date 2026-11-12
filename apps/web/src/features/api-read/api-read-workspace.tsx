@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ApiRequestError, apiReadClient } from './api-client'
 import type { ApiReadClient, ApiProfile, ApiOrganization, ApiLoginProvider } from './api-client'
 import { ApiIncidentsPanel } from './api-incidents-panel'
+import { ApiOrganizationOrdersPanel } from './api-organization-orders-panel'
 
 type Connection =
   | { status: 'loading' }
@@ -24,6 +25,8 @@ export function ApiReadWorkspace({ client = apiReadClient, standalone = false }:
   const [attempt, setAttempt] = useState(0)
   const [connection, setConnection] = useState<Connection>({ status: 'loading' })
   const [organizationId, setOrganizationId] = useState('')
+  const [tab, setTab] = useState<'incidents' | 'orders'>('incidents')
+  const [linkedIncident, setLinkedIncident] = useState<string | null>(null)
   const [signingOut, setSigningOut] = useState(false)
   const [logoutError, setLogoutError] = useState('')
 
@@ -35,6 +38,8 @@ export function ApiReadWorkspace({ client = apiReadClient, standalone = false }:
         const organizations = await client.organizations(controller.signal)
         if (controller.signal.aborted) return
         setOrganizationId(organizations[0]?.id ?? '')
+        setTab('incidents')
+        setLinkedIncident(null)
         setConnection({ status: 'ready', profile, organizations })
       } catch (error) {
         if (controller.signal.aborted) return
@@ -63,6 +68,8 @@ export function ApiReadWorkspace({ client = apiReadClient, standalone = false }:
   function retryConnection() {
     setConnection({ status: 'loading' })
     setOrganizationId('')
+    setTab('incidents')
+    setLinkedIncident(null)
     setAttempt((n) => n + 1)
   }
 
@@ -195,7 +202,11 @@ export function ApiReadWorkspace({ client = apiReadClient, standalone = false }:
                     Organización autorizada
                   </label>
                   <select id="api-organization" className="h-10 min-w-[220px] rounded-md border border-border bg-card px-3 text-sm"
-                    value={organizationId} onChange={(event) => setOrganizationId(event.target.value)}>
+                    value={organizationId} onChange={(event) => {
+                      setOrganizationId(event.target.value)
+                      setTab('incidents')
+                      setLinkedIncident(null)
+                    }}>
                     {connection.organizations.map((org) => (
                       <option key={org.id} value={org.id}>{org.name}</option>
                     ))}
@@ -210,12 +221,34 @@ export function ApiReadWorkspace({ client = apiReadClient, standalone = false }:
             {logoutError && (
               <p role="alert" className="text-sm text-destructive">{logoutError}</p>
             )}
-            {organization
-              ? <ApiIncidentsPanel key={organization.id} organization={organization}
-                  client={client} userId={connection.profile.id} allowWrites={isolatedWrites} />
-              : <p className="border border-border bg-card p-8 text-sm text-muted-foreground">
-                  No tienes ninguna organización activa. El servidor no ha autorizado datos.
-                </p>}
+            {organization ? <>
+              <nav aria-label="Secciones del centro de operaciones"
+                className="flex flex-wrap gap-2 border-b border-border pb-4">
+                <Button size="sm" variant={tab === 'incidents' ? 'secondary' : 'ghost'}
+                  aria-current={tab === 'incidents' ? 'page' : undefined}
+                  onClick={() => { setTab('incidents'); setLinkedIncident(null) }}>
+                  Incidencias
+                </Button>
+                <Button size="sm" variant={tab === 'orders' ? 'secondary' : 'ghost'}
+                  aria-current={tab === 'orders' ? 'page' : undefined}
+                  onClick={() => { setTab('orders'); setLinkedIncident(null) }}>
+                  Órdenes de trabajo
+                </Button>
+              </nav>
+              {tab === 'incidents'
+                ? <ApiIncidentsPanel key={organization.id + ':incidents:' + (linkedIncident ?? '')}
+                    organization={organization} client={client} userId={connection.profile.id}
+                    allowWrites={isolatedWrites} initialIncidentId={linkedIncident}/>
+                : <ApiOrganizationOrdersPanel key={organization.id + ':orders'}
+                    organization={organization} client={client} userId={connection.profile.id}
+                    allowWrites={isolatedWrites}
+                    onOpenIncident={(incidentId) => {
+                      setLinkedIncident(incidentId); setTab('incidents')
+                    }}/>
+              }
+            </> : <p className="border border-border bg-card p-8 text-sm text-muted-foreground">
+              No tienes ninguna organización activa. El servidor no ha autorizado datos.
+            </p>}
           </>
         )}
       </main>
