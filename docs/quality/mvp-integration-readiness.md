@@ -77,3 +77,21 @@ El procedimiento **no** debe apuntarse a `plantops_dev`, al piloto o a una base 
 ## 6. Próximo corte recomendado
 
 **Sprint de integración controlada**, una vez aprobadas las decisiones visuales y el entorno destino: crear rama de integración aislada, montar frontend autenticado sin mezclar datos demo y reales, integrar con HTTPS en preproducción, repetir pruebas E2E de negocio con cuentas autorizadas, verificar telemetría/backup/restore y entonces presentar un plan de merge por fases. **No se autoriza ninguna fusión, despliegue, acceso a correo real ni migración del piloto con esta auditoría.**
+
+## Addenda posterior — superficie React autenticada sin despliegue
+
+Un incremento draft posterior a la PR #67 permite generar un **build React
+explícitamente autenticado** con `VITE_PLANTOPS_APP_SURFACE=authenticated`.
+Ese build no presenta demo, no admite cambio por `?source=demo` y no incluye
+fixtures conocidos de demostración en su JS final. Conserva las consultas a
+`/api` con sesión real, selector de organizaciones autorizado y OIDC con
+retorno a `/`, pero **mantiene las escrituras desactivadas**. El modo demo
+original y `?source=api` solo en desarrollo siguen cubiertos.
+
+La CI nueva valida el build con Chrome e interceptaciones HTTP ficticias,
+**no** con sesiones reales de usuarios ni infraestructura TLS. Por tanto,
+la barrera de “producción muestra solo demo” queda **preparada técnicamente**
+mediante elección explícita de build, pero el estado de release sigue siendo
+**NO GO** hasta aprobar UI final, backend/proxy seguro, pruebas OIDC reales
+en staging y operativa de datos. Ver [contrato de superficie autenticada]
+(../architecture/authenticated-app-surface.md).
