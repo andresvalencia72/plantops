@@ -158,6 +158,13 @@ responsable e historial read-only. En laboratorio se reutilizan las
 operaciones existentes por rol; en demo, registros explícitamente ficticios.
 [Contrato técnico](../architecture/organization-work-orders.md).
 | Activos | UC-02, UC-04 | Inventario y ficha de activo |
+
+**Incremento de catálogo (solo lectura):** módulo Activos funcional en
+API y demo, filtros paginados por código/nombre/estado administrativo,
+ficha de equipo con incidentes y órdenes correctivas relacionados, enlaces
+al detalle y separación absoluta entre datos demo y registros reales.
+Alta/edición/desactivación quedan pendientes de reglas RBAC y auditoría.
+[Contrato del catálogo](../architecture/asset-catalog-history.md).
 | Organización / miembros | Requisitos de acceso | Contexto y roles (futuro backend) |
 | Auditoría | Todas las mutaciones | Historial legible |
 
