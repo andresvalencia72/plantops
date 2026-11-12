@@ -11,7 +11,7 @@ if (process.env.VITE_PLANTOPS_APP_SURFACE !== 'authenticated' || !jsFiles.length
 for (const file of jsFiles) {
   const code = await readFile(join(out, file), 'utf8');
   for (const fixture of [
-    'Atlas Manufacturing', 'Northline Industries',
+    'Atlas Manufacturing', 'Northline Industries', 'OT-DEMO-021',
     'Presión inestable en circuito auxiliar',
   ]) {
     if (code.includes(fixture)) {

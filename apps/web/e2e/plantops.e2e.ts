@@ -82,3 +82,18 @@ test('mobile menu is a modal navigation surface and restores keyboard focus', as
   await expect(navigationDialog).not.toBeVisible()
   await expect(openButton).toBeFocused()
 })
+
+test('Órdenes de trabajo se navega y filtra en demo sin mezclarse con API', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('navigation', { name: 'Navegación principal' })
+    .getByRole('button', { name: 'Órdenes de trabajo' }).click()
+  await expect(page.getByRole('heading', { name: 'Órdenes de trabajo' })).toBeVisible()
+  await expect(page.getByText('Datos ficticios · Solo lectura')).toBeVisible()
+  await expect(page.getByText('Ajustar rodillos y alineación de banda')).toBeVisible()
+  await page.getByLabel('Estado de orden').selectOption('COMPLETED')
+  await expect(page.getByText('Revisar alimentación del panel CNC')).toBeVisible()
+  await expect(page.getByText('Ajustar rodillos y alineación de banda')).toHaveCount(0)
+  await page.getByRole('button', { name: /Revisar alimentación del panel CNC/ }).click()
+  await expect(page.getByRole('dialog')).toContainText('Historial de intervención')
+  await expect(page.getByRole('dialog')).toContainText('INC-1038')
+})
