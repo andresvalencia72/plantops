@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ApiRequestError } from './api-client'
+import { ApiCreateCorrectiveOrder } from './api-create-corrective-order'
 import type { ApiReadClient, ApiWorkOrderDetail, ApiWorkOrderPage } from './api-client'
 
 type PageState = { status: 'loading' } | { status: 'error'; message: string } |
@@ -21,8 +22,10 @@ function message(error: unknown) {
 }
 
 /** Mounted only after a successful, tenant-scoped incident detail request. */
-export function ApiWorkOrdersSection({ client, organizationId, incidentId }: {
+export function ApiWorkOrdersSection({ client, organizationId, incidentId,
+  canCreate = false, userId, onCreated }: {
   client: ApiReadClient; organizationId: string; incidentId: string
+  canCreate?: boolean; userId?: string; onCreated?: () => void
 }) {
   const [state, setState] = useState<PageState>({ status: 'loading' })
   const [cursor, setCursor] = useState<string | undefined>()
@@ -79,12 +82,18 @@ export function ApiWorkOrdersSection({ client, organizationId, incidentId }: {
           <h3 id="api-work-orders-heading" className="text-[11px] font-semibold uppercase tracking-wider text-foreground">
             Órdenes correctivas
           </h3>
-          <p className="text-xs text-muted-foreground">Consulta autorizada · Sin modificaciones</p>
+          <p className="text-xs text-muted-foreground">
+            {canCreate ? 'Alta en laboratorio aislado · Consulta autorizada'
+              : 'Consulta autorizada · Sin modificaciones'}
+          </p>
         </div>
         <Button size="sm" variant="ghost" onClick={refresh} aria-label="Actualizar órdenes">
           <RefreshCw size={14} aria-hidden="true" />
         </Button>
       </div>
+      {canCreate && userId && <ApiCreateCorrectiveOrder client={client}
+        organizationId={organizationId} incidentId={incidentId}
+        userId={userId} onCreated={() => { refresh(); onCreated?.() }} />}
       {state.status === 'loading' && <p role="status" className="text-xs text-muted-foreground">
         Consultando órdenes relacionadas…
       </p>}
