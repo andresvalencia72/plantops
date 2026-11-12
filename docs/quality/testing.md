@@ -188,3 +188,10 @@ Los tests deben aislar el estado y ejecutarse de manera determinista; fechas con
 - No tener pruebas del error principal.
 - Disfrazar una prueba de componente como E2E.
 - Afirmar “seguro y escalable” sin evidencia, amenaza definida o medición.
+
+## Auditorías independientes · 2026-11-12
+
+- [Matriz de evidencia UC-01–08](audits/uc01-uc08-coverage-2026-11-12.md): inventario por UC de pruebas PostgreSQL, HTTP, React y Chrome, con brechas para revisión.
+- [Accesibilidad y UX de la demo pública](audits/public-demo-accessibility-2026-11-12.md): axe-core, teclado, foco, móvil y limitaciones.
+
+Ambos informes son **solo lectura y evidencia**; no habilitan integración, merges ni despliegue.
