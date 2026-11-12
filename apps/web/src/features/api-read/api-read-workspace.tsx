@@ -13,10 +13,13 @@ type Connection =
   | { status: 'error'; message: string }
   | { status: 'ready'; profile: ApiProfile; organizations: ApiOrganization[] }
 
-export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadClient }) {
+export function ApiReadWorkspace({ client = apiReadClient, standalone = false }: {
+  client?: ApiReadClient; standalone?: boolean
+}) {
   // Explicit local opt-in only: never expose writes in production or the pilot preview.
-  const isolatedWrites = import.meta.env.DEV &&
+  const isolatedWrites = import.meta.env.DEV && !standalone &&
     import.meta.env.VITE_PLANTOPS_ENABLE_REPORTS === 'isolated-test'
+  const loginRedirect = standalone ? '%2F' : '%2F%3Fsource%3Dapi'
   const { theme, setTheme } = useTheme()
   const [attempt, setAttempt] = useState(0)
   const [connection, setConnection] = useState<Connection>({ status: 'loading' })
@@ -102,12 +105,12 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
             </span>
             <span className="text-[15px] font-semibold tracking-tight">plantops<span className="text-primary">.</span></span>
             <span className="hidden h-5 w-px bg-border sm:inline" aria-hidden="true" />
-            <Badge variant="outline" className="text-[10px]">{isolatedWrites ? 'API local · Laboratorio aislado' : 'API local · Solo lectura'}</Badge>
+            <Badge variant="outline" className="text-[10px]">{isolatedWrites ? 'API local · Laboratorio aislado' : standalone ? 'Entorno autenticado · Solo lectura' : 'API local · Solo lectura'}</Badge>
           </div>
           <div className="flex items-center gap-2">
-            <a href="/" className="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
+            {!standalone && <a href="/" className="flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
               <ArrowLeft size={14} aria-hidden="true" /> Volver a la demo
-            </a>
+            </a>}
             <Button variant="outline" size="icon" aria-label={theme === 'dark'
               ? 'Activar modo claro' : 'Activar modo oscuro'}
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
@@ -146,14 +149,14 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
             </p>
             {connection.providers.includes('google') && (
               <Button asChild className="w-full sm:w-auto">
-                <a href="/auth/oidc/google/login?redirectTo=%2F%3Fsource%3Dapi">
+                <a href={'/auth/oidc/google/login?redirectTo=' + loginRedirect}>
                   Continuar con Google
                 </a>
               </Button>
             )}
             {connection.providers.includes('microsoft') && (
               <Button asChild className="w-full sm:w-auto">
-                <a href="/auth/oidc/microsoft/login?redirectTo=%2F%3Fsource%3Dapi">
+                <a href={'/auth/oidc/microsoft/login?redirectTo=' + loginRedirect}>
                   Continuar con Microsoft
                 </a>
               </Button>
@@ -167,7 +170,7 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
               <Button variant="outline" onClick={retryConnection}>
                 <RefreshCw size={15} aria-hidden="true"/> Comprobar de nuevo
               </Button>
-              <Button variant="secondary" asChild><a href="/">Usar la demo</a></Button>
+              {!standalone && <Button variant="secondary" asChild><a href="/">Usar la demo</a></Button>}
             </div>
           </section>
         )}
