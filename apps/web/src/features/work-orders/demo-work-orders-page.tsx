@@ -16,11 +16,15 @@ const labels: Record<DemoOrderStatus, string> = {
 }
 
 /** Read-only fictional preview; real orders live in the authenticated workspace. */
-export function DemoWorkOrdersPage({ organization }: { organization: DemoOrganization }) {
+export function DemoWorkOrdersPage({ organization, initialOrderId = null }: {
+  organization: DemoOrganization; initialOrderId?: string | null
+}) {
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<DemoOrderStatus | 'ALL'>('ALL')
   const [assetId, setAssetId] = useState('')
-  const [selected, setSelected] = useState<DemoOrder | null>(null)
+  const [selected, setSelected] = useState<DemoOrder | null>(() =>
+    demoOrders.find((order) => order.organization === organization &&
+      order.id === initialOrderId) ?? null)
   const scopedAssets = assets.filter((item) => item.organization === organization)
   const visible = useMemo(() => demoOrders.filter((order) => {
     if (order.organization !== organization || (status !== 'ALL' && order.status !== status)) {

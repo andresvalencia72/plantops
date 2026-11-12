@@ -16,10 +16,7 @@ const available = [
   { id: 'overview' as const, label: 'Vista general', icon: Gauge },
   { id: 'incidents' as const, label: 'Incidencias', icon: ClipboardList },
   { id: 'orders' as const, label: 'Órdenes de trabajo', icon: Wrench },
-]
-
-const upcoming = [
-  { label: 'Activos', icon: Boxes },
+  { id: 'assets' as const, label: 'Activos', icon: Boxes },
 ]
 
 function NavigationContent({
@@ -61,14 +58,6 @@ function NavigationContent({
               </button>
             ))}
           </div>
-        </section>
-        <section aria-label="Próximamente">
-          <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[.15em] text-muted-foreground">Próximamente</p>
-          {upcoming.map(({ label, icon: Icon }) => (
-            <div key={label} className="flex h-10 items-center gap-3 px-3 text-[13px] text-muted-foreground/70">
-              <Icon size={17} strokeWidth={1.7} aria-hidden="true" />{label}
-            </div>
-          ))}
         </section>
       </nav>
       <div className="border-t border-sidebar-border p-3">
