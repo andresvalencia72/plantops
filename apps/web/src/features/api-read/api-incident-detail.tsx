@@ -162,7 +162,10 @@ export function ApiIncidentDetailSheet({
                 </p>
               </section>
               {incidentId && <ApiWorkOrdersSection key={organizationId + ':' + incidentId}
-                client={client} organizationId={organizationId} incidentId={incidentId} />}
+                client={client} organizationId={organizationId} incidentId={incidentId}
+                userId={userId} canCreate={Boolean(canReview && userId && asset?.active &&
+                  (detail.status === 'UNDER_REVIEW' || detail.status === 'IN_PROGRESS'))}
+                onCreated={() => { refreshDetail(); onReviewed?.() }} />}
               <section className="space-y-3 border-t border-border pt-6">
                 <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Fecha de reporte</h3>
                 <p className="flex items-center gap-2 text-xs">
