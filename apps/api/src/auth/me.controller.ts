@@ -29,6 +29,7 @@ export class MeController {
         id: organizations.id,
         name: organizations.name,
         role: memberships.role,
+        membershipId: memberships.id,
       })
       .from(memberships)
       .innerJoin(
