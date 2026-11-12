@@ -115,8 +115,9 @@ sin revisar primero el plan de despliegue y el esquema pendiente.
 supervisor en la UI de laboratorio aislado, confirmación explícita,
 reintento idempotente tras recarga y Playwright con API interceptada.
 [Alcance, pruebas y límites](../quality/uc03-supervisor-web.md).
-**Pendiente:** E2E de este flujo desde navegador contra sesión de
-supervisor sintética y PostgreSQL descartable, lectura paginada del
-historial y una estrategia de migración real revisada antes de usar
-datos persistentes.
+**En la PR #58:** E2E de revisión desde navegador aún solo con API simulada.
+**En la rama apilada posterior:** [E2E integrado de UC-03](../quality/uc03-fullstack-browser-e2e.md)
+con supervisor sintético, NestJS real, PostgreSQL descartable y auditoría
+única. Siguen pendientes la lectura paginada del historial y la estrategia
+de migración real revisada antes de usar datos persistentes.
 No fusionar `main` sin aprobación explícita.
