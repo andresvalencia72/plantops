@@ -172,3 +172,44 @@ describe('corrective order persistence constraints', () => {
     ]);
   });
 });
+
+
+describe('UC-05 assignment safety constraints', () => {
+  it('pins current assignee and every immutable history reference to one tenant', async () => {
+    const { workOrders } = await import('./work-orders.js');
+    const { workOrderAssignments } = await import('./work-order-assignments.js');
+    const order = getTableConfig(workOrders);
+    expect(order.checks.map((check) => check.name)).toContain('work_order_assignee_state');
+    expect(order.foreignKeys.map((key) => key.reference()).map((ref) => [
+      ref.columns.map((col) => col.name), ref.foreignColumns.map((col) => col.name),
+    ])).toContainEqual([
+      ['organization_id', 'responsible_membership_id'],
+      ['organization_id', 'id'],
+    ]);
+    const table = getTableConfig(workOrderAssignments);
+    const links = table.foreignKeys.map((key) => key.reference()).map((ref) => [
+      ref.columns.map((col) => col.name), ref.foreignColumns.map((col) => col.name),
+    ]);
+    for (const field of ['actor_membership_id', 'from_membership_id',
+      'to_membership_id']) {
+      expect(links).toContainEqual([['organization_id', field],
+        ['organization_id', 'id']]);
+    }
+    expect(links).toContainEqual([['organization_id', 'work_order_id'],
+      ['organization_id', 'id']]);
+    expect(table.uniqueConstraints.map((key) =>
+      key.columns.map((col) => col.name))).toContainEqual([
+      'organization_id', 'work_order_id', 'version',
+    ]);
+    expect(table.uniqueConstraints.map((key) =>
+      key.columns.map((col) => col.name))).toContainEqual([
+      'organization_id', 'actor_membership_id', 'idempotency_key',
+    ]);
+    expect(table.checks.map((check) => check.name)).toEqual(
+      expect.arrayContaining([
+        'work_order_assignment_transition',
+        'work_order_assignment_reason_length',
+      ]),
+    );
+  });
+});

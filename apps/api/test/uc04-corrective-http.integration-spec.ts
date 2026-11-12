@@ -29,7 +29,9 @@ const db = drizzle(pool);
 const ids = {
   orgA: randomUUID(), orgB: randomUUID(),
   supA: randomUUID(), memberA: randomUUID(), techB: randomUUID(),
+  techA: randomUUID(), tech2A: randomUUID(),
   msA: randomUUID(), mmA: randomUUID(), mtB: randomUUID(),
+  mtA: randomUUID(), mt2A: randomUUID(),
   assetA: randomUUID(), assetB: randomUUID(),
 };
 const orderBody = { title: 'Cambiar rodamiento',
@@ -45,6 +47,12 @@ describe('HTTP UC-04 — authenticated corrective order from reviewed incident',
     org = ids.orgA) => request(app.getHttpServer()).post(route(id, org))
       .set('Cookie', cookie).set('Sec-Fetch-Site', 'same-origin')
       .set('Idempotency-Key', key).send(orderBody);
+  const assign = (incident: string, order: string,
+    technicianMembershipId: string, expectedVersion: number,
+    cookie = cookies.supA, key = randomUUID()) =>
+    request(app.getHttpServer()).post(route(incident) + `/${order}/assignments`)
+      .set('Cookie', cookie).set('Sec-Fetch-Site', 'same-origin')
+      .set('Idempotency-Key', key).send({ technicianMembershipId, expectedVersion });
   const review = (id: string) => request(app.getHttpServer())
     .post(`/organizations/${ids.orgA}/incidents/${id}/review`)
     .set('Cookie', cookies.supA).set('Sec-Fetch-Site', 'same-origin')
@@ -74,7 +82,7 @@ describe('HTTP UC-04 — authenticated corrective order from reviewed incident',
     await migrate(db, { migrationsFolder:
       fileURLToPath(new URL('../drizzle', import.meta.url)) });
     await db.insert(users).values([
-      ids.supA, ids.memberA, ids.techB,
+      ids.supA, ids.memberA, ids.techB, ids.techA, ids.tech2A,
     ].map((id) => ({ id, displayName: 'Synthetic HTTP UC04 ' + id.slice(0, 5) })));
     await db.insert(organizations).values([
       { id: ids.orgA, name: 'HTTP orders tenant A' },
@@ -84,6 +92,8 @@ describe('HTTP UC-04 — authenticated corrective order from reviewed incident',
       { id: ids.msA, userId: ids.supA, organizationId: ids.orgA, role: 'SUPERVISOR' },
       { id: ids.mmA, userId: ids.memberA, organizationId: ids.orgA, role: 'MEMBER' },
       { id: ids.mtB, userId: ids.techB, organizationId: ids.orgB, role: 'TECHNICIAN' },
+      { id: ids.mtA, userId: ids.techA, organizationId: ids.orgA, role: 'TECHNICIAN' },
+      { id: ids.mt2A, userId: ids.tech2A, organizationId: ids.orgA, role: 'TECHNICIAN' },
     ]);
     await db.insert(assets).values([
       { id: ids.assetA, organizationId: ids.orgA, code: 'HTTP-UC04-A', name: 'Pump A' },
@@ -96,10 +106,11 @@ describe('HTTP UC-04 — authenticated corrective order from reviewed incident',
     sessions = app.get(SessionService);
     for (const [key, uid] of Object.entries({
       supA: ids.supA, memberA: ids.memberA, techB: ids.techB,
+      techA: ids.techA, tech2A: ids.tech2A,
     })) cookies[key] = (await sessions.create(uid)).cookie;
   });
   afterAll(async () => {
-    for (const id of [ids.supA, ids.memberA, ids.techB]) {
+    for (const id of [ids.supA, ids.memberA, ids.techB, ids.techA, ids.tech2A]) {
       await sessions?.revokeAll(id);
     }
     await app?.close();
@@ -228,5 +239,83 @@ describe('HTTP UC-04 — authenticated corrective order from reviewed incident',
       await request(app.getHttpServer()).get(route(id) + query)
         .set('Cookie', cookies.memberA).expect(400);
     }
+  });
+
+  it('UC05 HTTP: supervisor assigns, reassigns, replays and reads audit', async () => {
+    const incident = await fixture();
+    const created = await post(incident).expect(201);
+    const order = created.body.id as string;
+    const technicians = await request(app.getHttpServer())
+      .get(`/organizations/${ids.orgA}/technicians`)
+      .set('Cookie', cookies.supA).expect(200);
+    expect(technicians.body).toHaveLength(2);
+    expect(technicians.body.map((item: { membershipId: string }) => item.membershipId)
+      .sort()).toEqual([ids.mtA, ids.mt2A].sort());
+    const retry = randomUUID();
+    const first = await assign(incident, order, ids.mtA, 0, cookies.supA, retry)
+      .expect(201);
+    expect(first.headers['cache-control']).toBe('no-store');
+    expect(first.body).toMatchObject({ action: 'ASSIGNED', version: 1,
+      toMembershipId: ids.mtA, fromMembershipId: null });
+    expect(first.body).not.toHaveProperty('requestHash');
+    const next = await assign(incident, order, ids.mt2A, 1).expect(201);
+    expect(next.body).toMatchObject({ action: 'REASSIGNED', version: 2,
+      fromMembershipId: ids.mtA, toMembershipId: ids.mt2A });
+    expect((await assign(incident, order, ids.mtA, 0, cookies.supA, retry)
+      .expect(201)).body).toEqual(first.body);
+    const detail = await request(app.getHttpServer())
+      .get(route(incident) + '/' + order)
+      .set('Cookie', cookies.memberA).expect(200);
+    expect(detail.body).toMatchObject({ status: 'ASSIGNED',
+      responsibleMembershipId: ids.mt2A, assignmentVersion: 2 });
+    const history = await request(app.getHttpServer())
+      .get(route(incident) + `/${order}/assignments`)
+      .set('Cookie', cookies.memberA).expect(200);
+    expect(history.headers['cache-control']).toBe('no-store');
+    expect(history.body.map((item: { version: number }) => item.version))
+      .toEqual([1, 2]);
+    expect(history.body[0]).not.toHaveProperty('idempotencyKey');
+    expect(history.body[0]).not.toHaveProperty('requestHash');
+  });
+
+  it('UC05 HTTP: rejects cross-tenant, invalid body, CSRF and unauthorized roles', async () => {
+    const incident = await fixture();
+    const created = await post(incident).expect(201);
+    const order = created.body.id as string;
+    await assign(incident, order, ids.mtA, 0, cookies.memberA).expect(403);
+    await assign(incident, order, ids.mtA, 0, cookies.techA).expect(403);
+    await assign(incident, order, ids.mtB, 0).expect(409);
+    await request(app.getHttpServer())
+      .get(`/organizations/${ids.orgA}/technicians`)
+      .set('Cookie', cookies.memberA).expect(403);
+    await request(app.getHttpServer())
+      .post(route(incident) + `/${order}/assignments`)
+      .set('Idempotency-Key', randomUUID())
+      .send({ technicianMembershipId: ids.mtA, expectedVersion: 0 })
+      .expect(401);
+    await request(app.getHttpServer())
+      .post(route(incident) + `/${order}/assignments`)
+      .set('Cookie', cookies.supA).set('Sec-Fetch-Site', 'cross-site')
+      .set('Origin', 'https://attacker.invalid')
+      .set('Idempotency-Key', randomUUID())
+      .send({ technicianMembershipId: ids.mtA, expectedVersion: 0 })
+      .expect(403);
+    await request(app.getHttpServer()).post(route(incident) + `/${order}/assignments`)
+      .set('Cookie', cookies.supA).set('Sec-Fetch-Site', 'same-origin')
+      .set('Idempotency-Key', randomUUID())
+      .send({ technicianMembershipId: ids.mtA, expectedVersion: 0,
+        actorMembershipId: ids.msA }).expect(400);
+    await request(app.getHttpServer()).post(route(incident) + `/${order}/assignments`)
+      .set('Cookie', cookies.supA).set('Sec-Fetch-Site', 'same-origin')
+      .set('Idempotency-Key', randomUUID())
+      .send({ technicianMembershipId: ids.mtA, expectedVersion: '0' })
+      .expect(400);
+    await assign(incident, randomUUID(), ids.mtA, 0).expect(404);
+    const foreign = await fixture('UNDER_REVIEW', ids.orgB);
+    await assign(foreign, order, ids.mtA, 0).expect(404);
+    const history = await request(app.getHttpServer())
+      .get(route(incident) + `/${order}/assignments`)
+      .set('Cookie', cookies.memberA).expect(200);
+    expect(history.body).toEqual([]);
   });
 });

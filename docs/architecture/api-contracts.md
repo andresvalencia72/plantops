@@ -194,3 +194,20 @@ Respuesta de lista recomendada: `{ items, pageInfo: { cursor, hasNextPage } }`; 
 ## Plan de evolución
 
 Primero: fixtures tipadas de UC-02. Segundo: definir contrato estable en los adaptadores frontend. Tercero: documentar OpenAPI y validar en backend. Cuarto: pruebas de contrato al conectar.
+
+### UC-05 — Asignación de técnico (PR draft apilada)
+
+- `GET /organizations/:organizationId/technicians`: solo supervisor
+  ACTIVE; devuelve `{membershipId, displayName}[]` de técnicos ACTIVE en
+  ese tenant, máximo 200.
+- `POST /organizations/:organizationId/incidents/:incidentId/work-orders/:orderId/assignments`:
+  supervisor ACTIVE, JSON exacto `{technicianMembershipId, expectedVersion,
+  reason?}` y cabecera `Idempotency-Key: UUIDv4`; 201 con evento inmutable.
+  Primera asignación versión 1, reasignación incrementa versión;
+  409 para estado/version/clave contradictorios y 403/404 para permisos/tenant.
+- `GET /organizations/:organizationId/incidents/:incidentId/work-orders/:orderId/assignments`:
+  historia ordenada de eventos visible a miembros ACTIVE de ese tenant,
+  incluye actores, nombres actuales y cambios previos, sin claves/hash.
+- GET de órdenes: `responsibleMembershipId` (nullable) y
+  `assignmentVersion` entero; estado `ASSIGNED` solo con responsable.
+- [Decisiones, invariantes y pruebas](work-order-assignment-contract.md).

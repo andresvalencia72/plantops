@@ -46,6 +46,8 @@ const summary = {
   assetId: workOrders.assetId,
   title: workOrders.title,
   status: workOrders.status,
+  responsibleMembershipId: workOrders.responsibleMembershipId,
+  assignmentVersion: workOrders.assignmentVersion,
   createdAt: workOrders.createdAt,
 };
 const detail = { ...summary, description: workOrders.description };

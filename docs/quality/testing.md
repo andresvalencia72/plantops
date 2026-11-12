@@ -95,6 +95,14 @@ el estado y auditoría con `inspect-isolated-corrective.mjs` solo sobre
 de respuesta y bloqueo de escrituras para miembro/técnico/anónimo.
 [Véase alcance y pruebas](uc04-isolated-create-ui.md).
 
+## UC-05 — asignación auditada
+
+7 pruebas nuevas con PostgreSQL real en `uc05-assign.integration-spec.ts`,
+2 HTTP en `uc04-corrective-http.integration-spec.ts` y pruebas React/Chrome
+para roles, múltiples cambios históricos, concurrencia, clave idempotente,
+versión esperada, rollback por error de auditoría, CSRF y aislamiento de tenant.
+[Evidencia y contrato](../architecture/work-order-assignment-contract.md).
+
 ## Seguridad: defensa en profundidad
 
 - Identidad autenticada y membresía vigente para el tenant activo.

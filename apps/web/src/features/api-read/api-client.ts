@@ -18,13 +18,26 @@ export type ApiIncidentPage = Readonly<{
 export type ApiWorkOrder = Readonly<{
   id: string; incidentId: string; assetId: string; title: string
   status: 'PENDING' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
-  createdAt: string
+  createdAt: string; responsibleMembershipId: string | null
+  assignmentVersion: number
 }>
 export type ApiWorkOrderDetail = ApiWorkOrder & Readonly<{ description: string }>
 export type ApiWorkOrderPage = Readonly<{
   items: ApiWorkOrder[]; nextCursor: string | null
 }>
 export type ApiCreateOrderInput = Readonly<{ title: string; description: string }>
+export type ApiTechnician = Readonly<{ membershipId: string; displayName: string }>
+export type ApiAssignmentInput = Readonly<{
+  technicianMembershipId: string; expectedVersion: number; reason?: string
+}>
+export type ApiAssignmentEvent = Readonly<{
+  id: string; workOrderId: string; action: 'ASSIGNED' | 'REASSIGNED';
+  version: number; fromMembershipId: string | null; toMembershipId: string
+  actorMembershipId: string; reason: string | null; occurredAt: string
+}>
+export type ApiAssignmentHistory = ApiAssignmentEvent & Readonly<{
+  fromName: string | null; toName: string; actorName: string
+}>
 export type ApiReportInput = Readonly<{
   assetId: string; title: string; description: string
 }>
@@ -35,21 +48,23 @@ export type ApiReportResult = Readonly<{
 
 export class ApiRequestError extends Error {
   readonly status: number
-  constructor(status: number, operation: 'read' | 'write' | 'review' | 'order' = 'read') {
+  constructor(status: number, operation: 'read' | 'write' | 'review' | 'order' | 'assignment' = 'read') {
     super(status === 400 ? 'Revisa los datos introducidos.'
       : status === 401 ? 'Se necesita una sesión válida.'
         : status === 403 ? (operation === 'review'
           ? 'No tienes permiso para iniciar la revisión.'
           : operation === 'order' ? 'No tienes permiso para crear órdenes correctivas.'
+          : operation === 'assignment' ? 'Solo el supervisor puede asignar técnicos.'
           : 'No tienes acceso a esta organización.')
           : status === 404 ? 'El recurso no está disponible.'
             : status === 409 ? (operation === 'review'
               ? 'La incidencia cambió de estado. Actualiza los datos antes de continuar.'
               : operation === 'order' ? 'La incidencia o la solicitud cambió. Actualiza y comprueba si la orden ya existe.'
+              : operation === 'assignment' ? 'La asignación cambió. Consulta el historial antes de reintentar.'
               : 'Esta solicitud ya se usó con datos distintos.')
               : status === 415 ? 'El servidor rechazó el formato enviado.'
                 : status === 429 ? 'Demasiadas solicitudes. Espera antes de reintentar.'
-                  : (operation === 'write' || operation === 'order')
+                  : (operation === 'write' || operation === 'order' || operation === 'assignment')
                     ? 'No se pudo confirmar el registro. Reintenta con la misma solicitud.'
                     : 'No se pudo consultar la API. Intenta de nuevo.')
     this.name = 'ApiRequestError'
@@ -74,7 +89,19 @@ function validWorkOrder(value: unknown): value is ApiWorkOrder {
     string(value.assetId) && string(value.title) &&
     string(value.createdAt) && Number.isFinite(Date.parse(value.createdAt)) &&
     ['PENDING', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
-      .includes(String(value.status))
+      .includes(String(value.status)) &&
+    Number.isSafeInteger(value.assignmentVersion) &&
+    (value.assignmentVersion as number) >= 0 &&
+    (value.responsibleMembershipId === null || string(value.responsibleMembershipId))
+}
+function validAssignment(value: unknown): value is ApiAssignmentEvent {
+  return record(value) && string(value.id) && string(value.workOrderId) &&
+    ['ASSIGNED', 'REASSIGNED'].includes(String(value.action)) &&
+    Number.isSafeInteger(value.version) && (value.version as number) > 0 &&
+    (value.fromMembershipId === null || string(value.fromMembershipId)) &&
+    string(value.toMembershipId) && string(value.actorMembershipId) &&
+    (value.reason === null || string(value.reason)) &&
+    string(value.occurredAt) && Number.isFinite(Date.parse(value.occurredAt))
 }
 function invalid(): never {
   throw new Error('Respuesta inesperada del servidor. No se mostraron datos.')
@@ -186,6 +213,41 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
         value.incidentId !== incidentId ||
         !('description' in value) || !string(value.description)) invalid()
       return value as ApiWorkOrderDetail
+    },
+    /** Active technicians are discovered under a supervisor session only. */
+    async technicians(orgId: string, signal?: AbortSignal): Promise<ApiTechnician[]> {
+      const value = await get(orgPath(orgId) + '/technicians', signal)
+      if (!Array.isArray(value) || !value.every((item) =>
+        record(item) && string(item.membershipId) && string(item.displayName))) invalid()
+      return value as ApiTechnician[]
+    },
+    async assignmentHistory(orgId: string, incidentId: string, orderId: string,
+      signal?: AbortSignal): Promise<ApiAssignmentHistory[]> {
+      const path = orgPath(orgId) + '/incidents/' + encodeURIComponent(incidentId) +
+        '/work-orders/' + encodeURIComponent(orderId) + '/assignments'
+      const value = await get(path, signal)
+      if (!Array.isArray(value) || !value.every((item) =>
+        validAssignment(item) && item.workOrderId === orderId &&
+        'fromName' in item && 'toName' in item && 'actorName' in item &&
+        (item.fromName === null || string(item.fromName)) &&
+        string(item.toName) && string(item.actorName))) invalid()
+      return value as ApiAssignmentHistory[]
+    },
+    async assignTechnician(orgId: string, incidentId: string, orderId: string,
+      input: ApiAssignmentInput, key: string): Promise<ApiAssignmentEvent> {
+      const path = orgPath(orgId) + '/incidents/' + encodeURIComponent(incidentId) +
+        '/work-orders/' + encodeURIComponent(orderId) + '/assignments'
+      const response = await fetcher('/api' + path, {
+        method: 'POST', credentials: 'include', redirect: 'error',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json',
+          'Idempotency-Key': key }, body: JSON.stringify(input),
+      })
+      if (!response.ok) throw new ApiRequestError(response.status, 'assignment')
+      const value: unknown = await response.json()
+      if (!validAssignment(value) || value.workOrderId !== orderId ||
+        value.toMembershipId !== input.technicianMembershipId ||
+        value.version !== input.expectedVersion + 1) invalid()
+      return value as ApiAssignmentEvent
     },
     /** Public non-secret provider discovery. 404 means OIDC not yet configured. */
     async providers(signal?: AbortSignal): Promise<ApiLoginProvider[]> {

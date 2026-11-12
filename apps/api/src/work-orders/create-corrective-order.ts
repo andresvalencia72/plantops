@@ -27,6 +27,8 @@ const projected = {
   id: workOrders.id, incidentId: workOrders.incidentId,
   assetId: workOrders.assetId, title: workOrders.title,
   description: workOrders.description, status: workOrders.status,
+  responsibleMembershipId: workOrders.responsibleMembershipId,
+  assignmentVersion: workOrders.assignmentVersion,
   createdAt: workOrders.createdAt, requestHash: workOrders.requestHash,
 };
 

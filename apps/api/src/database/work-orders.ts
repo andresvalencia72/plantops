@@ -1,5 +1,6 @@
+import { sql } from 'drizzle-orm';
 import {
-  foreignKey, index, pgEnum, pgTable, text, timestamp, unique, uuid,
+  check, foreignKey, index, integer, pgEnum, pgTable, text, timestamp, unique, uuid,
 } from 'drizzle-orm/pg-core';
 import { assets } from './assets.js';
 import { incidents } from './incidents.js';
@@ -22,10 +23,20 @@ export const workOrders = pgTable('work_orders', {
   title: text('title').notNull(),
   description: text('description').notNull(),
   status: workOrderStatus('status').notNull().default('PENDING'),
+  responsibleMembershipId: uuid('responsible_membership_id'),
+  assignmentVersion: integer('assignment_version').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull().defaultNow(),
 }, (table) => [
   unique('work_orders_organization_id_id').on(table.organizationId, table.id),
+  check('work_order_assignee_state', sql`
+    (${table.status} = 'PENDING' AND ${table.responsibleMembershipId} IS NULL
+      AND ${table.assignmentVersion} = 0)
+    OR (${table.status} = 'ASSIGNED' AND ${table.responsibleMembershipId} IS NOT NULL
+      AND ${table.assignmentVersion} >= 1)
+    OR (${table.status} NOT IN ('PENDING', 'ASSIGNED')
+      AND ${table.assignmentVersion} >= 0)
+  `),
   unique('work_order_actor_retry').on(
     table.organizationId, table.createdByMembershipId, table.idempotencyKey,
   ),
@@ -41,6 +52,11 @@ export const workOrders = pgTable('work_orders', {
     name: 'work_order_asset_tenant_fk',
     columns: [table.organizationId, table.assetId],
     foreignColumns: [assets.organizationId, assets.id],
+  }),
+  foreignKey({
+    name: 'work_order_responsible_tenant_fk',
+    columns: [table.organizationId, table.responsibleMembershipId],
+    foreignColumns: [memberships.organizationId, memberships.id],
   }),
   foreignKey({
     name: 'work_order_creator_tenant_fk',

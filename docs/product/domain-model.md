@@ -27,7 +27,12 @@ erDiagram
 - Cada orden tiene **0..1 técnico responsable actual** y puede conservar múltiples asignaciones históricas.
 - Toda orden pertenece a una organización y a un activo de esa organización.
 
-**Detalle a diseñar:** ubicación exacta del responsable (`Membership` vs `User`), claves, atributos, auditoría y restricciones físicas de BD. No mezclar roles de organizaciones distintas.
+**UC-05 resuelve la referencia actual:** el responsable reside en
+`work_orders.responsible_membership_id` + `assignment_version`; histórico
+inmutable en `work_order_assignments`. Solo `Membership` TECHNICIAN ACTIVE
+puede ser el nuevo destino, y el supervisor revalida permiso en transacción.
+[Contrato UC-05](../architecture/work-order-assignment-contract.md).
+La relación con órdenes preventivas queda pendiente de su corte propio.
 
 ## Glosario mínimo
 

@@ -33,8 +33,10 @@ const pool = new Pool({ connectionString: raw });
 const db = drizzle(pool);
 const ids = {
   userA: randomUUID(), userB: randomUUID(), supervisorA: randomUUID(),
+  technicianA: randomUUID(), technician2A: randomUUID(),
   orgA: randomUUID(), orgB: randomUUID(),
   memberA: randomUUID(), memberB: randomUUID(), supervisorMembershipA: randomUUID(),
+  technicianMembershipA: randomUUID(), technicianMembership2A: randomUUID(),
   assetA: randomUUID(), assetB: randomUUID(),
 };
 let app;
@@ -46,6 +48,8 @@ try {
     { id: ids.userA, displayName: 'Synthetic Reporter A' },
     { id: ids.userB, displayName: 'Synthetic Reporter B' },
     { id: ids.supervisorA, displayName: 'Synthetic Supervisor A' },
+    { id: ids.technicianA, displayName: 'Synthetic Technician One' },
+    { id: ids.technician2A, displayName: 'Synthetic Technician Two' },
   ]);
   await db.insert(organizations).values([
     { id: ids.orgA, name: 'Synthetic Plant A' },
@@ -56,6 +60,10 @@ try {
     { id: ids.memberB, userId: ids.userB, organizationId: ids.orgB, role: 'TECHNICIAN' },
     { id: ids.supervisorMembershipA, userId: ids.supervisorA,
       organizationId: ids.orgA, role: 'SUPERVISOR' },
+    { id: ids.technicianMembershipA, userId: ids.technicianA,
+      organizationId: ids.orgA, role: 'TECHNICIAN' },
+    { id: ids.technicianMembership2A, userId: ids.technician2A,
+      organizationId: ids.orgA, role: 'TECHNICIAN' },
   ]);
   await db.insert(assets).values([
     { id: ids.assetA, organizationId: ids.orgA, code: 'LAB-A', name: 'Pump A' },

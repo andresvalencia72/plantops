@@ -180,7 +180,8 @@ describe('API read-only adapter', () => {
   })
   it('reads scoped work orders and rejects cross-incident or malformed results', async () => {
     const order = { id: 'w1', incidentId: 'i1', assetId: 'a1', title: 'Rodamiento',
-      status: 'PENDING', createdAt: '2026-11-12T12:00:00.000Z' }
+      status: 'PENDING', assignmentVersion: 0, responsibleMembershipId: null,
+      createdAt: '2026-11-12T12:00:00.000Z' }
     const fetcher = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(jsonResponse({ items: [order], nextCursor: 'next-page' }))
       .mockResolvedValueOnce(jsonResponse({ ...order, description: 'Replace bearing' }))
@@ -216,7 +217,8 @@ describe('API read-only adapter', () => {
   it('creates a corrective order only with same-origin session + body + retry key', async () => {
     const result = { id: 'work-1', incidentId: 'incident-1', assetId: 'asset-1',
       title: 'Cambiar rodamiento', description: 'Intervenir en el eje principal',
-      status: 'PENDING', createdAt: '2026-11-12T10:00:00Z' }
+      status: 'PENDING', assignmentVersion: 0, responsibleMembershipId: null,
+      createdAt: '2026-11-12T10:00:00Z' }
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(result, 201))
     const input = { title: result.title, description: result.description }
     const api = createApiReadClient(fetcher)
@@ -240,7 +242,8 @@ describe('API read-only adapter', () => {
     const foreign = createApiReadClient(vi.fn<typeof fetch>()
       .mockResolvedValue(jsonResponse({ id: 'order-1', incidentId: 'other',
         assetId: 'asset', title: payload.title, description: payload.description,
-        status: 'PENDING', createdAt: '2026-11-12T10:00:00Z' }, 201)))
+        status: 'PENDING', assignmentVersion: 0, responsibleMembershipId: null,
+      createdAt: '2026-11-12T10:00:00Z' }, 201)))
     await expect(foreign.createCorrectiveOrder('org', 'inc', payload, 'key'))
       .rejects.toThrow('Respuesta inesperada')
     const forbidden = createApiReadClient(vi.fn<typeof fetch>()
@@ -251,5 +254,56 @@ describe('API read-only adapter', () => {
       .mockResolvedValue(jsonResponse({}, 409)))
     await expect(conflict.createCorrectiveOrder('org', 'inc', payload, 'key'))
       .rejects.toThrow('La incidencia o la solicitud cambió')
+  })
+  it('lists tenant technicians and assignment audit with explicit session', async () => {
+    const event = { id: 'event-1', workOrderId: 'order-1', action: 'ASSIGNED',
+      version: 1, fromMembershipId: null, toMembershipId: 'member-1',
+      actorMembershipId: 'supervisor-1', reason: null,
+      occurredAt: '2026-11-12T12:00:00Z', fromName: null,
+      toName: 'Técnico Uno', actorName: 'Supervisor Uno' }
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(jsonResponse([{ membershipId: 'member-1',
+        displayName: 'Técnico Uno' }]))
+      .mockResolvedValueOnce(jsonResponse([event]))
+      .mockResolvedValueOnce(jsonResponse({ ...event, fromName: undefined,
+        toName: undefined, actorName: undefined }, 201))
+    const client = createApiReadClient(fetcher)
+    expect((await client.technicians('org-1'))[0]?.displayName).toBe('Técnico Uno')
+    expect((await client.assignmentHistory('org-1', 'incident-1', 'order-1'))[0])
+      .toEqual(event)
+    const input = { technicianMembershipId: 'member-1', expectedVersion: 0,
+      reason: 'Nuevo turno' }
+    expect((await client.assignTechnician('org-1', 'incident-1',
+      'order-1', input, 'key-1')).version).toBe(1)
+    expect(fetcher.mock.calls.map(([url]) => url)).toEqual([
+      '/api/organizations/org-1/technicians',
+      '/api/organizations/org-1/incidents/incident-1/work-orders/order-1/assignments',
+      '/api/organizations/org-1/incidents/incident-1/work-orders/order-1/assignments',
+    ])
+    const posted = fetcher.mock.calls[2]?.[1]
+    expect(posted).toMatchObject({ method: 'POST', credentials: 'include',
+      headers: { 'Idempotency-Key': 'key-1' }, body: JSON.stringify(input) })
+    expect(fetcher.mock.calls[0]?.[1]).toMatchObject({ method: 'GET',
+      credentials: 'include' })
+  })
+
+  it('fails closed when an assignment targets another order or the server denies it', async () => {
+    const data = { technicianMembershipId: 'member-1', expectedVersion: 0 }
+    const other = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ id: 'event', workOrderId: 'foreign',
+        action: 'ASSIGNED', version: 1, fromMembershipId: null,
+        toMembershipId: 'member-1', actorMembershipId: 'supervisor', reason: null,
+        occurredAt: '2026-11-12T12:00:00Z' }, 201)))
+    await expect(other.assignTechnician('org', 'inc', 'order', data, 'key'))
+      .rejects.toThrow('Respuesta inesperada')
+    const rejected = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({}, 409)))
+    await expect(rejected.assignTechnician('org', 'inc', 'order', data, 'key'))
+      .rejects.toThrow('La asignación cambió')
+    const forbidden = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({}, 403)))
+    await expect(forbidden.technicians('org')).rejects.toMatchObject({ status: 403 })
+    await expect(forbidden.assignTechnician('org', 'inc', 'order', data, 'key'))
+      .rejects.toThrow('Solo el supervisor')
   })
 })

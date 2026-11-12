@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ApiRequestError } from './api-client'
 import { ApiCreateCorrectiveOrder } from './api-create-corrective-order'
+import { ApiAssignmentPanel } from './api-assignment-panel'
 import type { ApiReadClient, ApiWorkOrderDetail, ApiWorkOrderPage } from './api-client'
 
 type PageState = { status: 'loading' } | { status: 'error'; message: string } |
@@ -130,9 +131,13 @@ export function ApiWorkOrdersSection({ client, organizationId, incidentId,
                     setDetail({ status: 'loading' }); setDetailRevision((n) => n + 1)
                   }}>Reintentar detalle</Button>
                 </div>}
-                {detail.status === 'ready' && <p className="text-xs leading-5">
-                  {detail.value.description}
-                </p>}
+                {detail.status === 'ready' && <>
+                  <p className="text-xs leading-5">{detail.value.description}</p>
+                  <ApiAssignmentPanel key={detail.value.id} client={client}
+                    organizationId={organizationId} incidentId={incidentId}
+                    order={detail.value} userId={userId}
+                    canAssign={Boolean(canCreate && userId)} onUpdated={refresh} />
+                </>}
               </div>}
             </li>
           ))}
