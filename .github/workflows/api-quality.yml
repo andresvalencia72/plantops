@@ -99,3 +99,43 @@ jobs:
 
       - name: Verify tenant isolation on PostgreSQL
         run: npm run test:integration
+
+  migration-upgrade:
+    name: Legacy PostgreSQL upgrade rehearsal
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/api
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: plantops_test
+          POSTGRES_PASSWORD: plantops_test
+          POSTGRES_DB: plantops_s1_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U plantops_test -d plantops_s1_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_TEST_URL: postgresql://plantops_test:plantops_test@127.0.0.1:5432/plantops_s1_test
+      PLANTOPS_MIGRATION_REHEARSAL: disposable-only
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 26 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: apps/api/package-lock.json
+      - name: Install reproducibly
+        run: npm ci --no-audit --no-fund
+      - name: Verify production/pilot guards
+        run: node --test scripts/migration-rehearsal-guards.test.mjs
+      - name: Upgrade historic incident data to UC-08
+        run: node scripts/rehearse-migration-upgrade.mjs

@@ -32,6 +32,7 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 9i | [UC-06 — Ejecución y finalización de OT](architecture/work-order-execution-contract.md) | Técnico vigente, transición protegida, resultado, historial y reintentos |
 | 9j | [UC-07 — Cancelación con auditoría](architecture/work-order-cancellation-contract.md) | Motivo, permisos de supervisor, historia y carreras contra ejecución |
 | 9k | [UC-08 — Cierre seguro de incidencia](architecture/incident-closure-contract.md) | Conclusión, validación de todas las OT y carrera con creación |
+| 9l | [Auditoría de integración MVP](quality/mvp-integration-readiness.md) | Bloqueos de despliegue, bifurcación visual, puertas de decisión y ensayo de migraciones históricas |
 | 10 | [Estándares de ingeniería](quality/engineering.md) | CI, PR, seguridad y definición de terminado |
 | 10b | [Revisión real del frontend](quality/frontend-review-2026-11-10.md) | Pruebas, capturas y riesgos restantes |
 | 11 | [Roadmap y primer corte](plan/roadmap.md) | Secuencia de ejecución, sin fechas artificiales |
