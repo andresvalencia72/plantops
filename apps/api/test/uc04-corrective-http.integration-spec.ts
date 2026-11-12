@@ -174,4 +174,59 @@ describe('HTTP UC-04 — authenticated corrective order from reviewed incident',
       .send({ ...orderBody, role: 'SUPERVISOR' }).expect(400);
     expect(await counts(id)).toEqual({ orders: 0, events: 0 });
   });
+
+  it('reads a paged order list and detail for an active member, with no internal data', async () => {
+    const id = await fixture();
+    const first = await post(id).expect(201);
+    const second = await post(id).expect(201);
+    const list = await request(app.getHttpServer()).get(route(id) + '?limit=1')
+      .set('Cookie', cookies.memberA).expect(200);
+    expect(list.headers['cache-control']).toBe('no-store');
+    expect(list.body.items).toHaveLength(1);
+    expect(list.body.nextCursor).toEqual(expect.any(String));
+    const next = await request(app.getHttpServer())
+      .get(route(id) + '?limit=1&cursor=' + encodeURIComponent(list.body.nextCursor))
+      .set('Cookie', cookies.memberA).expect(200);
+    expect(next.body.items).toHaveLength(1);
+    expect(new Set([list.body.items[0].id, next.body.items[0].id]))
+      .toEqual(new Set([first.body.id, second.body.id]));
+    expect(next.body.nextCursor).toBeNull();
+    for (const page of [list.body, next.body]) {
+      expect(page.items[0]).toMatchObject({ incidentId: id, status: 'PENDING',
+        title: orderBody.title, assetId: ids.assetA });
+      for (const field of ['requestHash', 'idempotencyKey',
+        'createdByMembershipId', 'organizationId', 'description', 'cursorTime']) {
+        expect(page.items[0]).not.toHaveProperty(field);
+      }
+    }
+    const detail = await request(app.getHttpServer())
+      .get(route(id) + '/' + first.body.id)
+      .set('Cookie', cookies.memberA).expect(200);
+    expect(detail.body.description).toBe(orderBody.description);
+    expect(detail.headers['cache-control']).toBe('no-store');
+    expect(detail.body).not.toHaveProperty('createdByMembershipId');
+  });
+
+  it('blocks missing session, foreign tenant, unrelated order and invalid cursors', async () => {
+    const id = await fixture();
+    const foreign = await fixture('UNDER_REVIEW', ids.orgB);
+    const order = await post(id).expect(201);
+    await request(app.getHttpServer()).get(route(id)).expect(401);
+    await request(app.getHttpServer()).get(route(id) + '/' + order.body.id)
+      .expect(401);
+    await request(app.getHttpServer()).get(route(id))
+      .set('Cookie', cookies.techB).expect(403);
+    await request(app.getHttpServer()).get(route(foreign))
+      .set('Cookie', cookies.memberA).expect(404);
+    await request(app.getHttpServer()).get(route(foreign, ids.orgB))
+      .set('Cookie', cookies.memberA).expect(403);
+    await request(app.getHttpServer()).get(route(foreign) + '/' + order.body.id)
+      .set('Cookie', cookies.memberA).expect(404);
+    await request(app.getHttpServer()).get(route(id) + '/' + randomUUID())
+      .set('Cookie', cookies.memberA).expect(404);
+    for (const query of ['?limit=0', '?limit=51', '?cursor=broken']) {
+      await request(app.getHttpServer()).get(route(id) + query)
+        .set('Cookie', cookies.memberA).expect(400);
+    }
+  });
 });
