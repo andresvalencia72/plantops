@@ -71,6 +71,13 @@
       "when": 1794485412734,
       "tag": "0009_complete_kang",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794486236458,
+      "tag": "0010_simple_eternity",
+      "breakpoints": true
     }
   ]
 }

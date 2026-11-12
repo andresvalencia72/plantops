@@ -41,6 +41,13 @@ async function mockIsolatedApi(page: import('@playwright/test').Page, role: Role
       expect(request.method()).toBe('GET')
       return respond({ items: [], nextCursor: null })
     }
+    // UC-08: advisory closure counts are read in the incident inspector.
+    if (path === `/api/organizations/${orgId}/incidents/${incidentId}/closure`) {
+      expect(request.method()).toBe('GET')
+      return respond({ status, orders: {
+        total: 0, completed: 0, cancelled: 0, open: 0,
+      }, closure: null })
+    }
     if (path === `/api/organizations/${orgId}/incidents/${incidentId}/review`) {
       expect(request.method()).toBe('POST')
       expect(request.postDataJSON()).toEqual({})

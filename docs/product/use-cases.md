@@ -134,6 +134,12 @@ UC-05/UC-06 e idempotencia. Formulario y recuperación solo en laboratorio.
 
 **Criterio crítico:** cualquier orden activa bloquea el cierre. La comprobación es atómica frente a la creación simultánea de órdenes. UI deshabilitada **no equivale a enforcement**.
 
+**Implementación en PR draft UC-08:** cierre transaccional para supervisor ACTIVE
+con motivo, conclusión cuando hubo órdenes y comprobación de todos los estados
+terminales, bloqueando la misma fila de incidencia usada por UC-04. UI de
+confirmación y recuperación solo en laboratorio.
+[Contrato, invariantes y pruebas](../architecture/incident-closure-contract.md).
+
 ## UC-09 — Mantenimiento preventivo (posterior al MVP)
 
 Una orden preventiva puede existir sin incidencia, pero sí con un activo de su empresa. Los planes periódicos y la generación programada llegarán en Sprint 3. El frontend inicial no necesita diseñar todavía los formularios de planificación.

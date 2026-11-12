@@ -119,6 +119,15 @@ PostgreSQL descartable. Incluye concurrencia contra UC-06 completado, rollback
 de auditoría, POST duplicado sin doble evento, 401/403/404/409 y replay tras
 respuesta HTTP perdida. [Contrato UC-07](../architecture/work-order-cancellation-contract.md).
 
+## UC-08 — cierre seguro frente a creación de OT
+
+9 integraciones PostgreSQL y 3 HTTP nuevas para cierre sin órdenes, con
+órdenes COMPLETED/CANCELLED, pendientes que bloquean y carrera con UC-04
+creando OT en paralelo; rollback de auditoría, reintentos concurrentes y
+permisos/CSRF. Vitest del formulario y del diario y Chrome + NestJS +
+PostgreSQL descartable para cierre con y sin órdenes y respuesta perdida.
+[Contrato e invariantes](../architecture/incident-closure-contract.md).
+
 ## Seguridad: defensa en profundidad
 
 - Identidad autenticada y membresía vigente para el tenant activo.

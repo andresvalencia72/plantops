@@ -143,11 +143,12 @@ export function ApiWorkOrdersSection({ client, organizationId, incidentId,
                   <ApiExecutionPanel key={'execution-' + detail.value.id} client={client}
                     organizationId={organizationId} incidentId={incidentId}
                     order={detail.value} userId={userId} membershipId={membershipId}
-                    isolatedWrites={canExecute} onUpdated={refresh} />
+                    isolatedWrites={canExecute}
+                    onUpdated={() => { refresh(); onCreated?.() }} />
                   <ApiCancellationPanel key={'cancel-' + detail.value.id} client={client}
                     organizationId={organizationId} incidentId={incidentId}
                     order={detail.value} userId={userId} canCancel={canCancel}
-                    onUpdated={refresh} />
+                    onUpdated={() => { refresh(); onCreated?.() }} />
                 </>}
               </div>}
             </li>
