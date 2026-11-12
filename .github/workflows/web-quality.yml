@@ -78,3 +78,37 @@ jobs:
           name: browser-test-results
           path: apps/web/test-results/
           retention-days: 7
+
+  authenticated-preview:
+    name: Authenticated production build + Chrome
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    env:
+      VITE_PLANTOPS_APP_SURFACE: authenticated
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install reproducibly
+        run: npm ci --no-audit --no-fund
+      - name: Check preinstalled Chrome
+        run: google-chrome --version
+      - name: Check session denial, tenant isolation and logout in a production build
+        run: npm run test:e2e -- --config playwright.authenticated.config.ts
+      - name: Assert synthetic demo data is absent from authenticated assets
+        run: node scripts/check-authenticated-bundle.mjs
+      - name: Upload browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authenticated-preview-browser-failures
+          path: apps/web/test-results/
+          retention-days: 7
