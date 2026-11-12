@@ -32,9 +32,9 @@ const { incidents } = await import('../dist/database/incidents.js');
 const pool = new Pool({ connectionString: raw });
 const db = drizzle(pool);
 const ids = {
-  userA: randomUUID(), userB: randomUUID(),
+  userA: randomUUID(), userB: randomUUID(), supervisorA: randomUUID(),
   orgA: randomUUID(), orgB: randomUUID(),
-  memberA: randomUUID(), memberB: randomUUID(),
+  memberA: randomUUID(), memberB: randomUUID(), supervisorMembershipA: randomUUID(),
   assetA: randomUUID(), assetB: randomUUID(),
 };
 let app;
@@ -45,6 +45,7 @@ try {
   await db.insert(users).values([
     { id: ids.userA, displayName: 'Synthetic Reporter A' },
     { id: ids.userB, displayName: 'Synthetic Reporter B' },
+    { id: ids.supervisorA, displayName: 'Synthetic Supervisor A' },
   ]);
   await db.insert(organizations).values([
     { id: ids.orgA, name: 'Synthetic Plant A' },
@@ -53,22 +54,31 @@ try {
   await db.insert(memberships).values([
     { id: ids.memberA, userId: ids.userA, organizationId: ids.orgA, role: 'MEMBER' },
     { id: ids.memberB, userId: ids.userB, organizationId: ids.orgB, role: 'TECHNICIAN' },
+    { id: ids.supervisorMembershipA, userId: ids.supervisorA,
+      organizationId: ids.orgA, role: 'SUPERVISOR' },
   ]);
   await db.insert(assets).values([
     { id: ids.assetA, organizationId: ids.orgA, code: 'LAB-A', name: 'Pump A' },
     { id: ids.assetB, organizationId: ids.orgB, code: 'LAB-B', name: 'Pump B' },
   ]);
-  await db.insert(incidents).values({
+  const [foreignIncident] = await db.insert(incidents).values({
     organizationId: ids.orgB, assetId: ids.assetB,
     reportedByMembershipId: ids.memberB,
     title: 'Private synthetic incident B',
     description: 'Must never appear in tenant A',
-  });
+  }).returning({ id: incidents.id });
+  if (!foreignIncident) throw new Error('Cannot seed isolated incident');
+  ids.incidentB = foreignIncident.id;
   app = await NestFactory.create(AppModule, new NodeAdapter(), { logger: false });
   app.enableCsrfProtection({ trustedOrigins: [] });
   await app.listen(3002, '127.0.0.1');
-  const cookie = (await app.get(SessionService).create(ids.userA)).cookie;
-  await writeFile(destination, JSON.stringify({ cookie, ...ids }), {
+  const sessions = app.get(SessionService);
+  const cookie = (await sessions.create(ids.userA)).cookie;
+  const supervisorCookie = (await sessions.create(ids.supervisorA)).cookie;
+  const technicianCookie = (await sessions.create(ids.userB)).cookie;
+  await writeFile(destination, JSON.stringify({
+    cookie, supervisorCookie, technicianCookie, ...ids,
+  }), {
     flag: 'wx', mode: 0o600,
   });
   fixtureWritten = true;
