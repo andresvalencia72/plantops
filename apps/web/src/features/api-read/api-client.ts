@@ -25,12 +25,16 @@ export type ApiReportResult = Readonly<{
 
 export class ApiRequestError extends Error {
   readonly status: number
-  constructor(status: number, operation: 'read' | 'write' = 'read') {
+  constructor(status: number, operation: 'read' | 'write' | 'review' = 'read') {
     super(status === 400 ? 'Revisa los datos introducidos.'
       : status === 401 ? 'Se necesita una sesión válida.'
-        : status === 403 ? 'No tienes acceso a esta organización.'
+        : status === 403 ? (operation === 'review'
+          ? 'No tienes permiso para iniciar la revisión.'
+          : 'No tienes acceso a esta organización.')
           : status === 404 ? 'El recurso no está disponible.'
-            : status === 409 ? 'Esta solicitud ya se usó con datos distintos.'
+            : status === 409 ? (operation === 'review'
+              ? 'La incidencia cambió de estado. Actualiza los datos antes de continuar.'
+              : 'Esta solicitud ya se usó con datos distintos.')
               : status === 415 ? 'El servidor rechazó el formato enviado.'
                 : status === 429 ? 'Demasiadas solicitudes. Espera antes de reintentar.'
                   : operation === 'write'
@@ -101,6 +105,26 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
         invalid()
       }
       return value as ApiReportResult
+    },
+    /** UC-03 is only invoked by the isolated supervisor UI. Server enforces RBAC. */
+    async reviewIncident(
+      orgId: string, incidentId: string, retryKey: string,
+    ): Promise<ApiIncidentDetail> {
+      const path = orgPath(orgId) + '/incidents/' +
+        encodeURIComponent(incidentId) + '/review'
+      const response = await fetcher('/api' + path, {
+        method: 'POST', credentials: 'include', redirect: 'error',
+        headers: {
+          Accept: 'application/json', 'Content-Type': 'application/json',
+          'Idempotency-Key': retryKey,
+        },
+        body: '{}',
+      })
+      if (!response.ok) throw new ApiRequestError(response.status, 'review')
+      const value: unknown = await response.json()
+      if (!record(value) || !validIncident(value) || !('description' in value) ||
+        !string(value.description)) invalid()
+      return value as ApiIncidentDetail
     },
     /** Public non-secret provider discovery. 404 means OIDC not yet configured. */
     async providers(signal?: AbortSignal): Promise<ApiLoginProvider[]> {

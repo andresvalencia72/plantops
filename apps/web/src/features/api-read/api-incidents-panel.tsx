@@ -76,6 +76,12 @@ export function ApiIncidentsPanel({ client, organization, userId, allowWrites = 
     setRevision((n) => n + 1)
   }
 
+  function reviewed() {
+    // The server is the source of truth for paginated list state.
+    setState({ status: 'loading' })
+    setRevision((n) => n + 1)
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
@@ -191,6 +197,9 @@ export function ApiIncidentsPanel({ client, organization, userId, allowWrites = 
         organizationId={organization.id}
         incidentId={selectedId}
         assets={assets}
+        userId={userId}
+        canReview={allowWrites && organization.role === 'SUPERVISOR'}
+        onReviewed={reviewed}
         onClose={() => setSelectedId(null)}
       />
     </div>

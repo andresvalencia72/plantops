@@ -148,4 +148,34 @@ describe('API read-only adapter', () => {
       signal: controller.signal,
     })
   })
+
+  it('starts a scoped review with cookie, empty JSON body and caller retry key', async () => {
+    const detail = { id: 'inc-1', assetId: 'a1', title: 'Fuga', description: 'Presión irregular',
+      status: 'UNDER_REVIEW', reportedAt: '2026-11-11T12:00:00.000Z' }
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(detail))
+    const api = createApiReadClient(fetcher)
+    await expect(api.reviewIncident('org/1', 'inc 1', 'retry-1')).resolves.toEqual(detail)
+    expect(fetcher).toHaveBeenCalledWith(
+      '/api/organizations/org%2F1/incidents/inc%201/review', {
+        method: 'POST', credentials: 'include', redirect: 'error',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json',
+          'Idempotency-Key': 'retry-1' },
+        body: '{}',
+      })
+  })
+
+  it('rejects forbidden, conflict and malformed review results', async () => {
+    const forbidden = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ message: 'Forbidden' }, 403)))
+    await expect(forbidden.reviewIncident('org', 'inc', 'key')).rejects
+      .toThrow('permiso')
+    const conflict = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ message: 'Conflict' }, 409)))
+    await expect(conflict.reviewIncident('org', 'inc', 'key')).rejects
+      .toThrow('cambió de estado')
+    const malformed = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ id: 'inc-1', status: 'UNDER_REVIEW' })))
+    await expect(malformed.reviewIncident('org', 'inc', 'key')).rejects
+      .toThrow('Respuesta inesperada')
+  })
 })

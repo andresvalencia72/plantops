@@ -52,7 +52,8 @@ Usar estas historias tanto para prototipos frontend como para pruebas de aceptac
 
 **Estado técnico en PR draft:** [contrato e implementación de inicio de revisión](../architecture/incident-review-contract.md).
 Transición protegida y evento persistente atómico verificados con PostgreSQL;
-sin integración en la UI del piloto ni despliegue público.
+el frontend posterior ofrece el flujo solo en el laboratorio aislado.
+Sin integración en la UI del piloto ni despliegue público.
 
 ## UC-04 — Crear orden correctiva
 
