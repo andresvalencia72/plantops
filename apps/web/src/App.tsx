@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTheme } from '@/app/use-theme'
+import { resolveAppSurface } from '@/app/app-surface'
 import type { DemoOrganization, Screen } from '@/app/types'
 import { AppShell } from '@/components/layout/app-shell'
 import { DashboardPage } from '@/features/dashboard/dashboard-page'
@@ -27,9 +28,17 @@ function DemoApp() {
   )
 }
 
-// Never enable this preview in production. Demo and API trees never share records.
+// Production defaults to the demo. An authenticated build is an explicit,
+// read-only product surface; no query parameter can turn it into demo records.
 export default function App() {
-  return import.meta.env.DEV && new URLSearchParams(window.location.search).get('source') === 'api'
-    ? <ApiReadWorkspace />
+  const configured = import.meta.env.VITE_PLANTOPS_APP_SURFACE
+  // Build-time constant: Vite can omit the demo bundle in authenticated builds.
+  if (import.meta.env.VITE_PLANTOPS_APP_SURFACE === 'authenticated') {
+    return <ApiReadWorkspace standalone />
+  }
+  const surface = resolveAppSurface(configured, import.meta.env.DEV,
+    window.location.search)
+  return surface === 'authenticated'
+    ? <ApiReadWorkspace standalone={configured === 'authenticated'} />
     : <DemoApp />
 }
