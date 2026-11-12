@@ -92,6 +92,12 @@ reintento idempotente y recarga del servidor. Sin asignación aún.
 
 **Reasignación:** preservar técnico anterior, nuevo técnico, autor, fecha y motivo recomendado. Un técnico anterior no conserva permisos por haber sido responsable en el pasado.
 
+**Implementación en PR draft UC-05:** supervisor puede asignar desde `PENDING`
+y reasignar en `ASSIGNED` antes de ejecutar; técnicos ACTIVE de la misma
+organización, versión esperada, clave idempotente y evento inmutable.
+El motivo es opcional (recomendado). La UI se habilita solo en laboratorio.
+[Contrato técnico y pruebas](../architecture/work-order-assignment-contract.md).
+
 ## UC-06 — Ejecutar y completar orden
 
 **Actor:** técnico responsable actual.
