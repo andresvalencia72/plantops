@@ -199,6 +199,8 @@ export function ApiIncidentsPanel({ client, organization, userId, allowWrites = 
         assets={assets}
         userId={userId}
         canReview={allowWrites && organization.role === 'SUPERVISOR'}
+        canExecute={allowWrites && organization.role === 'TECHNICIAN'}
+        membershipId={organization.membershipId}
         onReviewed={reviewed}
         onClose={() => setSelectedId(null)}
       />

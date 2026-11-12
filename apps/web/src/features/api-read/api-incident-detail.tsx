@@ -16,6 +16,8 @@ interface Props {
   onClose: () => void
   userId?: string
   canReview?: boolean
+  canExecute?: boolean
+  membershipId?: string
   onReviewed?: () => void
 }
 
@@ -24,7 +26,7 @@ type State = { status: 'loading' } | { status: 'loaded'; value: ApiIncidentDetai
 
 export function ApiIncidentDetailSheet({
   client, organizationId, incidentId, assets, onClose,
-  userId, canReview = false, onReviewed,
+  userId, canReview = false, canExecute = false, membershipId, onReviewed,
 }: Props) {
   const [state, setState] = useState<State>({ status: 'loading' })
   const [revision, setRevision] = useState(0)
@@ -163,7 +165,8 @@ export function ApiIncidentDetailSheet({
               </section>
               {incidentId && <ApiWorkOrdersSection key={organizationId + ':' + incidentId}
                 client={client} organizationId={organizationId} incidentId={incidentId}
-                userId={userId} canCreate={Boolean(canReview && userId && asset?.active &&
+                userId={userId} canExecute={canExecute} membershipId={membershipId}
+                canCreate={Boolean(canReview && userId && asset?.active &&
                   (detail.status === 'UNDER_REVIEW' || detail.status === 'IN_PROGRESS'))}
                 onCreated={() => { refreshDetail(); onReviewed?.() }} />}
               <section className="space-y-3 border-t border-border pt-6">
