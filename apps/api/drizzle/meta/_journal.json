@@ -64,6 +64,13 @@
       "when": 1794484427358,
       "tag": "0008_blue_loa",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794485412734,
+      "tag": "0009_complete_kang",
+      "breakpoints": true
     }
   ]
 }

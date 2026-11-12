@@ -44,6 +44,11 @@ export type ApiExecutionEvent = Readonly<{
   fromStatus: 'ASSIGNED' | 'IN_PROGRESS'; toStatus: 'IN_PROGRESS' | 'COMPLETED'
   actorMembershipId: string; result: string | null; occurredAt: string
 }>
+export type ApiCancellationEvent = Readonly<{
+  id: string; workOrderId: string; actorMembershipId: string
+  fromStatus: 'PENDING' | 'ASSIGNED' | 'IN_PROGRESS'
+  reason: string; occurredAt: string
+}>
 export type ApiReportInput = Readonly<{
   assetId: string; title: string; description: string
 }>
@@ -54,7 +59,7 @@ export type ApiReportResult = Readonly<{
 
 export class ApiRequestError extends Error {
   readonly status: number
-  constructor(status: number, operation: 'read' | 'write' | 'review' | 'order' | 'assignment' | 'execution' = 'read') {
+  constructor(status: number, operation: 'read' | 'write' | 'review' | 'order' | 'assignment' | 'execution' | 'cancellation' = 'read') {
     super(status === 400 ? 'Revisa los datos introducidos.'
       : status === 401 ? 'Se necesita una sesión válida.'
         : status === 403 ? (operation === 'review'
@@ -62,6 +67,7 @@ export class ApiRequestError extends Error {
           : operation === 'order' ? 'No tienes permiso para crear órdenes correctivas.'
           : operation === 'assignment' ? 'Solo el supervisor puede asignar técnicos.'
           : operation === 'execution' ? 'Solo el técnico responsable puede ejecutar la orden.'
+          : operation === 'cancellation' ? 'Solo el supervisor puede cancelar la orden.'
           : 'No tienes acceso a esta organización.')
           : status === 404 ? 'El recurso no está disponible.'
             : status === 409 ? (operation === 'review'
@@ -69,10 +75,11 @@ export class ApiRequestError extends Error {
               : operation === 'order' ? 'La incidencia o la solicitud cambió. Actualiza y comprueba si la orden ya existe.'
               : operation === 'assignment' ? 'La asignación cambió. Consulta el historial antes de reintentar.'
               : operation === 'execution' ? 'El estado de la orden cambió. Consulta su historial.'
+              : operation === 'cancellation' ? 'La orden cambió o ya fue cancelada. Comprueba el estado.'
               : 'Esta solicitud ya se usó con datos distintos.')
               : status === 415 ? 'El servidor rechazó el formato enviado.'
                 : status === 429 ? 'Demasiadas solicitudes. Espera antes de reintentar.'
-                  : (operation === 'write' || operation === 'order' || operation === 'assignment' || operation === 'execution')
+                  : (operation === 'write' || operation === 'order' || operation === 'assignment' || operation === 'execution' || operation === 'cancellation')
                     ? 'No se pudo confirmar el registro. Reintenta con la misma solicitud.'
                     : 'No se pudo consultar la API. Intenta de nuevo.')
     this.name = 'ApiRequestError'
@@ -118,6 +125,13 @@ function validExecution(value: unknown): value is ApiExecutionEvent {
     ['IN_PROGRESS', 'COMPLETED'].includes(String(value.toStatus)) &&
     string(value.actorMembershipId) &&
     (value.result === null || string(value.result)) &&
+    string(value.occurredAt) && Number.isFinite(Date.parse(value.occurredAt))
+}
+function validCancellation(value: unknown): value is ApiCancellationEvent {
+  return record(value) && string(value.id) && string(value.workOrderId) &&
+    string(value.actorMembershipId) &&
+    ['PENDING', 'ASSIGNED', 'IN_PROGRESS'].includes(String(value.fromStatus)) &&
+    string(value.reason) && value.reason.length >= 10 &&
     string(value.occurredAt) && Number.isFinite(Date.parse(value.occurredAt))
 }
 function invalid(): never {
@@ -295,6 +309,30 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
         value.toStatus !== (action === 'STARTED' ? 'IN_PROGRESS' : 'COMPLETED') ||
         (action === 'COMPLETED' && value.result !== result?.trim())) invalid()
       return value as ApiExecutionEvent
+    },
+    /** UC-07: server owns cancellation authorization and audit. */
+    async cancellation(orgId: string, incidentId: string, orderId: string,
+      signal?: AbortSignal): Promise<ApiCancellationEvent | null> {
+      const path = orgPath(orgId) + '/incidents/' + encodeURIComponent(incidentId) +
+        '/work-orders/' + encodeURIComponent(orderId) + '/cancellation'
+      const value = await get(path, signal)
+      if (value !== null && (!validCancellation(value) || value.workOrderId !== orderId)) invalid()
+      return value as ApiCancellationEvent | null
+    },
+    async cancelWorkOrder(orgId: string, incidentId: string, orderId: string,
+      reason: string, key: string): Promise<ApiCancellationEvent> {
+      const path = orgPath(orgId) + '/incidents/' + encodeURIComponent(incidentId) +
+        '/work-orders/' + encodeURIComponent(orderId) + '/cancellation'
+      const response = await fetcher('/api' + path, {
+        method: 'POST', credentials: 'include', redirect: 'error',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json',
+          'Idempotency-Key': key }, body: JSON.stringify({ reason }),
+      })
+      if (!response.ok) throw new ApiRequestError(response.status, 'cancellation')
+      const value: unknown = await response.json()
+      if (!validCancellation(value) || value.workOrderId !== orderId ||
+        value.reason !== reason.trim()) invalid()
+      return value as ApiCancellationEvent
     },
     /** Public non-secret provider discovery. 404 means OIDC not yet configured. */
     async providers(signal?: AbortSignal): Promise<ApiLoginProvider[]> {

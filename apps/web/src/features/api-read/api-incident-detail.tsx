@@ -165,7 +165,8 @@ export function ApiIncidentDetailSheet({
               </section>
               {incidentId && <ApiWorkOrdersSection key={organizationId + ':' + incidentId}
                 client={client} organizationId={organizationId} incidentId={incidentId}
-                userId={userId} canExecute={canExecute} membershipId={membershipId}
+                userId={userId} canCancel={canReview} canExecute={canExecute}
+                membershipId={membershipId}
                 canCreate={Boolean(canReview && userId && asset?.active &&
                   (detail.status === 'UNDER_REVIEW' || detail.status === 'IN_PROGRESS'))}
                 onCreated={() => { refreshDetail(); onReviewed?.() }} />}

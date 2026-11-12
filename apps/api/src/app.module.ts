@@ -11,6 +11,7 @@ import { IncidentsController } from './incidents/incidents.controller.js';
 import { WorkOrdersController } from './work-orders/work-orders.controller.js';
 import { TechniciansController } from './work-orders/technicians.controller.js';
 import { WorkOrderExecutionController } from './work-orders/work-order-execution.controller.js';
+import { WorkOrderCancellationController } from './work-orders/work-order-cancellation.controller.js';
 import { SessionPersistence } from './auth/session-persistence.js';
 import { trustedOrigins } from './auth/trusted-origins.js';
 import { buildOidcConfig } from './auth/oidc.config.js';
@@ -44,6 +45,7 @@ const oidcConfig = buildOidcConfig();
     WorkOrdersController,
     TechniciansController,
     WorkOrderExecutionController,
+    WorkOrderCancellationController,
     ...(oidcConfig ? [OidcController] : []),
   ],
   providers: [

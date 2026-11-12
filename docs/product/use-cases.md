@@ -119,6 +119,11 @@ concurrencia contra UC-05 y formulario React solo en laboratorio.
 
 **Resultado:** CANCELLED con razón obligatoria y huella de auditoría. Una orden CANCELLED no significa necesariamente que la incidencia esté solucionada.
 
+**PR draft UC-07:** supervisor ACTIVE cancela PENDING/ASSIGNED/IN_PROGRESS
+con motivo de 10–1000 caracteres, evento inmutable, lock compartido con
+UC-05/UC-06 e idempotencia. Formulario y recuperación solo en laboratorio.
+[Contrato y pruebas](../architecture/work-order-cancellation-contract.md).
+
 ## UC-08 — Cerrar incidencia
 
 **Actor:** supervisor.
