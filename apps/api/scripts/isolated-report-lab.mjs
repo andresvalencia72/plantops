@@ -84,8 +84,11 @@ try {
   const cookie = (await sessions.create(ids.userA)).cookie;
   const supervisorCookie = (await sessions.create(ids.supervisorA)).cookie;
   const technicianCookie = (await sessions.create(ids.userB)).cookie;
+  const technicianACookie = (await sessions.create(ids.technicianA)).cookie;
+  const technician2ACookie = (await sessions.create(ids.technician2A)).cookie;
   await writeFile(destination, JSON.stringify({
-    cookie, supervisorCookie, technicianCookie, ...ids,
+    cookie, supervisorCookie, technicianCookie, technicianACookie,
+    technician2ACookie, ...ids,
   }), {
     flag: 'wx', mode: 0o600,
   });
