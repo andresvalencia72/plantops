@@ -25,6 +25,7 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 9b | [E2E real de incidencias](quality/incident-report-browser-e2e.md) | Navegador, PostgreSQL temporal y seguridad del laboratorio |
 | 9c | [UC-03 — Revisión auditada](architecture/incident-review-contract.md) | Endpoint, migración y transacción en PR draft; sin integración piloto |
 | 9d | [UC-03 — Navegador + PostgreSQL](quality/uc03-fullstack-browser-e2e.md) | Suite integrada posterior a PR #58, con datos desechables |
+| 9e | [UC-04 — Orden correctiva](architecture/work-orders-corrective-contract.md) | Contrato HTTP, transacción, auditoría y límites de la PR draft |
 | 10 | [Estándares de ingeniería](quality/engineering.md) | CI, PR, seguridad y definición de terminado |
 | 10b | [Revisión real del frontend](quality/frontend-review-2026-11-10.md) | Pruebas, capturas y riesgos restantes |
 | 11 | [Roadmap y primer corte](plan/roadmap.md) | Secuencia de ejecución, sin fechas artificiales |

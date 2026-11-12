@@ -62,6 +62,17 @@ CSRF, clave inválida, replay sin duplicar auditoría, concurrencia de
 frente a un fallo SQL y trigger append-only. Las nuevas migraciones se
 ejecutan únicamente en la BD de pruebas `*_test` habilitada.
 
+## Evidencia UC-04 en PostgreSQL descartable (PR draft)
+
+`apps/api/test/uc04-corrective.integration-spec.ts` y
+`uc04-corrective-http.integration-spec.ts` ejercitan la creación correctiva
+con sesiones reales sintéticas, control de tenant, JSON estricto, CSRF,
+idempotencia, constraints FK y auditoría append-only. Se incluyen 16
+creaciones concurrentes que solo cambian una vez el estado de incidencia,
+15 reintentos simultáneos que insertan una única orden y una prueba de
+rollback al fallar la escritura de auditoría. No cubre todavía cierre
+concurrente: falta implementar UC-08 y su bloqueo sobre la misma incidencia.
+
 ## Seguridad: defensa en profundidad
 
 - Identidad autenticada y membresía vigente para el tenant activo.

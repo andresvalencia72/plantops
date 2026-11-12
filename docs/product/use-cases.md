@@ -61,11 +61,16 @@ Sin integración en la UI del piloto ni despliegue público.
 
 **Precondiciones:** incidencia abierta, misma organización, activo consistente.
 
-**Entrada propuesta:** título/objetivo, descripción, criticidad y referencia de incidencia.
+**Entrada en primer corte backend:** título y descripción sobre una incidencia existente; el activo y la organización se derivan del servidor. La criticidad queda pendiente de modelar.
 
 **Resultado:** WorkOrder PENDING vinculada a una única incidencia y mismo activo. La primera orden lleva la incidencia a IN_PROGRESS.
 
 **Criterio:** una misma incidencia puede recibir varias órdenes; no se permite crear órdenes sobre CLOSED.
+
+**Estado técnico en PR draft UC-04:** POST protegido, idempotente y auditado
+con PostgreSQL real. La primera orden cambia UNDER_REVIEW → IN_PROGRESS;
+las siguientes mantienen el estado. Sin formulario React, asignación ni
+despliegue. [Contrato y pruebas](../architecture/work-orders-corrective-contract.md).
 
 ## UC-05 — Asignar o reasignar
 
