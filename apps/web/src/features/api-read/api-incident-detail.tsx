@@ -7,6 +7,7 @@ import { ApiRequestError } from './api-client'
 import type { ApiIncidentDetail, ApiReadClient, ApiAsset } from './api-client'
 import { clearReviewRetryKey, reviewRetryKey } from './review-retry-journal'
 import { ApiWorkOrdersSection } from './api-work-orders-section'
+import { ApiClosurePanel } from './api-closure-panel'
 
 interface Props {
   client: ApiReadClient
@@ -156,6 +157,11 @@ export function ApiIncidentDetailSheet({
                 </h3>
                 <p className="text-[13px] leading-6">{detail.description}</p>
               </section>
+              {incidentId && <ApiClosurePanel key={incidentId + ':' + detail.status}
+                client={client}
+                organizationId={organizationId} incidentId={incidentId}
+                userId={userId} canClose={canReview}
+                onClosed={() => { refreshDetail(); onReviewed?.() }} />}
               <section className="space-y-3 border-t border-border pt-6">
                 <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Activo</h3>
                 <p className="flex items-center gap-2 text-sm">
