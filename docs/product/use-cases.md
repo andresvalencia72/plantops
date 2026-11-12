@@ -77,6 +77,11 @@ para miembros ACTIVE de la misma organización, integrados en el inspector
 de incidencias de la API. La UI de alta/asignación de órdenes continúa
 pendiente. [Pruebas de lectura](../quality/uc04-protected-read.md).
 
+**Alta posterior en laboratorio:** supervisor puede crear orden correctiva
+desde el inspector de la incidencia con validación y confirmación,
+reintento idempotente y recarga del servidor. Sin asignación aún.
+[Pruebas de escritura aislada](../quality/uc04-isolated-create-ui.md).
+
 ## UC-05 — Asignar o reasignar
 
 **Actor:** supervisor.

@@ -27,6 +27,7 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 9d | [UC-03 — Navegador + PostgreSQL](quality/uc03-fullstack-browser-e2e.md) | Suite integrada posterior a PR #58, con datos desechables |
 | 9e | [UC-04 — Orden correctiva](architecture/work-orders-corrective-contract.md) | Contrato HTTP, transacción, auditoría y límites de la PR draft |
 | 9f | [UC-04 — Lectura protegida de órdenes](quality/uc04-protected-read.md) | Endpoints GET, inspector React, paginación, E2E integrado |
+| 9g | [UC-04 — Alta correctiva en laboratorio](quality/uc04-isolated-create-ui.md) | Formulario supervisor, confirmación, reintentos y pruebas PostgreSQL E2E |
 | 10 | [Estándares de ingeniería](quality/engineering.md) | CI, PR, seguridad y definición de terminado |
 | 10b | [Revisión real del frontend](quality/frontend-review-2026-11-10.md) | Pruebas, capturas y riesgos restantes |
 | 11 | [Roadmap y primer corte](plan/roadmap.md) | Secuencia de ejecución, sin fechas artificiales |

@@ -99,3 +99,18 @@ milésima. La validación `limit=1..50`, el contrato y los escenarios con
 microsegundos se documentan en
 [UC-04 lectura protegida](../quality/uc04-protected-read.md). El lector no
 realiza escrituras ni altera la transacción del comando de creación.
+
+## Formulario supervisor en laboratorio (PR draft posterior a lectura)
+
+El comando POST de este contrato se invoca desde el inspector React de la
+incidencia, **solo** en modo de laboratorio con flag explícito y supervisión
+server-side. Se exigen título, descripción y una confirmación separada.
+El navegador conserva por pestaña únicamente el UUID de reintento y el
+SHA-256 del contenido, segmentados por usuario/organización/incidencia.
+Un error incierto no permite cambiar datos silenciosamente ni crear una
+nueva clave. La recuperación tras recarga requiere reintroducir el payload
+original; no se deduce éxito a partir de `IN_PROGRESS`. El descarte tiene
+confirmación adicional y advertencia de duplicados. El servidor aplica
+los mismos controles y constraints de esta especificación.
+
+[Evidencia, límites y escenarios integrados](../quality/uc04-isolated-create-ui.md).

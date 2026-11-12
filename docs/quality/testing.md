@@ -84,6 +84,17 @@ vacíos, error, reintento, sesión, cambio de organización y datos malformados.
 Los E2E `work-order-read-real-api.e2e.ts` utilizan Chrome + NestJS + PG
 con sesiones sintéticas reales, sin modificar el piloto.
 
+## UC-04 — creación correctiva desde la UI aislada
+
+El formulario `api-create-corrective-order.tsx` y el diario
+`order-retry-journal.ts` tienen tests de validación, firma SHA-256,
+confirmación explícita, reintento idéntico tras error y remount, y descarte
+de doble confirmación. Los E2E Chrome + NestJS + PostgreSQL reales observan
+el estado y auditoría con `inspect-isolated-corrective.mjs` solo sobre
+`plantops_s1_test`, incluidos dos órdenes y una única transición, pérdida
+de respuesta y bloqueo de escrituras para miembro/técnico/anónimo.
+[Véase alcance y pruebas](uc04-isolated-create-ui.md).
+
 ## Seguridad: defensa en profundidad
 
 - Identidad autenticada y membresía vigente para el tenant activo.
