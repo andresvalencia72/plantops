@@ -9,6 +9,7 @@ import { MeController } from './auth/me.controller.js';
 import { AssetsController } from './assets/assets.controller.js';
 import { IncidentsController } from './incidents/incidents.controller.js';
 import { WorkOrdersController } from './work-orders/work-orders.controller.js';
+import { TechniciansController } from './work-orders/technicians.controller.js';
 import { SessionPersistence } from './auth/session-persistence.js';
 import { trustedOrigins } from './auth/trusted-origins.js';
 import { buildOidcConfig } from './auth/oidc.config.js';
@@ -40,6 +41,7 @@ const oidcConfig = buildOidcConfig();
     AssetsController,
     IncidentsController,
     WorkOrdersController,
+    TechniciansController,
     ...(oidcConfig ? [OidcController] : []),
   ],
   providers: [
