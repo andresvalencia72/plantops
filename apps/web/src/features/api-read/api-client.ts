@@ -24,6 +24,7 @@ export type ApiWorkOrderDetail = ApiWorkOrder & Readonly<{ description: string }
 export type ApiWorkOrderPage = Readonly<{
   items: ApiWorkOrder[]; nextCursor: string | null
 }>
+export type ApiCreateOrderInput = Readonly<{ title: string; description: string }>
 export type ApiReportInput = Readonly<{
   assetId: string; title: string; description: string
 }>
@@ -34,19 +35,21 @@ export type ApiReportResult = Readonly<{
 
 export class ApiRequestError extends Error {
   readonly status: number
-  constructor(status: number, operation: 'read' | 'write' | 'review' = 'read') {
+  constructor(status: number, operation: 'read' | 'write' | 'review' | 'order' = 'read') {
     super(status === 400 ? 'Revisa los datos introducidos.'
       : status === 401 ? 'Se necesita una sesión válida.'
         : status === 403 ? (operation === 'review'
           ? 'No tienes permiso para iniciar la revisión.'
+          : operation === 'order' ? 'No tienes permiso para crear órdenes correctivas.'
           : 'No tienes acceso a esta organización.')
           : status === 404 ? 'El recurso no está disponible.'
             : status === 409 ? (operation === 'review'
               ? 'La incidencia cambió de estado. Actualiza los datos antes de continuar.'
+              : operation === 'order' ? 'La incidencia o la solicitud cambió. Actualiza y comprueba si la orden ya existe.'
               : 'Esta solicitud ya se usó con datos distintos.')
               : status === 415 ? 'El servidor rechazó el formato enviado.'
                 : status === 429 ? 'Demasiadas solicitudes. Espera antes de reintentar.'
-                  : operation === 'write'
+                  : (operation === 'write' || operation === 'order')
                     ? 'No se pudo confirmar el registro. Reintenta con la misma solicitud.'
                     : 'No se pudo consultar la API. Intenta de nuevo.')
     this.name = 'ApiRequestError'
@@ -141,6 +144,24 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
       if (!record(value) || !validIncident(value) || !('description' in value) ||
         !string(value.description)) invalid()
       return value as ApiIncidentDetail
+    },
+    /** UC-04: writes are called only from the explicitly isolated supervisor UI. */
+    async createCorrectiveOrder(orgId: string, incidentId: string,
+      input: ApiCreateOrderInput, retryKey: string): Promise<ApiWorkOrderDetail> {
+      const path = orgPath(orgId) + '/incidents/' +
+        encodeURIComponent(incidentId) + '/work-orders'
+      const response = await fetcher('/api' + path, {
+        method: 'POST', credentials: 'include', redirect: 'error',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json',
+          'Idempotency-Key': retryKey },
+        body: JSON.stringify(input),
+      })
+      if (!response.ok) throw new ApiRequestError(response.status, 'order')
+      const value: unknown = await response.json()
+      if (!validWorkOrder(value) || value.incidentId !== incidentId ||
+        value.status !== 'PENDING' || !('description' in value) ||
+        !string(value.description)) invalid()
+      return value as ApiWorkOrderDetail
     },
     /** UC-04: read-only, session-authorized list scoped to the selected incident. */
     async workOrders(orgId: string, incidentId: string,
