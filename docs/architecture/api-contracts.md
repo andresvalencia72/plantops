@@ -225,3 +225,15 @@ Primero: fixtures tipadas de UC-02. Segundo: definir contrato estable en los ada
 - `/me/organizations` devuelve `membershipId` de cada membresía ACTIVE
   para ocultar acciones no pertinentes en cliente; backend siempre revalida.
 - [Contrato detallado, concurrencia y reintentos](work-order-execution-contract.md).
+
+### UC-07 — Cancelación de órdenes correctivas (PR draft)
+
+- `POST /organizations/:org/incidents/:incidentId/work-orders/:orderId/cancellation`:
+  supervisor ACTIVE, JSON exacto `{reason}`, 10–1000 caracteres,
+  cabecera UUIDv4 `Idempotency-Key`; devuelve 201 con evento inmutable.
+- `GET /organizations/:org/incidents/:incidentId/work-orders/:orderId/cancellation`:
+  miembro ACTIVE tenant, `null` o detalle de cancelación sin hashes/claves.
+- Protegido con `FOR UPDATE` de la misma OT que UC-05/06 y
+  transacción de estado + evidencia. 409 para estados terminales o
+  reintentos incompatibles.
+- [Contrato completo y pruebas](work-order-cancellation-contract.md).

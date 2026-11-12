@@ -112,6 +112,13 @@ para confirmación y diario, y Chrome + API NestJS + PostgreSQL descartable
 para el flujo completo y pérdida de respuesta al finalizar.
 [Contrato y evidencia](../architecture/work-order-execution-contract.md).
 
+## UC-07 — cancelación protegida
+
+7 pruebas PostgreSQL reales, 2 HTTP, 6 unitarias React y 2 Chrome con NestJS
+PostgreSQL descartable. Incluye concurrencia contra UC-06 completado, rollback
+de auditoría, POST duplicado sin doble evento, 401/403/404/409 y replay tras
+respuesta HTTP perdida. [Contrato UC-07](../architecture/work-order-cancellation-contract.md).
+
 ## Seguridad: defensa en profundidad
 
 - Identidad autenticada y membresía vigente para el tenant activo.
