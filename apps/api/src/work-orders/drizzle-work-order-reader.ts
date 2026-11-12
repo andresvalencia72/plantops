@@ -10,7 +10,7 @@ const preciseUtc = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/;
 
 type Cursor = Readonly<{ id: string; createdAt: string }>;
 
-function pageSize(input?: string) {
+export function pageSize(input?: string) {
   if (input === undefined) return 20;
   if (!/^[1-9][0-9]?$/.test(input) || Number(input) > 50) {
     throw new BadRequestException('Page size must be between 1 and 50');
@@ -18,7 +18,7 @@ function pageSize(input?: string) {
   return Number(input);
 }
 
-function parseCursor(input?: string): Cursor | null {
+export function parseCursor(input?: string): Cursor | null {
   if (input === undefined) return null;
   if (input.length > 256 || !/^[A-Za-z0-9_-]+$/.test(input)) {
     throw new BadRequestException('Invalid work order cursor');
@@ -54,7 +54,7 @@ const detail = { ...summary, description: workOrders.description };
 
 // Use the original six PostgreSQL decimal places for cursor comparison.
 // JavaScript Date only stores milliseconds and could silently skip records.
-const preciseCreatedAt = sql<string>`to_char(
+export const preciseCreatedAt = sql<string>`to_char(
   ${workOrders.createdAt} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
 )`;
 
