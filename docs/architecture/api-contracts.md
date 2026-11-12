@@ -28,7 +28,7 @@ Este documento permite diseñar fixtures y adaptadores **sin convertir propuesta
 | Ver incidencia | `GET /organizations/:organizationId/incidents/:incidentId` (implementado) | Miembro ACTIVE |
 | Iniciar revisión | `POST /organizations/:organizationId/incidents/:incidentId/review` (PR draft) | Supervisor ACTIVE |
 | Cerrar incidencia | `POST /incidents/:id/close` | Supervisor |
-| Crear orden | `POST /work-orders` | Supervisor |
+| Crear orden correctiva | `POST /organizations/:organizationId/incidents/:incidentId/work-orders` (PR draft UC-04) | Supervisor ACTIVE |
 | Asignar/reasignar | `POST /work-orders/:id/assign` | Supervisor |
 | Iniciar orden | `POST /work-orders/:id/start` | Técnico responsable |
 | Completar orden | `POST /work-orders/:id/complete` | Técnico responsable |
@@ -72,6 +72,17 @@ o incidencia de otra organización se oculta con 404.
   incompatible o clave reutilizada para otra incidencia; `415` formato.
 - Solo `REPORTED → UNDER_REVIEW`. Nunca se dispara desde el frontend
   de piloto. [Contrato y evidencia](incident-review-contract.md).
+
+### Crear orden correctiva (UC-04, implementado en rama draft)
+
+- Se crea en estado `PENDING` únicamente sobre una incidencia `UNDER_REVIEW`
+  o `IN_PROGRESS` de la organización autenticada, con `title`, `description`
+  y `Idempotency-Key UUIDv4`. No se recibe activo ni actor desde el navegador.
+- Primera orden: incidente pasa a `IN_PROGRESS` y la transición se audita
+  en la misma transacción; siguientes órdenes: mismo estado, evento propio.
+- Un replay idéntico devuelve 201 y la misma orden; cambios con igual clave
+  devuelven 409. No existe UI conectada ni despliegue al piloto.
+- [Contrato UC-04, SQL y pruebas](work-orders-corrective-contract.md).
 
 **Alternativa:** transiciones mediante `PATCH` con comandos tipados. Evaluarla en ADR si simplifica auditabilidad, idempotencia y coherencia.
 

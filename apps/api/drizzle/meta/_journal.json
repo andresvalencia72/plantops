@@ -43,6 +43,13 @@
       "when": 1794425113834,
       "tag": "0005_adorable_sage",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794471346705,
+      "tag": "0006_dazzling_mentallo",
+      "breakpoints": true
     }
   ]
 }
