@@ -80,7 +80,7 @@ export function DashboardPage({ organization, onViewIncidents }: DashboardPagePr
                 </div>
                 <div className="border-t border-border pt-5 text-xs text-muted-foreground">
                   <ClipboardList size={16} className="mb-2"/>
-                  Las órdenes de trabajo se incorporarán en el Sprint 2.
+                  Consulta las órdenes correctivas desde su módulo propio en el menú lateral.
                 </div>
               </div>
             </section>

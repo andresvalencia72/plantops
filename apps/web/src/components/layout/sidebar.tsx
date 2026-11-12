@@ -15,11 +15,11 @@ type SidebarProps = {
 const available = [
   { id: 'overview' as const, label: 'Vista general', icon: Gauge },
   { id: 'incidents' as const, label: 'Incidencias', icon: ClipboardList },
+  { id: 'orders' as const, label: 'Órdenes de trabajo', icon: Wrench },
 ]
 
 const upcoming = [
   { label: 'Activos', icon: Boxes },
-  { label: 'Órdenes de trabajo', icon: Wrench },
 ]
 
 function NavigationContent({

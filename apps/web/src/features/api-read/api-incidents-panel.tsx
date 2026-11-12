@@ -12,19 +12,21 @@ type State =
   | { status: 'error'; message: string }
   | { status: 'ready'; page: ApiIncidentPage; assets: ApiAsset[] }
 
-type Props = { client: ApiReadClient; organization: ApiOrganization; userId: string; allowWrites?: boolean }
+type Props = { client: ApiReadClient; organization: ApiOrganization; userId: string
+  allowWrites?: boolean; initialIncidentId?: string | null }
 
 function errorMessage(error: unknown) {
   return error instanceof ApiRequestError ? error.message
     : 'No se pudieron obtener datos de la API. Revisa la conexión y vuelve a intentar.'
 }
 
-export function ApiIncidentsPanel({ client, organization, userId, allowWrites = false }: Props) {
+export function ApiIncidentsPanel({ client, organization, userId, allowWrites = false,
+  initialIncidentId = null }: Props) {
   const [reportOpen, setReportOpen] = useState(false)
   const [cursor, setCursor] = useState<string | undefined>()
   const [previous, setPrevious] = useState<(string | undefined)[]>([])
   const [revision, setRevision] = useState(0)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(initialIncidentId)
   const [state, setState] = useState<State>({ status: 'loading' })
 
   useEffect(() => {

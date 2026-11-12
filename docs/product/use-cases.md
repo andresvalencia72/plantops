@@ -151,6 +151,12 @@ Una orden preventiva puede existir sin incidencia, pero sí con un activo de su 
 | Dashboard | UC-01 | KPIs derivados de incidencias y órdenes, no métricas inventadas |
 | Incidencias | UC-01, 02, 03, 08 | Lista, búsqueda, detalle, historial, formulario |
 | Órdenes de trabajo | UC-04–07 | Lista, estado, responsable, evidencia |
+
+**Incremento de navegación:** la pantalla de órdenes global por organización
+reúne las correctivas de todas las incidencias con filtros, paginación,
+responsable e historial read-only. En laboratorio se reutilizan las
+operaciones existentes por rol; en demo, registros explícitamente ficticios.
+[Contrato técnico](../architecture/organization-work-orders.md).
 | Activos | UC-02, UC-04 | Inventario y ficha de activo |
 | Organización / miembros | Requisitos de acceso | Contexto y roles (futuro backend) |
 | Auditoría | Todas las mutaciones | Historial legible |

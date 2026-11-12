@@ -5,6 +5,7 @@ import type { DemoOrganization, Screen } from '@/app/types'
 import { AppShell } from '@/components/layout/app-shell'
 import { DashboardPage } from '@/features/dashboard/dashboard-page'
 import { IncidentsPage } from '@/features/incidents/incidents-page'
+import { DemoWorkOrdersPage } from '@/features/work-orders/demo-work-orders-page'
 import { ApiReadWorkspace } from '@/features/api-read/api-read-workspace'
 
 function DemoApp() {
@@ -23,7 +24,9 @@ function DemoApp() {
     >
       {screen === 'overview'
         ? <DashboardPage organization={organization} onViewIncidents={() => setScreen('incidents')} />
-        : <IncidentsPage key={organization} organization={organization} />}
+        : screen === 'incidents'
+          ? <IncidentsPage key={organization} organization={organization} />
+          : <DemoWorkOrdersPage key={organization} organization={organization} />}
     </AppShell>
   )
 }

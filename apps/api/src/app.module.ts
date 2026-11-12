@@ -9,6 +9,7 @@ import { MeController } from './auth/me.controller.js';
 import { AssetsController } from './assets/assets.controller.js';
 import { IncidentsController } from './incidents/incidents.controller.js';
 import { WorkOrdersController } from './work-orders/work-orders.controller.js';
+import { OrganizationWorkOrdersController } from './work-orders/organization-work-orders.controller.js';
 import { TechniciansController } from './work-orders/technicians.controller.js';
 import { WorkOrderExecutionController } from './work-orders/work-order-execution.controller.js';
 import { WorkOrderCancellationController } from './work-orders/work-order-cancellation.controller.js';
@@ -44,6 +45,7 @@ const oidcConfig = buildOidcConfig();
     AssetsController,
     IncidentsController,
     WorkOrdersController,
+    OrganizationWorkOrdersController,
     TechniciansController,
     WorkOrderExecutionController,
     WorkOrderCancellationController,

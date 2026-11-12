@@ -249,3 +249,14 @@ Primero: fixtures tipadas de UC-02. Segundo: definir contrato estable en los ada
   lectura de estado, conteos y evidencia, sin campos de reintento/hash.
   GET orientativo; POST bloquea la misma fila incident que usa crear OT.
 - [Contrato e invariantes de cierre](incident-closure-contract.md).
+
+### Módulo de órdenes global (PR draft tras #68)
+
+- `GET /organizations/:org/work-orders?limit=20&cursor=...&status=...&assetId=...&assignment=...&query=...`:
+  requiere sesión y membresía ACTIVE de la empresa; acepta estado,
+  activo UUID, texto literal y asignación MINE/UNASSIGNED. Cuenta con
+  cursor keyset microsegundos y devuelve lista con nombres de activo,
+  incidencia y técnico, sin claves/hash de auditoría; `no-store`.
+- No sustituye el GET de órdenes vinculadas a cada incidencia ni sus
+  POST transaccionales (UC-04 a 07). No hay nuevas mutaciones.
+- [Contrato, filtros y pruebas](organization-work-orders.md).

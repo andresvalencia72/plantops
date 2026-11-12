@@ -118,3 +118,54 @@ test('logout removes tenant data without falling into the demo', async ({ page }
   await expect(page.getByRole('link', { name: 'Usar la demo' })).toHaveCount(0)
   expect(posts).toBe(1)
 })
+
+test('production authenticated order module reads tenant-scoped list without exposing writes', async ({ page }) => {
+  const calls: { path: string; method: string }[] = []
+  const order = { id: 'order-one', incidentId: 'incident-one', assetId: 'asset-one',
+    assetCode: 'P-001', assetName: 'Pump 1', incidentTitle: 'Pressure anomaly',
+    responsibleName: null, title: 'Verify compressor valve', status: 'PENDING',
+    createdAt: '2026-11-12T12:00:00Z', assignmentVersion: 0,
+    responsibleMembershipId: null }
+  await page.route('**/api/**', async (route) => {
+    const req = route.request()
+    const path = new URL(req.url()).pathname
+    calls.push({ path, method: req.method() })
+    if (path === '/api/me') return route.fulfill(response({
+      id: 'synthetic-user', displayName: 'Synthetic Supervisor',
+    }))
+    if (path === '/api/me/organizations') return route.fulfill(response([
+      { id: 'org-one', name: 'Synthetic Plant', role: 'SUPERVISOR' },
+    ]))
+    if (path.endsWith('/org-one/assets')) return route.fulfill(response([
+      { id: 'asset-one', code: 'P-001', name: 'Pump 1', active: true },
+    ]))
+    if (path.endsWith('/org-one/incidents')) {
+      return route.fulfill(response({ items: [], nextCursor: null }))
+    }
+    if (path.endsWith('/org-one/work-orders')) {
+      return route.fulfill(response({
+        items: req.url().includes('status=COMPLETED') ? [] : [order], nextCursor: null,
+      }))
+    }
+    if (path.endsWith('/work-orders/order-one')) {
+      return route.fulfill(response({ ...order,
+        description: 'Inspect seals and verify pressure stability' }))
+    }
+    throw new Error('Unexpected URL: ' + path)
+  })
+  await page.goto('/')
+  await page.getByRole('navigation', { name: 'Secciones del centro de operaciones' })
+    .getByRole('button', { name: 'Órdenes de trabajo' }).click()
+  await expect(page.getByText('Verify compressor valve')).toBeVisible()
+  await expect(page.getByText('Responsable: Sin asignar')).toBeVisible()
+  await page.getByLabel('Filtrar por estado').selectOption('COMPLETED')
+  await expect(page.getByText('No hay órdenes que coincidan con los filtros')).toBeVisible()
+  await page.getByLabel('Filtrar por estado').selectOption('PENDING')
+  await page.getByRole('button', { name: /Verify compressor valve/ }).click()
+  await expect(page.getByRole('dialog', { name: 'Detalle de orden de trabajo' }))
+    .toContainText('Inspect seals and verify pressure stability')
+  await expect(page.getByRole('button', { name: 'Asignar técnico' })).toHaveCount(0)
+  expect(calls.every((call) => call.method === 'GET')).toBe(true)
+  expect(calls.some((call) => call.path.includes('org-one/work-orders'))).toBe(true)
+  await expect(page.getByText('Atlas Manufacturing')).toHaveCount(0)
+})
