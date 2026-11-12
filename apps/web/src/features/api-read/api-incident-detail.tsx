@@ -36,7 +36,14 @@ export function ApiIncidentDetailSheet({
     const controller = new AbortController()
     void client.incident(organizationId, incidentId, controller.signal)
       .then((value) => {
-        if (!controller.signal.aborted) setState({ status: 'loaded', value })
+        if (controller.signal.aborted) return
+        if (value.status !== 'REPORTED' && userId) {
+          // A lost POST response may have committed. The server state wins.
+          try { clearReviewRetryKey(userId, organizationId, incidentId) } catch {
+            // Storage is optional; never hide the authoritative server state.
+          }
+        }
+        setState({ status: 'loaded', value })
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return
@@ -47,7 +54,7 @@ export function ApiIncidentDetailSheet({
         })
       })
     return () => controller.abort()
-  }, [client, organizationId, incidentId, revision])
+  }, [client, organizationId, incidentId, revision, userId])
 
   async function startReview() {
     if (reviewing || !canReview || !userId || !incidentId ||
