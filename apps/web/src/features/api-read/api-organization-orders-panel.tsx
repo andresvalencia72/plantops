@@ -19,9 +19,10 @@ function errorMessage(error: unknown) {
 
 /** Orders across all incidents in the active membership's organization. */
 export function ApiOrganizationOrdersPanel({ client, organization, userId,
-  allowWrites = false, onOpenIncident }: {
+  allowWrites = false, onOpenIncident, initialOrder = null }: {
   client: ApiReadClient; organization: ApiOrganization; userId: string
   allowWrites?: boolean; onOpenIncident?: (incidentId: string) => void
+  initialOrder?: { id: string; incidentId: string } | null
 }) {
   const [assets, setAssets] = useState<ApiAsset[]>([])
   const [assetsError, setAssetsError] = useState('')
@@ -33,7 +34,7 @@ export function ApiOrganizationOrdersPanel({ client, organization, userId,
   const [revision, setRevision] = useState(0)
   const [selected, setSelected] = useState<{
     id: string; incidentId: string
-  } | null>(null)
+  } | null>(initialOrder)
 
   useEffect(() => {
     const controller = new AbortController()

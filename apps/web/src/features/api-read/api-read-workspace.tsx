@@ -7,6 +7,7 @@ import { ApiRequestError, apiReadClient } from './api-client'
 import type { ApiReadClient, ApiProfile, ApiOrganization, ApiLoginProvider } from './api-client'
 import { ApiIncidentsPanel } from './api-incidents-panel'
 import { ApiOrganizationOrdersPanel } from './api-organization-orders-panel'
+import { ApiAssetsPanel } from './api-assets-panel'
 
 type Connection =
   | { status: 'loading' }
@@ -25,8 +26,9 @@ export function ApiReadWorkspace({ client = apiReadClient, standalone = false }:
   const [attempt, setAttempt] = useState(0)
   const [connection, setConnection] = useState<Connection>({ status: 'loading' })
   const [organizationId, setOrganizationId] = useState('')
-  const [tab, setTab] = useState<'incidents' | 'orders'>('incidents')
+  const [tab, setTab] = useState<'incidents' | 'orders' | 'assets'>('incidents')
   const [linkedIncident, setLinkedIncident] = useState<string | null>(null)
+  const [linkedOrder, setLinkedOrder] = useState<{ id: string; incidentId: string } | null>(null)
   const [signingOut, setSigningOut] = useState(false)
   const [logoutError, setLogoutError] = useState('')
 
@@ -40,6 +42,7 @@ export function ApiReadWorkspace({ client = apiReadClient, standalone = false }:
         setOrganizationId(organizations[0]?.id ?? '')
         setTab('incidents')
         setLinkedIncident(null)
+        setLinkedOrder(null)
         setConnection({ status: 'ready', profile, organizations })
       } catch (error) {
         if (controller.signal.aborted) return
@@ -70,6 +73,7 @@ export function ApiReadWorkspace({ client = apiReadClient, standalone = false }:
     setOrganizationId('')
     setTab('incidents')
     setLinkedIncident(null)
+    setLinkedOrder(null)
     setAttempt((n) => n + 1)
   }
 
@@ -86,6 +90,9 @@ export function ApiReadWorkspace({ client = apiReadClient, standalone = false }:
       await client.logout()
       setConnection({ status: 'loading' })
       setOrganizationId('')
+      setTab('incidents')
+      setLinkedIncident(null)
+      setLinkedOrder(null)
       setAttempt((n) => n + 1)
     } catch {
       // If the request failed, leave the authenticated view intact.
@@ -206,6 +213,7 @@ export function ApiReadWorkspace({ client = apiReadClient, standalone = false }:
                       setOrganizationId(event.target.value)
                       setTab('incidents')
                       setLinkedIncident(null)
+                      setLinkedOrder(null)
                     }}>
                     {connection.organizations.map((org) => (
                       <option key={org.id} value={org.id}>{org.name}</option>
@@ -226,25 +234,39 @@ export function ApiReadWorkspace({ client = apiReadClient, standalone = false }:
                 className="flex flex-wrap gap-2 border-b border-border pb-4">
                 <Button size="sm" variant={tab === 'incidents' ? 'secondary' : 'ghost'}
                   aria-current={tab === 'incidents' ? 'page' : undefined}
-                  onClick={() => { setTab('incidents'); setLinkedIncident(null) }}>
+                  onClick={() => { setTab('incidents'); setLinkedIncident(null); setLinkedOrder(null) }}>
                   Incidencias
                 </Button>
                 <Button size="sm" variant={tab === 'orders' ? 'secondary' : 'ghost'}
                   aria-current={tab === 'orders' ? 'page' : undefined}
-                  onClick={() => { setTab('orders'); setLinkedIncident(null) }}>
+                  onClick={() => { setTab('orders'); setLinkedIncident(null); setLinkedOrder(null) }}>
                   Órdenes de trabajo
+                </Button>
+                <Button size="sm" variant={tab === 'assets' ? 'secondary' : 'ghost'}
+                  aria-current={tab === 'assets' ? 'page' : undefined}
+                  onClick={() => { setTab('assets'); setLinkedIncident(null); setLinkedOrder(null) }}>
+                  Activos
                 </Button>
               </nav>
               {tab === 'incidents'
                 ? <ApiIncidentsPanel key={organization.id + ':incidents:' + (linkedIncident ?? '')}
                     organization={organization} client={client} userId={connection.profile.id}
                     allowWrites={isolatedWrites} initialIncidentId={linkedIncident}/>
-                : <ApiOrganizationOrdersPanel key={organization.id + ':orders'}
+                : tab === 'orders' ? <ApiOrganizationOrdersPanel
+                    key={organization.id + ':orders:' + (linkedOrder?.id ?? '')}
                     organization={organization} client={client} userId={connection.profile.id}
-                    allowWrites={isolatedWrites}
+                    allowWrites={isolatedWrites} initialOrder={linkedOrder}
                     onOpenIncident={(incidentId) => {
-                      setLinkedIncident(incidentId); setTab('incidents')
+                      setLinkedIncident(incidentId); setLinkedOrder(null); setTab('incidents')
                     }}/>
+                  : <ApiAssetsPanel key={organization.id + ':assets'}
+                      organization={organization} client={client}
+                      onOpenIncident={(incidentId) => {
+                        setLinkedIncident(incidentId); setLinkedOrder(null); setTab('incidents')
+                      }}
+                      onOpenOrder={(order) => {
+                        setLinkedOrder(order); setLinkedIncident(null); setTab('orders')
+                      }}/>
               }
             </> : <p className="border border-border bg-card p-8 text-sm text-muted-foreground">
               No tienes ninguna organización activa. El servidor no ha autorizado datos.
