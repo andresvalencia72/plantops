@@ -70,7 +70,7 @@ export async function resolveTenantContext(
   });
 }
 
-export type TenantAction = 'REPORT_INCIDENT' | 'START_INCIDENT_REVIEW' | 'CREATE_CORRECTIVE_ORDER' | 'ASSIGN_TECHNICIAN' | 'EXECUTE_WORK_ORDER' | 'CLOSE_INCIDENT';
+export type TenantAction = 'REPORT_INCIDENT' | 'START_INCIDENT_REVIEW' | 'CREATE_CORRECTIVE_ORDER' | 'ASSIGN_TECHNICIAN' | 'EXECUTE_WORK_ORDER' | 'CANCEL_WORK_ORDER' | 'CLOSE_INCIDENT';
 
 export function requireTenantPermission(
   context: TenantContext,
@@ -88,7 +88,8 @@ export function requireTenantPermission(
   }
   if (action === 'EXECUTE_WORK_ORDER' && context.role === 'TECHNICIAN') return;
   if ((action === 'START_INCIDENT_REVIEW' || action === 'CLOSE_INCIDENT' ||
-    action === 'CREATE_CORRECTIVE_ORDER' || action === 'ASSIGN_TECHNICIAN') &&
+    action === 'CREATE_CORRECTIVE_ORDER' || action === 'ASSIGN_TECHNICIAN' ||
+    action === 'CANCEL_WORK_ORDER') &&
       context.role === 'SUPERVISOR') return;
   deny();
 }
