@@ -213,4 +213,43 @@ describe('API read-only adapter', () => {
     await expect(forbidden.workOrders('org-a', 'i1'))
       .rejects.toMatchObject({ status: 403 })
   })
+  it('creates a corrective order only with same-origin session + body + retry key', async () => {
+    const result = { id: 'work-1', incidentId: 'incident-1', assetId: 'asset-1',
+      title: 'Cambiar rodamiento', description: 'Intervenir en el eje principal',
+      status: 'PENDING', createdAt: '2026-11-12T10:00:00Z' }
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(result, 201))
+    const input = { title: result.title, description: result.description }
+    const api = createApiReadClient(fetcher)
+    await expect(api.createCorrectiveOrder('org / 1', 'incident-1', input, 'retry-uuid'))
+      .resolves.toEqual(result)
+    expect(fetcher).toHaveBeenCalledWith(
+      '/api/organizations/org%20%2F%201/incidents/incident-1/work-orders', {
+        method: 'POST', credentials: 'include', redirect: 'error',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json',
+          'Idempotency-Key': 'retry-uuid' },
+        body: JSON.stringify(input),
+      })
+  })
+
+  it('refuses malformed POST success, 403 and 409 instead of inventing a created order', async () => {
+    const payload = { title: 'Inspect pump', description: 'Check main pump bearings' }
+    const malformed = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ id: 'order-1', status: 'PENDING' }, 201)))
+    await expect(malformed.createCorrectiveOrder('org', 'inc', payload, 'key'))
+      .rejects.toThrow('Respuesta inesperada')
+    const foreign = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ id: 'order-1', incidentId: 'other',
+        assetId: 'asset', title: payload.title, description: payload.description,
+        status: 'PENDING', createdAt: '2026-11-12T10:00:00Z' }, 201)))
+    await expect(foreign.createCorrectiveOrder('org', 'inc', payload, 'key'))
+      .rejects.toThrow('Respuesta inesperada')
+    const forbidden = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({}, 403)))
+    await expect(forbidden.createCorrectiveOrder('org', 'inc', payload, 'key'))
+      .rejects.toThrow('No tienes permiso para crear')
+    const conflict = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({}, 409)))
+    await expect(conflict.createCorrectiveOrder('org', 'inc', payload, 'key'))
+      .rejects.toThrow('La incidencia o la solicitud cambió')
+  })
 })
