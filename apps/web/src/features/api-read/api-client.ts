@@ -1,3 +1,4 @@
+import { organizationOrdersApi } from './organization-orders-api'
 import { record, string, validIncident, validWorkOrder, validAssignment,
   validExecution, validCancellation, validClosure, invalid } from './api-client-guards'
 import type { IncidentStatus } from '@/features/incidents/types'
@@ -116,6 +117,7 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
 
   const orgPath = (orgId: string) => '/organizations/' + encodeURIComponent(orgId)
   return {
+    ...organizationOrdersApi(get, orgPath),
     /** State-changing, same-origin, cookie-based action. No user ID is supplied. */
     async logout(): Promise<void> {
       const response = await fetcher('/api/auth/logout', {
