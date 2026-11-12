@@ -128,6 +128,17 @@ permisos/CSRF. Vitest del formulario y del diario y Chrome + NestJS +
 PostgreSQL descartable para cierre con y sin órdenes y respuesta perdida.
 [Contrato e invariantes](../architecture/incident-closure-contract.md).
 
+## Ensayo de migración sobre datos históricos — auditoría del MVP
+
+Además de migrar bases vacías en los tests integrados, la CI ejecuta el job
+independiente **Legacy PostgreSQL upgrade rehearsal**: recrea el esquema
+anterior a órdenes (0000–0005), carga incidencias de dos empresas y una
+revisión auditada, migra a 0010 y comprueba preservación de datos,
+triggers, FKs tenant y reejecución idempotente. Usa un PostgreSQL desechable
+que debe estar vacío, permite solo loopback `plantops_s1_test` y requiere
+confirmación explícita. No utiliza ni modifica el piloto ni bases persistentes.
+[Resultado de auditoría y límites](mvp-integration-readiness.md).
+
 ## Seguridad: defensa en profundidad
 
 - Identidad autenticada y membresía vigente para el tenant activo.
