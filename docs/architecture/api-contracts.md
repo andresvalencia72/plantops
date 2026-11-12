@@ -237,3 +237,15 @@ Primero: fixtures tipadas de UC-02. Segundo: definir contrato estable en los ada
   transacción de estado + evidencia. 409 para estados terminales o
   reintentos incompatibles.
 - [Contrato completo y pruebas](work-order-cancellation-contract.md).
+
+### UC-08 — Cierre de incidencia (PR draft)
+
+- `POST /organizations/:org/incidents/:incidentId/closure`: supervisor
+  ACTIVE, CSRF+Idempotency-Key UUIDv4, body `{reason}` si no hay OT desde
+  `UNDER_REVIEW`, o `{reason,conclusion}` cuando **todas** las OT estén
+  COMPLETED o CANCELLED desde IN_PROGRESS. Confirmación atómica de CLOSED
+  y evento de auditoría, 201; cualquier OT abierta bloquea con 409.
+- `GET /organizations/:org/incidents/:incidentId/closure`: miembro ACTIVE,
+  lectura de estado, conteos y evidencia, sin campos de reintento/hash.
+  GET orientativo; POST bloquea la misma fila incident que usa crear OT.
+- [Contrato e invariantes de cierre](incident-closure-contract.md).
