@@ -41,9 +41,9 @@ export function DemoAssetsPage({ organization, onOpenIncident, onOpenOrder }: {
           Catálogo de equipos de {demoOrganizations[organization]}.
         </p>
       </div>
-      <span className="text-[11px] text-muted-foreground">Datos ficticios · Solo lectura</span>
+      <span className="text-xs text-muted-foreground">Datos ficticios · Solo lectura</span>
     </div>
-    <section aria-label="Catálogo de activos de demostración" className="border border-border bg-card">
+    <section aria-label="Catálogo de activos de demostración" className="overflow-hidden rounded-xl border border-border bg-card">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-5">
         <div>
           <h2 className="text-[14px] font-semibold">Equipos registrados</h2>
@@ -72,13 +72,13 @@ export function DemoAssetsPage({ organization, onOpenIncident, onOpenOrder }: {
           className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring">
           <span className="min-w-0 space-y-1">
             <span className="block truncate text-[13px] font-semibold">{asset.name}</span>
-            <span className="block text-[11px] text-muted-foreground">
+            <span className="block text-xs text-muted-foreground">
               {asset.code} · {asset.location}</span>
           </span>
           <ArrowUpRight size={16} className="text-muted-foreground" aria-hidden="true" />
         </button>)}
       </div>}
-      <footer className="border-t border-border px-5 py-3 text-[11px] text-muted-foreground">
+      <footer className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
         {scoped.length} equipos de demostración · No conectados al servidor
       </footer>
     </section>
@@ -104,7 +104,7 @@ export function DemoAssetsPage({ organization, onOpenIncident, onOpenOrder }: {
               onClick={() => onOpenIncident(record.id)}
               className="block w-full border-l-2 border-border py-1 pl-3 text-left hover:text-primary">
               <span className="block text-xs font-medium">{record.title}</span>
-              <span className="block text-[11px] text-muted-foreground">
+              <span className="block text-xs text-muted-foreground">
                 {record.id} · {record.status}</span>
             </button>)}
           </section>
@@ -116,7 +116,7 @@ export function DemoAssetsPage({ organization, onOpenIncident, onOpenOrder }: {
               onClick={() => onOpenOrder(order.id)}
               className="block w-full border-l-2 border-border py-1 pl-3 text-left hover:text-primary">
               <span className="block text-xs font-medium">{order.title}</span>
-              <span className="block text-[11px] text-muted-foreground">
+              <span className="block text-xs text-muted-foreground">
                 {order.id} · {order.status}</span>
             </button>)}
           </section>

@@ -19,8 +19,8 @@ export function IncidentInspector({ incident, onClose }: IncidentInspectorProps)
         {incident && (
           <>
             <SheetHeader className="border-b border-border px-6 py-8 pr-12">
-              <p className="mb-1 font-mono text-[11px] tracking-wide text-muted-foreground">{incident.id}</p>
-              <SheetTitle className="text-xl font-semibold tracking-tight">{incident.title}</SheetTitle>
+              <p className="mb-1 font-mono text-xs text-muted-foreground">{incident.id}</p>
+              <SheetTitle className="text-xl font-medium">{incident.title}</SheetTitle>
               <SheetDescription className="mt-2">Incidencia registrada · Datos de demostración</SheetDescription>
               <div className="mt-4 flex flex-wrap gap-2">
                 <PriorityBadge value={incident.priority}/>
@@ -29,11 +29,11 @@ export function IncidentInspector({ incident, onClose }: IncidentInspectorProps)
             </SheetHeader>
             <div className="space-y-7 px-6 py-8">
               <section>
-                <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Descripción del aviso</h3>
-                <p className="text-[13px] leading-6">{incident.description}</p>
+                <h3 className="mb-2 text-xs font-medium text-muted-foreground">Descripción del aviso</h3>
+                <p className="text-sm leading-6">{incident.description}</p>
               </section>
               <section className="border-t border-border pt-6">
-                <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Activo afectado</h3>
+                <h3 className="mb-4 text-xs font-medium text-muted-foreground">Activo afectado</h3>
                 <div className="flex items-start gap-3">
                   <Wrench size={18} className="mt-0.5 text-primary" aria-hidden="true"/>
                   <div>
@@ -46,7 +46,7 @@ export function IncidentInspector({ incident, onClose }: IncidentInspectorProps)
                 </div>
               </section>
               <section className="space-y-3 border-t border-border pt-6">
-                <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Registro</h3>
+                <h3 className="text-xs font-medium text-muted-foreground">Registro</h3>
                 <p className="flex items-center gap-3 text-xs"><UserRound size={15} className="text-muted-foreground"/>{incident.reportedBy}</p>
                 <p className="flex items-center gap-3 text-xs"><CalendarDays size={15} className="text-muted-foreground"/>{humanDate(incident.reportedAt)}</p>
               </section>

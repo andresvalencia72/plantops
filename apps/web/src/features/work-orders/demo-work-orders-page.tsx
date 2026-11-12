@@ -49,10 +49,10 @@ export function DemoWorkOrdersPage({ organization, initialOrderId = null }: {
           {demoOrganizations[organization]} · Órdenes correctivas de demostración.
         </p>
       </div>
-      <span className="text-[11px] text-muted-foreground">Datos ficticios · Solo lectura</span>
+      <span className="text-xs text-muted-foreground">Datos ficticios · Solo lectura</span>
     </div>
-    <section aria-label="Listado de órdenes de trabajo" className="border border-border bg-card">
-      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-4 sm:px-5">
+    <section aria-label="Listado de órdenes de trabajo" className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/20 px-4 py-4 sm:px-5">
         <Input aria-label="Buscar órdenes" type="search" className="h-9 min-w-44 flex-1 text-xs"
           placeholder="Título, código o responsable" value={query}
           onChange={(event) => setQuery(event.target.value)} />
@@ -86,9 +86,9 @@ export function DemoWorkOrdersPage({ organization, initialOrderId = null }: {
             className="flex w-full flex-wrap items-center justify-between gap-4 px-5 py-4 text-left hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring">
             <div className="min-w-0 flex-1 space-y-1">
               <p className="truncate text-[13px] font-semibold">{order.title}</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {order.id} · {asset?.code ?? 'Activo desconocido'}</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Responsable: {order.responsible ?? 'Sin asignar'}</p>
             </div>
             <div className="flex items-center gap-3">
@@ -98,7 +98,7 @@ export function DemoWorkOrdersPage({ organization, initialOrderId = null }: {
           </button>
         })}
       </div>}
-      <footer className="border-t border-border px-5 py-3 text-[11px] text-muted-foreground">
+      <footer className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
         {visible.length} órdenes de demostración · Sin conexión a producción
       </footer>
     </section>
@@ -126,7 +126,7 @@ export function DemoWorkOrdersPage({ organization, initialOrderId = null }: {
                 className="border-l-2 border-border pl-3 text-xs">
                 <p className="font-semibold">{event.action}</p>
                 <p className="mt-1 text-muted-foreground">{event.detail}</p>
-                <p className="mt-1 text-[11px] text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   {new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium', timeStyle: 'short' })
                     .format(new Date(event.at))}</p>
               </li>)}

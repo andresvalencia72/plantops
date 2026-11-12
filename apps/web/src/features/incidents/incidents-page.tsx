@@ -28,14 +28,14 @@ export function IncidentsPage({ organization, initialIncidentId = null }: {
     <div className="space-y-7">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[.16em] text-primary">Gestión de mantenimiento</p>
-          <h1 className="text-[28px] font-semibold tracking-[-.045em] sm:text-[32px]">Incidencias</h1>
-          <p className="mt-2 text-[13px] text-muted-foreground">
+          <p className="mb-2 text-xs font-medium text-primary">Gestión de mantenimiento</p>
+          <h1 className="text-[28px] font-medium tracking-normal sm:text-[32px]">Incidencias</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             Avisos sobre activos, prioridades y seguimiento del trabajo.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-[11px] text-muted-foreground">Datos de demostración</span>
+          <span className="text-xs text-muted-foreground">Datos de demostración</span>
           <Button onClick={() => setFormOpen(true)}><Plus size={15} aria-hidden="true"/> Nueva incidencia</Button>
         </div>
       </div>
@@ -44,8 +44,8 @@ export function IncidentsPage({ organization, initialIncidentId = null }: {
         <p><span className="mr-2 text-muted-foreground">Abiertas</span><strong className="font-semibold">{loading ? '—' : summary.open}</strong></p>
         <p><span className="mr-2 text-muted-foreground">Críticas</span><strong className="font-semibold text-destructive">{loading ? '—' : summary.critical}</strong></p>
       </div>
-      <section aria-label="Listado de incidencias" className="border border-border bg-card">
-        <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-4 sm:px-5">
+      <section aria-label="Listado de incidencias" className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/20 px-4 py-4 sm:px-5">
           <div className="relative min-w-[190px] flex-1 sm:max-w-[350px]">
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true"/>
             <Input
@@ -91,7 +91,7 @@ export function IncidentsPage({ organization, initialIncidentId = null }: {
             <Button variant="outline" onClick={() => setFilters(initialFilters)}>Limpiar filtros</Button>
           </div>
         )}
-        <p className="border-t border-border px-5 py-3 text-[11px] text-muted-foreground">
+        <p className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
           {loading ? 'Consultando datos…' : `${filtered.length} de ${records.length} incidencias`} · Datos ficticios
         </p>
       </section>
