@@ -13,7 +13,8 @@ function json(value: unknown, status = 200) {
 }
 const first = {
   id: 'order-a1', incidentId: 'incident-a', assetId: 'asset-a',
-  title: 'Cambiar rodamiento', status: 'PENDING', createdAt: '2026-11-12T08:00:00Z',
+  title: 'Cambiar rodamiento', status: 'PENDING',
+  assignmentVersion: 0, responsibleMembershipId: null, createdAt: '2026-11-12T08:00:00Z',
 }
 const second = { ...first, id: 'order-a2', title: 'Comprobar vibración' }
 const third = { ...first, id: 'order-a3', title: 'Medir temperatura' }

@@ -18,7 +18,8 @@ function respond(body: unknown, status = 201) {
 }
 const order = { id: '2a0b0c0d-0e0f-4a11-8a22-333344445555',
   incidentId: incident, assetId: '0a0b0c0d-0e0f-4e11-8a22-333344445555',
-  title, description, status: 'PENDING', createdAt: '2026-11-12T12:00:00Z' }
+  title, description, status: 'PENDING',
+  assignmentVersion: 0, responsibleMembershipId: null, createdAt: '2026-11-12T12:00:00Z' }
 
 function open(fetcher: typeof fetch) {
   vi.stubGlobal('crypto', fakeWebCrypto())
