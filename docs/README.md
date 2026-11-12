@@ -36,6 +36,8 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 9m | [Preparación del frontend autenticado](architecture/authenticated-app-surface.md) | Build separado de demo, OIDC, solo lectura y pruebas Chrome de producción |
 | 9n | [Listado global de órdenes](architecture/organization-work-orders.md) | Consulta tenant-scoped, filtros, historial reutilizado y navegación real/demo |
 | 9o | [Catálogo de activos e historial](architecture/asset-catalog-history.md) | Inventario paginado, historial por equipo, navegación y aislamiento por empresa |
+| 9p | [Cobertura UC-01 a UC-08](quality/audits/uc01-uc08-coverage-2026-11-12.md) | Matriz verificable de tests y brechas de liberación |
+| 9q | [Accesibilidad de la demo pública](quality/audits/public-demo-accessibility-2026-11-12.md) | Hallazgos axe-core, foco, teclado y móvil sin cambios funcionales |
 | 10 | [Estándares de ingeniería](quality/engineering.md) | CI, PR, seguridad y definición de terminado |
 | 10b | [Revisión real del frontend](quality/frontend-review-2026-11-10.md) | Pruebas, capturas y riesgos restantes |
 | 11 | [Roadmap y primer corte](plan/roadmap.md) | Secuencia de ejecución, sin fechas artificiales |
