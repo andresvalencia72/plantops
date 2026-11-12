@@ -99,7 +99,8 @@ describe('authenticated /me and membership isolation', () => {
       .get('/me/organizations')
       .set('Cookie', cookie)
       .expect(200)
-      .expect([{ id: ids.tenantA, name: 'Alpha Plant', role: 'MEMBER' }]);
+      .expect([{ id: ids.tenantA, name: 'Alpha Plant', role: 'MEMBER',
+        membershipId: ids.memberA }]);
 
     await db.update(memberships).set({ status: 'SUSPENDED' })
       .where(eq(memberships.id, ids.memberA));
