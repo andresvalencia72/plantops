@@ -103,6 +103,15 @@ para roles, múltiples cambios históricos, concurrencia, clave idempotente,
 versión esperada, rollback por error de auditoría, CSRF y aislamiento de tenant.
 [Evidencia y contrato](../architecture/work-order-assignment-contract.md).
 
+## UC-06 — ejecución y finalización
+
+8 pruebas PostgreSQL reales para permisos del técnico actual, transición,
+rollback, inmutabilidad, reintento 12× y carrera UC-05 vs inicio; dos pruebas
+HTTP extra para cookies, CSRF, GET, 401/403/409 y replays; React Vitest
+para confirmación y diario, y Chrome + API NestJS + PostgreSQL descartable
+para el flujo completo y pérdida de respuesta al finalizar.
+[Contrato y evidencia](../architecture/work-order-execution-contract.md).
+
 ## Seguridad: defensa en profundidad
 
 - Identidad autenticada y membresía vigente para el tenant activo.

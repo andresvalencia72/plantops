@@ -106,6 +106,11 @@ El motivo es opcional (recomendado). La UI se habilita solo en laboratorio.
 
 **Criterios:** no completar sin iniciar; no completar sin resultado; no operar sobre orden ajena o terminal.
 
+**Implementado en PR draft UC-06:** transiciones protegidas por técnico
+responsable ACTIVE, resultado obligatorio, eventos inmutables, idempotencia,
+concurrencia contra UC-05 y formulario React solo en laboratorio.
+[Contrato y pruebas](../architecture/work-order-execution-contract.md).
+
 ## UC-07 — Cancelar orden
 
 **Actor:** supervisor.
