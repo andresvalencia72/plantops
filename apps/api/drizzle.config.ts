@@ -10,6 +10,7 @@ export default defineConfig({
     './src/database/work-orders.ts',
     './src/database/work-order-events.ts',
     './src/database/work-order-assignments.ts',
+    './src/database/work-order-executions.ts',
     './src/auth/sessions.schema.ts',
     './src/auth/oidc-identity.schema.ts',
     './src/auth/oidc-state.schema.ts',
