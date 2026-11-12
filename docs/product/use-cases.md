@@ -72,6 +72,11 @@ con PostgreSQL real. La primera orden cambia UNDER_REVIEW → IN_PROGRESS;
 las siguientes mantienen el estado. Sin formulario React, asignación ni
 despliegue. [Contrato y pruebas](../architecture/work-orders-corrective-contract.md).
 
+**Lectura posterior en PR draft apilada:** listado y detalle GET de órdenes
+para miembros ACTIVE de la misma organización, integrados en el inspector
+de incidencias de la API. La UI de alta/asignación de órdenes continúa
+pendiente. [Pruebas de lectura](../quality/uc04-protected-read.md).
+
 ## UC-05 — Asignar o reasignar
 
 **Actor:** supervisor.

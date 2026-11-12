@@ -73,6 +73,17 @@ creaciones concurrentes que solo cambian una vez el estado de incidencia,
 rollback al fallar la escritura de auditoría. No cubre todavía cierre
 concurrente: falta implementar UC-08 y su bloqueo sobre la misma incidencia.
 
+## Evidencia UC-04 — lectura de órdenes (PR draft posterior)
+
+Los tests de `work-order-read.integration-spec.ts` y la ampliación de
+`uc04-corrective-http.integration-spec.ts` validan listados/detalles reales
+con PostgreSQL, límites por tenant, respuestas 401/403/404/400, redacción
+de identificadores internos y keyset con fechas de microsegundos. En React,
+`api-work-orders-section.test.tsx` y `api-client.test.ts` verifican estados
+vacíos, error, reintento, sesión, cambio de organización y datos malformados.
+Los E2E `work-order-read-real-api.e2e.ts` utilizan Chrome + NestJS + PG
+con sesiones sintéticas reales, sin modificar el piloto.
+
 ## Seguridad: defensa en profundidad
 
 - Identidad autenticada y membresía vigente para el tenant activo.

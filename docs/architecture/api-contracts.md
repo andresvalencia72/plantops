@@ -29,6 +29,8 @@ Este documento permite diseñar fixtures y adaptadores **sin convertir propuesta
 | Iniciar revisión | `POST /organizations/:organizationId/incidents/:incidentId/review` (PR draft) | Supervisor ACTIVE |
 | Cerrar incidencia | `POST /incidents/:id/close` | Supervisor |
 | Crear orden correctiva | `POST /organizations/:organizationId/incidents/:incidentId/work-orders` (PR draft UC-04) | Supervisor ACTIVE |
+| Listar órdenes de incidencia | `GET /organizations/:organizationId/incidents/:incidentId/work-orders` (PR draft UC-04 lectura) | Miembro ACTIVE |
+| Consultar detalle de orden | `GET /organizations/:organizationId/incidents/:incidentId/work-orders/:orderId` (PR draft UC-04 lectura) | Miembro ACTIVE |
 | Asignar/reasignar | `POST /work-orders/:id/assign` | Supervisor |
 | Iniciar orden | `POST /work-orders/:id/start` | Técnico responsable |
 | Completar orden | `POST /work-orders/:id/complete` | Técnico responsable |
@@ -83,6 +85,23 @@ o incidencia de otra organización se oculta con 404.
 - Un replay idéntico devuelve 201 y la misma orden; cambios con igual clave
   devuelven 409. No existe UI conectada ni despliegue al piloto.
 - [Contrato UC-04, SQL y pruebas](work-orders-corrective-contract.md).
+
+### Lectura protegida de órdenes (UC-04, rama draft posterior)
+
+- `GET /organizations/:organizationId/incidents/:incidentId/work-orders?limit=20&cursor=...`
+  devuelve `{ items, nextCursor }`, hasta 50 por página, orden
+  `createdAt DESC, id DESC`, sin autor, SHA-256 ni claves internas.
+- `GET /organizations/:organizationId/incidents/:incidentId/work-orders/:orderId`
+  devuelve detalle, incluida `description`. Solo lectura con sesión y membresía
+  `ACTIVE`; organización y relación con la incidencia verificadas en servidor.
+- Una incidencia de otro tenant/no encontrada es `404`; sin membresía es
+  `403`, sin sesión `401`, parámetros/cursor inválidos `400`.
+- El cursor usa microsegundos PostgreSQL para evitar omisiones entre registros
+  creados casi simultáneamente. No concede permisos ni expone otras empresas.
+- El frontend muestra órdenes en el inspector de la incidencia de la API,
+  **sin permitir crear o modificar órdenes**. Solo laboratorio hasta validar
+  despliegue, migraciones y accesibilidad.
+- [Informe de integración y límites](../quality/uc04-protected-read.md).
 
 **Alternativa:** transiciones mediante `PATCH` con comandos tipados. Evaluarla en ADR si simplifica auditabilidad, idempotencia y coherencia.
 

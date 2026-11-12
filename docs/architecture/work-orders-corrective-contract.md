@@ -82,3 +82,20 @@ no existe endpoint de cierre. Este contrato prepara el lado de creación.
 - No migrar `plantops_dev` ni reutilizar OAuth personal o pilotos. Para
   reproducir, usar solo base local `*_test` totalmente descartable y
   `DATABASE_TEST_URL`, después `npm --prefix apps/api run test:integration`.
+
+## Lectura vinculada a incidencias (PR draft apilada posterior)
+
+Tras el corte de creación, `GET .../work-orders` y `GET .../work-orders/:orderId`
+exponen datos no sensibles a **todos los miembros ACTIVE de la organización**,
+no únicamente supervisores. Las consultas filtran por `organization_id`
+**e** `incident_id` en PostgreSQL, y validan sesión/membresía en NestJS.
+La lista paginada no incluye `description`, autor, idempotencia ni hash; el
+GET de detalle entrega la descripción solo para una orden propia de esa
+incidencia. Sin sesión → 401, sin acceso al tenant → 403, recurso ajeno → 404.
+
+El cursor keyset conserva los **microsegundos originales** de PostgreSQL:
+un `Date` JavaScript pierde precisión y puede omitir órdenes de la misma
+milésima. La validación `limit=1..50`, el contrato y los escenarios con
+microsegundos se documentan en
+[UC-04 lectura protegida](../quality/uc04-protected-read.md). El lector no
+realiza escrituras ni altera la transacción del comando de creación.
