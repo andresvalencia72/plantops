@@ -23,6 +23,7 @@
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
     "test:integration": "vitest run --config ./vitest.config.integration.ts",
+    "test:migration:guards": "node --test scripts/migration-rehearsal-guards.test.mjs",
     "invites:operator": "npm run build && node ./scripts/invitations-operator.mjs",
     "db:migrate:dev": "node ./scripts/migrate-dev.mjs",
     "dev:smoke": "node --env-file=.env scripts/check-local-stack.mjs"
