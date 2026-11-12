@@ -65,6 +65,11 @@ jobs:
 
       - name: Browser smoke tests
         run: npm run test:e2e
+      - name: Supervisor review in isolated browser lab
+        env:
+          VITE_PLANTOPS_ENABLE_REPORTS: isolated-test
+          PLANTOPS_E2E_PORT: '5194'
+        run: npm run test:e2e -- e2e/api-review.e2e.ts
 
       - name: Upload browser failure evidence
         if: failure()
