@@ -139,3 +139,36 @@ describe('append-only incident review audit schema', () => {
     );
   });
 });
+
+describe('corrective order persistence constraints', () => {
+  it('links order and creator to one tenant and the incident asset', async () => {
+    const { workOrders } = await import('./work-orders.js');
+    const { workOrderEvents } = await import('./work-order-events.js');
+    const order = getTableConfig(workOrders);
+    const links = order.foreignKeys.map((key) => {
+      const ref = key.reference();
+      return [ref.columns.map((col) => col.name),
+        ref.foreignColumns.map((col) => col.name)];
+    });
+    expect(links).toContainEqual([
+      ['organization_id', 'incident_id', 'asset_id'],
+      ['organization_id', 'id', 'asset_id'],
+    ]);
+    expect(links).toContainEqual([
+      ['organization_id', 'created_by_membership_id'],
+      ['organization_id', 'id'],
+    ]);
+    expect(order.uniqueConstraints.map((key) =>
+      key.columns.map((col) => col.name))).toContainEqual([
+      'organization_id', 'created_by_membership_id', 'idempotency_key',
+    ]);
+    expect(workOrders.status.default).toBe('PENDING');
+    const event = getTableConfig(workOrderEvents);
+    expect(event.checks.map((check) => check.name))
+      .toContain('work_order_event_incident_transition');
+    expect(event.uniqueConstraints.map((key) =>
+      key.columns.map((col) => col.name))).toContainEqual([
+      'organization_id', 'work_order_id', 'action',
+    ]);
+  });
+});

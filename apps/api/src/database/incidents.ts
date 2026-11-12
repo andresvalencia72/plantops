@@ -43,6 +43,9 @@ export const incidents = pgTable(
       table.organizationId,
       table.id,
     ),
+    unique('incidents_organization_id_asset_id').on(
+      table.organizationId, table.id, table.assetId,
+    ),
     // Descending keyset scans stay bounded inside one organization.
     index('incidents_org_reported_id_idx').on(
       table.organizationId,
