@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { ApiRequestError } from './api-client'
 import { ApiCreateCorrectiveOrder } from './api-create-corrective-order'
 import { ApiAssignmentPanel } from './api-assignment-panel'
+import { ApiExecutionPanel } from './api-execution-panel'
 import type { ApiReadClient, ApiWorkOrderDetail, ApiWorkOrderPage } from './api-client'
 
 type PageState = { status: 'loading' } | { status: 'error'; message: string } |
@@ -24,9 +25,10 @@ function message(error: unknown) {
 
 /** Mounted only after a successful, tenant-scoped incident detail request. */
 export function ApiWorkOrdersSection({ client, organizationId, incidentId,
-  canCreate = false, userId, onCreated }: {
+  canCreate = false, canExecute = false, membershipId, userId, onCreated }: {
   client: ApiReadClient; organizationId: string; incidentId: string
-  canCreate?: boolean; userId?: string; onCreated?: () => void
+  canCreate?: boolean; canExecute?: boolean; membershipId?: string
+  userId?: string; onCreated?: () => void
 }) {
   const [state, setState] = useState<PageState>({ status: 'loading' })
   const [cursor, setCursor] = useState<string | undefined>()
@@ -137,6 +139,10 @@ export function ApiWorkOrdersSection({ client, organizationId, incidentId,
                     organizationId={organizationId} incidentId={incidentId}
                     order={detail.value} userId={userId}
                     canAssign={Boolean(canCreate && userId)} onUpdated={refresh} />
+                  <ApiExecutionPanel key={'execution-' + detail.value.id} client={client}
+                    organizationId={organizationId} incidentId={incidentId}
+                    order={detail.value} userId={userId} membershipId={membershipId}
+                    isolatedWrites={canExecute} onUpdated={refresh} />
                 </>}
               </div>}
             </li>

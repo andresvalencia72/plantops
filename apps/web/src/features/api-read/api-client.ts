@@ -4,6 +4,7 @@ export type ApiLoginProvider = 'google' | 'microsoft'
 export type ApiProfile = Readonly<{ id: string; displayName: string }>
 export type ApiOrganization = Readonly<{
   id: string; name: string; role: 'MEMBER' | 'SUPERVISOR' | 'TECHNICIAN'
+  membershipId?: string
 }>
 export type ApiAsset = Readonly<{
   id: string; code: string; name: string; active: boolean
@@ -38,6 +39,11 @@ export type ApiAssignmentEvent = Readonly<{
 export type ApiAssignmentHistory = ApiAssignmentEvent & Readonly<{
   fromName: string | null; toName: string; actorName: string
 }>
+export type ApiExecutionEvent = Readonly<{
+  id: string; workOrderId: string; action: 'STARTED' | 'COMPLETED'
+  fromStatus: 'ASSIGNED' | 'IN_PROGRESS'; toStatus: 'IN_PROGRESS' | 'COMPLETED'
+  actorMembershipId: string; result: string | null; occurredAt: string
+}>
 export type ApiReportInput = Readonly<{
   assetId: string; title: string; description: string
 }>
@@ -48,23 +54,25 @@ export type ApiReportResult = Readonly<{
 
 export class ApiRequestError extends Error {
   readonly status: number
-  constructor(status: number, operation: 'read' | 'write' | 'review' | 'order' | 'assignment' = 'read') {
+  constructor(status: number, operation: 'read' | 'write' | 'review' | 'order' | 'assignment' | 'execution' = 'read') {
     super(status === 400 ? 'Revisa los datos introducidos.'
       : status === 401 ? 'Se necesita una sesión válida.'
         : status === 403 ? (operation === 'review'
           ? 'No tienes permiso para iniciar la revisión.'
           : operation === 'order' ? 'No tienes permiso para crear órdenes correctivas.'
           : operation === 'assignment' ? 'Solo el supervisor puede asignar técnicos.'
+          : operation === 'execution' ? 'Solo el técnico responsable puede ejecutar la orden.'
           : 'No tienes acceso a esta organización.')
           : status === 404 ? 'El recurso no está disponible.'
             : status === 409 ? (operation === 'review'
               ? 'La incidencia cambió de estado. Actualiza los datos antes de continuar.'
               : operation === 'order' ? 'La incidencia o la solicitud cambió. Actualiza y comprueba si la orden ya existe.'
               : operation === 'assignment' ? 'La asignación cambió. Consulta el historial antes de reintentar.'
+              : operation === 'execution' ? 'El estado de la orden cambió. Consulta su historial.'
               : 'Esta solicitud ya se usó con datos distintos.')
               : status === 415 ? 'El servidor rechazó el formato enviado.'
                 : status === 429 ? 'Demasiadas solicitudes. Espera antes de reintentar.'
-                  : (operation === 'write' || operation === 'order' || operation === 'assignment')
+                  : (operation === 'write' || operation === 'order' || operation === 'assignment' || operation === 'execution')
                     ? 'No se pudo confirmar el registro. Reintenta con la misma solicitud.'
                     : 'No se pudo consultar la API. Intenta de nuevo.')
     this.name = 'ApiRequestError'
@@ -101,6 +109,15 @@ function validAssignment(value: unknown): value is ApiAssignmentEvent {
     (value.fromMembershipId === null || string(value.fromMembershipId)) &&
     string(value.toMembershipId) && string(value.actorMembershipId) &&
     (value.reason === null || string(value.reason)) &&
+    string(value.occurredAt) && Number.isFinite(Date.parse(value.occurredAt))
+}
+function validExecution(value: unknown): value is ApiExecutionEvent {
+  return record(value) && string(value.id) && string(value.workOrderId) &&
+    ['STARTED', 'COMPLETED'].includes(String(value.action)) &&
+    ['ASSIGNED', 'IN_PROGRESS'].includes(String(value.fromStatus)) &&
+    ['IN_PROGRESS', 'COMPLETED'].includes(String(value.toStatus)) &&
+    string(value.actorMembershipId) &&
+    (value.result === null || string(value.result)) &&
     string(value.occurredAt) && Number.isFinite(Date.parse(value.occurredAt))
 }
 function invalid(): never {
@@ -249,6 +266,36 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
         value.version !== input.expectedVersion + 1) invalid()
       return value as ApiAssignmentEvent
     },
+    /** UC-06 execution evidence is tenant-scoped, with no retry key/hash. */
+    async executionHistory(orgId: string, incidentId: string, orderId: string,
+      signal?: AbortSignal): Promise<ApiExecutionEvent[]> {
+      const path = orgPath(orgId) + '/incidents/' + encodeURIComponent(incidentId) +
+        '/work-orders/' + encodeURIComponent(orderId) + '/execution'
+      const value = await get(path, signal)
+      if (!Array.isArray(value) || !value.every((item) =>
+        validExecution(item) && item.workOrderId === orderId)) invalid()
+      return value as ApiExecutionEvent[]
+    },
+    async executeOrder(orgId: string, incidentId: string, orderId: string,
+      action: 'STARTED' | 'COMPLETED', key: string,
+      result?: string): Promise<ApiExecutionEvent> {
+      const path = orgPath(orgId) + '/incidents/' + encodeURIComponent(incidentId) +
+        '/work-orders/' + encodeURIComponent(orderId) + '/execution/' +
+        (action === 'STARTED' ? 'start' : 'complete')
+      const response = await fetcher('/api' + path, {
+        method: 'POST', credentials: 'include', redirect: 'error',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json',
+          'Idempotency-Key': key },
+        body: JSON.stringify(action === 'STARTED' ? {} : { result }),
+      })
+      if (!response.ok) throw new ApiRequestError(response.status, 'execution')
+      const value: unknown = await response.json()
+      if (!validExecution(value) || value.workOrderId !== orderId ||
+        value.action !== action ||
+        value.toStatus !== (action === 'STARTED' ? 'IN_PROGRESS' : 'COMPLETED') ||
+        (action === 'COMPLETED' && value.result !== result?.trim())) invalid()
+      return value as ApiExecutionEvent
+    },
     /** Public non-secret provider discovery. 404 means OIDC not yet configured. */
     async providers(signal?: AbortSignal): Promise<ApiLoginProvider[]> {
       try {
@@ -271,7 +318,8 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
       const value = await get('/me/organizations', signal)
       if (!Array.isArray(value) || !value.every((item) =>
         record(item) && string(item.id) && string(item.name) &&
-        ['MEMBER', 'SUPERVISOR', 'TECHNICIAN'].includes(String(item.role)))) invalid()
+        ['MEMBER', 'SUPERVISOR', 'TECHNICIAN'].includes(String(item.role)) &&
+        (item.membershipId === undefined || string(item.membershipId)))) invalid()
       return value as ApiOrganization[]
     },
     async assets(orgId: string, signal?: AbortSignal): Promise<ApiAsset[]> {

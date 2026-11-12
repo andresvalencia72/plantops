@@ -211,3 +211,17 @@ Primero: fixtures tipadas de UC-02. Segundo: definir contrato estable en los ada
 - GET de órdenes: `responsibleMembershipId` (nullable) y
   `assignmentVersion` entero; estado `ASSIGNED` solo con responsable.
 - [Decisiones, invariantes y pruebas](work-order-assignment-contract.md).
+
+### UC-06 — Ejecución y finalización de órdenes (PR draft)
+
+- `POST /organizations/:org/incidents/:incidentId/work-orders/:orderId/execution/start`:
+  técnico ACTIVE responsable vigente, cabecera UUIDv4 `Idempotency-Key`,
+  cuerpo JSON `{}`, resultado 201 con evento STARTED.
+- `POST /organizations/:org/incidents/:incidentId/work-orders/:orderId/execution/complete`:
+  mismo permiso, cuerpo `{result: string}`, mínimo 10 y máximo 4000,
+  resultado 201 evento COMPLETED y estado terminal.
+- `GET /organizations/:org/incidents/:incidentId/work-orders/:orderId/execution`:
+  historia read-only 0–2 eventos para miembros ACTIVE, sin claves/hash.
+- `/me/organizations` devuelve `membershipId` de cada membresía ACTIVE
+  para ocultar acciones no pertinentes en cliente; backend siempre revalida.
+- [Contrato detallado, concurrencia y reintentos](work-order-execution-contract.md).

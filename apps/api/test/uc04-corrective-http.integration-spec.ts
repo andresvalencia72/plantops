@@ -318,4 +318,77 @@ describe('HTTP UC-04 — authenticated corrective order from reviewed incident',
       .set('Cookie', cookies.memberA).expect(200);
     expect(history.body).toEqual([]);
   });
+
+  it('UC06 HTTP: assigned technician starts and completes with immutable history', async () => {
+    const incident = await fixture();
+    const created = await post(incident).expect(201);
+    const order = created.body.id as string;
+    await assign(incident, order, ids.mtA, 0).expect(201);
+    const routeOf = route(incident) + `/${order}/execution`;
+    const step = (action: 'start' | 'complete', cookie: string,
+      key = randomUUID(), body: object = {}) =>
+      request(app.getHttpServer()).post(routeOf + '/' + action)
+        .set('Cookie', cookie).set('Sec-Fetch-Site', 'same-origin')
+        .set('Idempotency-Key', key).send(body);
+    const startKey = randomUUID();
+    const first = await step('start', cookies.techA, startKey).expect(201);
+    expect(first.body).toMatchObject({ action: 'STARTED',
+      fromStatus: 'ASSIGNED', toStatus: 'IN_PROGRESS', result: null });
+    expect((await step('start', cookies.techA, startKey).expect(201)).body)
+      .toEqual(first.body);
+    await step('start', cookies.techA).expect(409);
+    const text = 'Replaced damaged component and checked the vibration again';
+    const doneKey = randomUUID();
+    const complete = await step('complete', cookies.techA, doneKey,
+      { result: text }).expect(201);
+    expect(complete.body).toMatchObject({ action: 'COMPLETED',
+      result: text, fromStatus: 'IN_PROGRESS', toStatus: 'COMPLETED' });
+    await step('complete', cookies.techA, doneKey, { result: text }).expect(201);
+    await step('complete', cookies.techA, doneKey,
+      { result: 'Completely different result on retry' }).expect(409);
+    const info = await request(app.getHttpServer()).get(route(incident) + '/' + order)
+      .set('Cookie', cookies.memberA).expect(200);
+    expect(info.body.status).toBe('COMPLETED');
+    const history = await request(app.getHttpServer()).get(routeOf)
+      .set('Cookie', cookies.memberA).expect(200);
+    expect(history.headers['cache-control']).toBe('no-store');
+    expect(history.body.map((e: { action: string }) => e.action))
+      .toEqual(['STARTED', 'COMPLETED']);
+    for (const event of history.body) {
+      expect(event).not.toHaveProperty('requestHash');
+      expect(event).not.toHaveProperty('idempotencyKey');
+    }
+  });
+
+  it('UC06 HTTP: denies unassigned, former technician, member, supervisor and CSRF', async () => {
+    const incident = await fixture();
+    const order = (await post(incident).expect(201)).body.id as string;
+    const path = route(incident) + `/${order}/execution/start`;
+    const step = (cookie?: string, key: string = randomUUID(), body: object = {}) => {
+      const req = request(app.getHttpServer()).post(path)
+        .set('Idempotency-Key', key).set('Sec-Fetch-Site', 'same-origin');
+      if (cookie) req.set('Cookie', cookie);
+      return req.send(body);
+    };
+    await step().expect(401);
+    await step(cookies.memberA).expect(403);
+    await step(cookies.supA).expect(403);
+    await step(cookies.techA).expect(403);
+    await assign(incident, order, ids.mtA, 0).expect(201);
+    await assign(incident, order, ids.mt2A, 1).expect(201);
+    await step(cookies.techA).expect(403);
+    await request(app.getHttpServer()).post(path).set('Cookie', cookies.tech2A)
+      .set('Sec-Fetch-Site', 'cross-site').set('Origin', 'https://bad.invalid')
+      .set('Idempotency-Key', randomUUID()).send({}).expect(403);
+    await step(cookies.tech2A, randomUUID(), { status: 'COMPLETED' }).expect(400);
+    await step(cookies.tech2A, 'bad-key').expect(400);
+    await request(app.getHttpServer()).post(path).set('Cookie', cookies.tech2A)
+      .set('Sec-Fetch-Site', 'same-origin')
+      .set('Idempotency-Key', randomUUID())
+      .set('Content-Type', 'text/plain').send('{}').expect(415);
+    await step(cookies.tech2A).expect(201);
+    const history = await request(app.getHttpServer()).get(route(incident) +
+      `/${order}/execution`).set('Cookie', cookies.memberA).expect(200);
+    expect(history.body).toHaveLength(1);
+  });
 });

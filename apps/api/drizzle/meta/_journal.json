@@ -57,6 +57,13 @@
       "when": 1794482300193,
       "tag": "0007_natural_mantis",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794484427358,
+      "tag": "0008_blue_loa",
+      "breakpoints": true
     }
   ]
 }
