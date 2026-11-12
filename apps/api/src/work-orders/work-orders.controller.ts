@@ -1,18 +1,50 @@
 import {
-  BadRequestException, Body, Controller, Header, Headers, HttpCode,
-  Param, ParseUUIDPipe, Post, UnsupportedMediaTypeException,
+  BadRequestException, Body, Controller, Get, Header, Headers, HttpCode,
+  Param, ParseUUIDPipe, Post, Query, UnsupportedMediaTypeException,
 } from '@nestjs/common';
 import { CurrentUser } from '@nestjs/authentication';
 import { DatabaseConnection } from '../auth/database-connection.js';
 import { DrizzleMembershipLookup } from '../security/drizzle-membership-lookup.js';
 import { resolveTenantContext, type VerifiedSessionIdentity } from '../security/tenant-context.js';
 import { createCorrectiveOrder } from './create-corrective-order.js';
+import { DrizzleWorkOrderReader } from './drizzle-work-order-reader.js';
 
 @Controller('organizations/:organizationId/incidents/:incidentId/work-orders')
 export class WorkOrdersController {
   private readonly memberships: DrizzleMembershipLookup;
+  private readonly reader: DrizzleWorkOrderReader;
   constructor(private readonly connection: DatabaseConnection) {
     this.memberships = new DrizzleMembershipLookup(connection.db);
+    this.reader = new DrizzleWorkOrderReader(connection.db);
+  }
+
+  @Get()
+  @Header('Cache-Control', 'no-store')
+  async list(
+    @CurrentUser('id') userId: string,
+    @Param('organizationId', new ParseUUIDPipe({ version: '4' })) orgId: string,
+    @Param('incidentId', new ParseUUIDPipe({ version: '4' })) incidentId: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    const context = await resolveTenantContext(
+      { userId } as VerifiedSessionIdentity, orgId, this.memberships,
+    );
+    return this.reader.list(context, incidentId, limit, cursor);
+  }
+
+  @Get(':orderId')
+  @Header('Cache-Control', 'no-store')
+  async findById(
+    @CurrentUser('id') userId: string,
+    @Param('organizationId', new ParseUUIDPipe({ version: '4' })) orgId: string,
+    @Param('incidentId', new ParseUUIDPipe({ version: '4' })) incidentId: string,
+    @Param('orderId', new ParseUUIDPipe({ version: '4' })) orderId: string,
+  ) {
+    const context = await resolveTenantContext(
+      { userId } as VerifiedSessionIdentity, orgId, this.memberships,
+    );
+    return this.reader.findById(context, incidentId, orderId);
   }
 
   @Post()

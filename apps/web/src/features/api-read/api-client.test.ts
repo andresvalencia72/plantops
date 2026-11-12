@@ -178,4 +178,39 @@ describe('API read-only adapter', () => {
     await expect(malformed.reviewIncident('org', 'inc', 'key')).rejects
       .toThrow('Respuesta inesperada')
   })
+  it('reads scoped work orders and rejects cross-incident or malformed results', async () => {
+    const order = { id: 'w1', incidentId: 'i1', assetId: 'a1', title: 'Rodamiento',
+      status: 'PENDING', createdAt: '2026-11-12T12:00:00.000Z' }
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(jsonResponse({ items: [order], nextCursor: 'next-page' }))
+      .mockResolvedValueOnce(jsonResponse({ ...order, description: 'Replace bearing' }))
+    const client = createApiReadClient(fetcher)
+    expect((await client.workOrders('org / A', 'i1', 'cursor +')).items).toEqual([order])
+    expect((await client.workOrder('org / A', 'i1', 'w1')).description)
+      .toBe('Replace bearing')
+    expect(fetcher.mock.calls.map(([path]) => path)).toEqual([
+      '/api/organizations/org%20%2F%20A/incidents/i1/work-orders?limit=20&cursor=cursor+%2B',
+      '/api/organizations/org%20%2F%20A/incidents/i1/work-orders/w1',
+    ])
+    expect(fetcher.mock.calls.every(([, options]) => options?.method === 'GET' &&
+      options.credentials === 'include')).toBe(true)
+    const crossTenant = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ items: [{ ...order, incidentId: 'i2' }],
+        nextCursor: null })))
+    await expect(crossTenant.workOrders('org-a', 'i1'))
+      .rejects.toThrow('Respuesta inesperada')
+    const wrongDetail = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ ...order, id: 'w2', description: 'Private' })))
+    await expect(wrongDetail.workOrder('org-a', 'i1', 'w1'))
+      .rejects.toThrow('Respuesta inesperada')
+    const invalidDate = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ items: [{ ...order, createdAt: 'invalid' }],
+        nextCursor: null })))
+    await expect(invalidDate.workOrders('org-a', 'i1'))
+      .rejects.toThrow('Respuesta inesperada')
+    const forbidden = createApiReadClient(vi.fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({}, 403)))
+    await expect(forbidden.workOrders('org-a', 'i1'))
+      .rejects.toMatchObject({ status: 403 })
+  })
 })

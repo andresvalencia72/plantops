@@ -44,6 +44,9 @@ function readyFetcher() {
         nextCursor: null,
       })
     }
+    if (path.includes('/org-a/incidents/ia/work-orders?')) {
+      return json({ items: [], nextCursor: null })
+    }
     if (path === '/api/organizations/org-a/incidents/ia') {
       return json({ id: 'ia', assetId: 'a1', title: 'Fuga de planta A',
         status: 'REPORTED', reportedAt: '2026-11-11T12:00:00.000Z',

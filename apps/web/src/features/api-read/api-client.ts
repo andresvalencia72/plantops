@@ -15,6 +15,15 @@ export type ApiIncidentDetail = ApiIncident & Readonly<{ description: string }>
 export type ApiIncidentPage = Readonly<{
   items: ApiIncident[]; nextCursor: string | null
 }>
+export type ApiWorkOrder = Readonly<{
+  id: string; incidentId: string; assetId: string; title: string
+  status: 'PENDING' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+  createdAt: string
+}>
+export type ApiWorkOrderDetail = ApiWorkOrder & Readonly<{ description: string }>
+export type ApiWorkOrderPage = Readonly<{
+  items: ApiWorkOrder[]; nextCursor: string | null
+}>
 export type ApiReportInput = Readonly<{
   assetId: string; title: string; description: string
 }>
@@ -56,6 +65,13 @@ function validIncident(value: unknown): value is ApiIncident {
     string(value.title) && string(value.reportedAt) &&
     Number.isFinite(Date.parse(value.reportedAt)) &&
     ['REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'CLOSED'].includes(String(value.status))
+}
+function validWorkOrder(value: unknown): value is ApiWorkOrder {
+  return record(value) && string(value.id) && string(value.incidentId) &&
+    string(value.assetId) && string(value.title) &&
+    string(value.createdAt) && Number.isFinite(Date.parse(value.createdAt)) &&
+    ['PENDING', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
+      .includes(String(value.status))
 }
 function invalid(): never {
   throw new Error('Respuesta inesperada del servidor. No se mostraron datos.')
@@ -125,6 +141,30 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
       if (!record(value) || !validIncident(value) || !('description' in value) ||
         !string(value.description)) invalid()
       return value as ApiIncidentDetail
+    },
+    /** UC-04: read-only, session-authorized list scoped to the selected incident. */
+    async workOrders(orgId: string, incidentId: string,
+      cursor?: string, signal?: AbortSignal): Promise<ApiWorkOrderPage> {
+      const params = new URLSearchParams({ limit: '20' })
+      if (cursor) params.set('cursor', cursor)
+      const path = orgPath(orgId) + '/incidents/' +
+        encodeURIComponent(incidentId) + '/work-orders?' + params
+      const value = await get(path, signal)
+      if (!record(value) || !Array.isArray(value.items) ||
+        !value.items.every((item) => validWorkOrder(item) &&
+          item.incidentId === incidentId) ||
+        !(value.nextCursor === null || string(value.nextCursor))) invalid()
+      return { items: value.items, nextCursor: value.nextCursor }
+    },
+    async workOrder(orgId: string, incidentId: string, orderId: string,
+      signal?: AbortSignal): Promise<ApiWorkOrderDetail> {
+      const path = orgPath(orgId) + '/incidents/' +
+        encodeURIComponent(incidentId) + '/work-orders/' + encodeURIComponent(orderId)
+      const value = await get(path, signal)
+      if (!validWorkOrder(value) || value.id !== orderId ||
+        value.incidentId !== incidentId ||
+        !('description' in value) || !string(value.description)) invalid()
+      return value as ApiWorkOrderDetail
     },
     /** Public non-secret provider discovery. 404 means OIDC not yet configured. */
     async providers(signal?: AbortSignal): Promise<ApiLoginProvider[]> {

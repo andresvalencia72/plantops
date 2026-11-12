@@ -6,6 +6,7 @@ import { StatusBadge } from '@/features/incidents/incident-badges'
 import { ApiRequestError } from './api-client'
 import type { ApiIncidentDetail, ApiReadClient, ApiAsset } from './api-client'
 import { clearReviewRetryKey, reviewRetryKey } from './review-retry-journal'
+import { ApiWorkOrdersSection } from './api-work-orders-section'
 
 interface Props {
   client: ApiReadClient
@@ -160,6 +161,8 @@ export function ApiIncidentDetailSheet({
                   {asset ? `${asset.code} · ${asset.name}` : 'Activo no disponible'}
                 </p>
               </section>
+              {incidentId && <ApiWorkOrdersSection key={organizationId + ':' + incidentId}
+                client={client} organizationId={organizationId} incidentId={incidentId} />}
               <section className="space-y-3 border-t border-border pt-6">
                 <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Fecha de reporte</h3>
                 <p className="flex items-center gap-2 text-xs">
