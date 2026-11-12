@@ -107,6 +107,35 @@ describe('API read-only workspace', () => {
     expect(fetcher).toHaveBeenCalledTimes(2)
   })
 
+  it('standalone 401 never offers demo, and OIDC goes back to the authenticated root', async () => {
+    const fetcher = vi.fn<typeof fetch>(async (url) =>
+      String(url).endsWith('/auth/oidc/providers')
+        ? json({ providers: ['google', 'microsoft'] })
+        : json({ message: 'Unauthorized' }, 401))
+    render(<ApiReadWorkspace client={createApiReadClient(fetcher)} standalone />)
+    expect(await screen.findByRole('heading', {
+      name: 'Se requiere una sesión válida',
+    })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Continuar con Google' }))
+      .toHaveAttribute('href', '/auth/oidc/google/login?redirectTo=%2F')
+    expect(screen.getByRole('link', { name: 'Continuar con Microsoft' }))
+      .toHaveAttribute('href', '/auth/oidc/microsoft/login?redirectTo=%2F')
+    expect(screen.queryByRole('link', { name: 'Usar la demo' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Volver a la demo' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Atlas Manufacturing')).not.toBeInTheDocument()
+  })
+
+  it('standalone authenticated tenants stay read-only and cannot return to demo', async () => {
+    const { client, fetcher } = readyFetcher()
+    render(<ApiReadWorkspace client={client} standalone />)
+    expect(await screen.findByRole('button', { name: /Fuga de planta A/ }))
+      .toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Volver a la demo' })).not.toBeInTheDocument()
+    expect(screen.getByText('Entorno autenticado · Solo lectura')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Nueva incidencia' })).not.toBeInTheDocument()
+    expect(fetcher.mock.calls.every(([, init]) => init?.method === 'GET')).toBe(true)
+  })
+
   it('renders authorized tenant A, switches to B and clears A without mixing demo', async () => {
     const { client, requests, fetcher } = readyFetcher()
     const user = userEvent.setup()
