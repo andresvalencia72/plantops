@@ -1,3 +1,5 @@
+import { record, string, validIncident, validWorkOrder, validAssignment,
+  validExecution, validCancellation, validClosure, invalid } from './api-client-guards'
 import type { IncidentStatus } from '@/features/incidents/types'
 
 export type ApiLoginProvider = 'google' | 'microsoft'
@@ -49,6 +51,18 @@ export type ApiCancellationEvent = Readonly<{
   fromStatus: 'PENDING' | 'ASSIGNED' | 'IN_PROGRESS'
   reason: string; occurredAt: string
 }>
+export type ApiClosureEvent = Readonly<{
+  id: string; incidentId: string; actorMembershipId: string
+  fromStatus: 'UNDER_REVIEW' | 'IN_PROGRESS'; reason: string
+  conclusion: string | null; orderCount: number; completedCount: number
+  cancelledCount: number; closedAt: string
+}>
+export type ApiClosureSnapshot = Readonly<{
+  status: IncidentStatus
+  orders: Readonly<{ total: number; completed: number; cancelled: number; open: number }>
+  closure: ApiClosureEvent | null
+}>
+export type ApiCloseInput = Readonly<{ reason: string; conclusion?: string }>
 export type ApiReportInput = Readonly<{
   assetId: string; title: string; description: string
 }>
@@ -59,7 +73,7 @@ export type ApiReportResult = Readonly<{
 
 export class ApiRequestError extends Error {
   readonly status: number
-  constructor(status: number, operation: 'read' | 'write' | 'review' | 'order' | 'assignment' | 'execution' | 'cancellation' = 'read') {
+  constructor(status: number, operation: 'read' | 'write' | 'review' | 'order' | 'assignment' | 'execution' | 'cancellation' | 'closure' = 'read') {
     super(status === 400 ? 'Revisa los datos introducidos.'
       : status === 401 ? 'Se necesita una sesión válida.'
         : status === 403 ? (operation === 'review'
@@ -68,6 +82,7 @@ export class ApiRequestError extends Error {
           : operation === 'assignment' ? 'Solo el supervisor puede asignar técnicos.'
           : operation === 'execution' ? 'Solo el técnico responsable puede ejecutar la orden.'
           : operation === 'cancellation' ? 'Solo el supervisor puede cancelar la orden.'
+          : operation === 'closure' ? 'Solo el supervisor puede cerrar la incidencia.'
           : 'No tienes acceso a esta organización.')
           : status === 404 ? 'El recurso no está disponible.'
             : status === 409 ? (operation === 'review'
@@ -76,66 +91,16 @@ export class ApiRequestError extends Error {
               : operation === 'assignment' ? 'La asignación cambió. Consulta el historial antes de reintentar.'
               : operation === 'execution' ? 'El estado de la orden cambió. Consulta su historial.'
               : operation === 'cancellation' ? 'La orden cambió o ya fue cancelada. Comprueba el estado.'
+              : operation === 'closure' ? 'La incidencia o sus órdenes cambiaron. Actualiza el resumen antes de cerrar.'
               : 'Esta solicitud ya se usó con datos distintos.')
               : status === 415 ? 'El servidor rechazó el formato enviado.'
                 : status === 429 ? 'Demasiadas solicitudes. Espera antes de reintentar.'
-                  : (operation === 'write' || operation === 'order' || operation === 'assignment' || operation === 'execution' || operation === 'cancellation')
+                  : (operation === 'write' || operation === 'order' || operation === 'assignment' || operation === 'execution' || operation === 'cancellation' || operation === 'closure')
                     ? 'No se pudo confirmar el registro. Reintenta con la misma solicitud.'
                     : 'No se pudo consultar la API. Intenta de nuevo.')
     this.name = 'ApiRequestError'
     this.status = status
   }
-}
-
-function record(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value)
-}
-function string(value: unknown): value is string {
-  return typeof value === 'string'
-}
-function validIncident(value: unknown): value is ApiIncident {
-  return record(value) && string(value.id) && string(value.assetId) &&
-    string(value.title) && string(value.reportedAt) &&
-    Number.isFinite(Date.parse(value.reportedAt)) &&
-    ['REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'CLOSED'].includes(String(value.status))
-}
-function validWorkOrder(value: unknown): value is ApiWorkOrder {
-  return record(value) && string(value.id) && string(value.incidentId) &&
-    string(value.assetId) && string(value.title) &&
-    string(value.createdAt) && Number.isFinite(Date.parse(value.createdAt)) &&
-    ['PENDING', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
-      .includes(String(value.status)) &&
-    Number.isSafeInteger(value.assignmentVersion) &&
-    (value.assignmentVersion as number) >= 0 &&
-    (value.responsibleMembershipId === null || string(value.responsibleMembershipId))
-}
-function validAssignment(value: unknown): value is ApiAssignmentEvent {
-  return record(value) && string(value.id) && string(value.workOrderId) &&
-    ['ASSIGNED', 'REASSIGNED'].includes(String(value.action)) &&
-    Number.isSafeInteger(value.version) && (value.version as number) > 0 &&
-    (value.fromMembershipId === null || string(value.fromMembershipId)) &&
-    string(value.toMembershipId) && string(value.actorMembershipId) &&
-    (value.reason === null || string(value.reason)) &&
-    string(value.occurredAt) && Number.isFinite(Date.parse(value.occurredAt))
-}
-function validExecution(value: unknown): value is ApiExecutionEvent {
-  return record(value) && string(value.id) && string(value.workOrderId) &&
-    ['STARTED', 'COMPLETED'].includes(String(value.action)) &&
-    ['ASSIGNED', 'IN_PROGRESS'].includes(String(value.fromStatus)) &&
-    ['IN_PROGRESS', 'COMPLETED'].includes(String(value.toStatus)) &&
-    string(value.actorMembershipId) &&
-    (value.result === null || string(value.result)) &&
-    string(value.occurredAt) && Number.isFinite(Date.parse(value.occurredAt))
-}
-function validCancellation(value: unknown): value is ApiCancellationEvent {
-  return record(value) && string(value.id) && string(value.workOrderId) &&
-    string(value.actorMembershipId) &&
-    ['PENDING', 'ASSIGNED', 'IN_PROGRESS'].includes(String(value.fromStatus)) &&
-    string(value.reason) && value.reason.length >= 10 &&
-    string(value.occurredAt) && Number.isFinite(Date.parse(value.occurredAt))
-}
-function invalid(): never {
-  throw new Error('Respuesta inesperada del servidor. No se mostraron datos.')
 }
 
 /** Same-origin requests only; Vite dev proxy rewrites /api to the local Nest server. */
@@ -333,6 +298,41 @@ export function createApiReadClient(fetcher: typeof fetch = fetch) {
       if (!validCancellation(value) || value.workOrderId !== orderId ||
         value.reason !== reason.trim()) invalid()
       return value as ApiCancellationEvent
+    },
+    /** Advisory closure counts; POST always recomputes after locking incident. */
+    async closure(orgId: string, incidentId: string,
+      signal?: AbortSignal): Promise<ApiClosureSnapshot> {
+      const path = orgPath(orgId) + '/incidents/' +
+        encodeURIComponent(incidentId) + '/closure'
+      const value = await get(path, signal)
+      if (!record(value) ||
+        !['REPORTED', 'UNDER_REVIEW', 'IN_PROGRESS', 'CLOSED']
+          .includes(String(value.status)) ||
+        !record(value.orders) ||
+        !['total', 'completed', 'cancelled', 'open'].every((key) =>
+          Number.isSafeInteger((value.orders as Record<string, unknown>)[key]) &&
+          Number((value.orders as Record<string, unknown>)[key]) >= 0) ||
+        Number(value.orders.total) !== Number(value.orders.completed) +
+          Number(value.orders.cancelled) + Number(value.orders.open) ||
+        (value.closure !== null && (!validClosure(value.closure) ||
+          value.closure.incidentId !== incidentId))) invalid()
+      return value as ApiClosureSnapshot
+    },
+    async closeIncident(orgId: string, incidentId: string,
+      input: ApiCloseInput, key: string): Promise<ApiClosureEvent> {
+      const path = orgPath(orgId) + '/incidents/' +
+        encodeURIComponent(incidentId) + '/closure'
+      const response = await fetcher('/api' + path, {
+        method: 'POST', credentials: 'include', redirect: 'error',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json',
+          'Idempotency-Key': key }, body: JSON.stringify(input),
+      })
+      if (!response.ok) throw new ApiRequestError(response.status, 'closure')
+      const value: unknown = await response.json()
+      if (!validClosure(value) || value.incidentId !== incidentId ||
+        value.reason !== input.reason.trim() ||
+        value.conclusion !== (input.conclusion?.trim() || null)) invalid()
+      return value as ApiClosureEvent
     },
     /** Public non-secret provider discovery. 404 means OIDC not yet configured. */
     async providers(signal?: AbortSignal): Promise<ApiLoginProvider[]> {
