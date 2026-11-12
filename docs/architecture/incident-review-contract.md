@@ -111,8 +111,12 @@ sin revisar primero el plan de despliegue y el esquema pendiente.
 
 ## Orden de implementación siguiente
 
-**Siguiente corte:** adaptador HTTP y botón de supervisor en la UI
-de laboratorio aislado, con E2E de acción confirmada y denegación para
-miembro/técnico. Más adelante, lectura paginada del historial y una
-estrategia de migración real revisada antes de usar datos persistentes.
+**Implementado en rama draft posterior:** adaptador HTTP y botón de
+supervisor en la UI de laboratorio aislado, confirmación explícita,
+reintento idempotente tras recarga y Playwright con API interceptada.
+[Alcance, pruebas y límites](../quality/uc03-supervisor-web.md).
+**Pendiente:** E2E de este flujo desde navegador contra sesión de
+supervisor sintética y PostgreSQL descartable, lectura paginada del
+historial y una estrategia de migración real revisada antes de usar
+datos persistentes.
 No fusionar `main` sin aprobación explícita.
