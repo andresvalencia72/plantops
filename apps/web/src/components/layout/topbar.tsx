@@ -54,7 +54,7 @@ export function Topbar({
         >
           {theme === 'dark' ? <Sun size={17} /> : <Moon size={17}/>}
         </Button>
-        <div className="hidden h-9 w-9 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground sm:flex" aria-label="Perfil de demostración">
+        <div className="hidden h-9 w-9 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground sm:flex" aria-hidden="true">
           <UserRound size={16} aria-hidden="true"/>
         </div>
       </div>
