@@ -154,8 +154,8 @@ describe('Sprint 3V — authenticated audited asset plant transfer', () => {
     await db.insert(workOrders).values({
       organizationId: ids.org, assetId: ids.blockedOrder,
       createdByMembershipId: ids.actor, kind: 'PREVENTIVE',
-      status: 'COMPLETED', title: 'Old completed work',
-      description: 'Completed order still records an old factory zone',
+      status: 'IN_PROGRESS', title: 'Pending technical execution',
+      description: 'An order in progress cannot move to another plant',
       idempotencyKey: randomUUID(), requestHash: randomUUID(),
     });
     await db.insert(incidents).values([
@@ -247,7 +247,7 @@ describe('Sprint 3V — authenticated audited asset plant transfer', () => {
     expect(p2.body.nextCursor).toBeNull();
   });
 
-  it('blocks paused plans, historical orders, incidents and inactive assets', async () => {
+  it('blocks paused plans, open orders, incidents and inactive assets', async () => {
     for (const id of [ids.blockedPlan, ids.blockedOrder,
       ids.blockedIncident]) {
       await post(id).expect(409);

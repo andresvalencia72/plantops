@@ -154,7 +154,7 @@ describe('Sprint 3T — transfer review without enabling transfers', () => {
     const response = await get({ targetPlantId: ids.bogota }).expect(200);
     expect(response.headers['cache-control']).toBe('no-store');
     expect(response.body).toMatchObject({
-      policyStatus: 'UNDECIDED',
+      policyStatus: 'LIMITED_CLOSED_HISTORY',
       transferAuthorized: false,
       asset: { id: ids.assigned, active: true, plantId: ids.madrid },
       currentPlant: { id: ids.madrid, timeZone: 'Europe/Madrid' },
@@ -178,7 +178,7 @@ describe('Sprint 3T — transfer review without enabling transfers', () => {
   it('never authorizes transfers for empty or same-plant assets', async () => {
     const empty = await get({}, cookies.supervisor, ids.org, ids.empty).expect(200);
     expect(empty.body).toMatchObject({
-      transferAuthorized: false, policyStatus: 'UNDECIDED',
+      transferAuthorized: false, policyStatus: 'LIMITED_CLOSED_HISTORY',
       currentPlant: null, targetPlant: null,
       impact: {
         activePlans: 0, pausedPlans: 0, openOrders: 0,
