@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { and, asc, eq } from 'drizzle-orm';
+import { workOrderScope } from './work-order-scope.js';
 import { alias } from 'drizzle-orm/pg-core';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { memberships, users } from '../database/organizations.js';
@@ -43,12 +44,10 @@ export class DrizzleAssignmentReader {
       )).orderBy(asc(users.displayName), asc(memberships.id)).limit(200);
   }
 
-  async history(context: TenantContext, incidentId: string, orderId: string) {
+  async history(context: TenantContext, incidentId: string | null, orderId: string) {
     const [order] = await this.database.select({ id: workOrders.id })
-      .from(workOrders).where(and(
-        eq(workOrders.organizationId, context.organizationId),
-        eq(workOrders.incidentId, incidentId),
-        eq(workOrders.id, orderId),
+      .from(workOrders).where(workOrderScope(
+        context.organizationId, orderId, incidentId,
       )).limit(1);
     if (!order) throw new NotFoundException('Work order not found');
     return this.database.select(visible).from(workOrderAssignments)

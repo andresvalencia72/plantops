@@ -4,6 +4,7 @@ import {
   InternalServerErrorException, NotFoundException,
 } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
+import { workOrderScope } from './work-order-scope.js';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { memberships } from '../database/organizations.js';
 import { workOrderAssignments } from '../database/work-order-assignments.js';
@@ -15,7 +16,7 @@ import {
 const uuidV4 = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 
 export type AssignTechnicianInput = Readonly<{
-  incidentId: string;
+  incidentId: string | null;
   orderId: string;
   technicianMembershipId: string;
   expectedVersion: number;
@@ -37,13 +38,14 @@ const projected = {
 };
 
 function normalize(input: AssignTechnicianInput) {
-  const incidentId = input.incidentId?.toLowerCase();
+  const incidentId = input.incidentId === null ? null : input.incidentId?.toLowerCase();
   const orderId = input.orderId?.toLowerCase();
   const technicianMembershipId = input.technicianMembershipId?.toLowerCase();
   const idempotencyKey = input.idempotencyKey?.toLowerCase();
   const reason = input.reason?.trim() || null;
-  if (![incidentId, orderId, technicianMembershipId, idempotencyKey]
-    .every((id) => uuidV4.test(id)) ||
+  if ((incidentId !== null && !uuidV4.test(incidentId)) ||
+    ![orderId, technicianMembershipId, idempotencyKey]
+      .every((id) => uuidV4.test(id)) ||
     !Number.isSafeInteger(input.expectedVersion) ||
     input.expectedVersion < 0 || input.expectedVersion >= 2147483647 ||
     (reason !== null && (reason.length < 3 || reason.length > 500))) {
@@ -83,10 +85,8 @@ export async function assignTechnician(
       throw new ForbiddenException('Supervisor membership is no longer active');
     }
 
-    const orderScope = and(
-      eq(workOrders.organizationId, context.organizationId),
-      eq(workOrders.incidentId, next.incidentId),
-      eq(workOrders.id, next.orderId),
+    const orderScope = workOrderScope(
+      context.organizationId, next.orderId, next.incidentId,
     );
     const [order] = await tx.select({
       id: workOrders.id, status: workOrders.status,
