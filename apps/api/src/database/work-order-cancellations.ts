@@ -3,7 +3,7 @@ import { check, foreignKey, pgTable, text, timestamp, unique, uuid } from 'drizz
 import { memberships, organizations } from './organizations.js';
 import { workOrderStatus, workOrders } from './work-orders.js';
 
-/** UC-07: one immutable cancellation record per corrective order. */
+/** UC-07: one immutable cancellation record per work order. */
 export const workOrderCancellations = pgTable('work_order_cancellations', {
   id: uuid('id').primaryKey().defaultRandom(),
   organizationId: uuid('organization_id').notNull()
