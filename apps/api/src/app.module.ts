@@ -7,6 +7,7 @@ import { PlantOpsSessionAuth } from './auth/session-auth.provider.js';
 import { SessionController } from './auth/session.controller.js';
 import { MeController } from './auth/me.controller.js';
 import { AssetsController } from './assets/assets.controller.js';
+import { AssetPlantAssignmentController } from './assets/asset-plant-assignment.controller.js';
 import { IncidentsController } from './incidents/incidents.controller.js';
 import { WorkOrdersController } from './work-orders/work-orders.controller.js';
 import { OrganizationWorkOrdersController } from './work-orders/organization-work-orders.controller.js';
@@ -50,6 +51,7 @@ const oidcConfig = buildOidcConfig();
     SessionController,
     MeController,
     AssetsController,
+    AssetPlantAssignmentController,
     IncidentsController,
     WorkOrdersController,
     OrganizationWorkOrdersController,
