@@ -70,6 +70,27 @@ describe('shared-schema tenant constraints', () => {
     ]);
   });
 
+  it('links optional asset plants only within the same organization', async () => {
+    const { plants } = await import('./plants.js');
+    const plantConfig = getTableConfig(plants);
+    expect(plantConfig.uniqueConstraints.map((key) =>
+      key.columns.map((column) => column.name))).toContainEqual([
+      'organization_id', 'id',
+    ]);
+    expect(plantConfig.checks.map((check) => check.name)).toEqual(
+      expect.arrayContaining(['plants_name_length', 'plants_iana_zone_format']),
+    );
+    const keys = getTableConfig(assets).foreignKeys.map((key) => {
+      const ref = key.reference();
+      return [ref.columns.map((col) => col.name),
+        ref.foreignColumns.map((col) => col.name)];
+    });
+    expect(keys).toContainEqual([
+      ['organization_id', 'plant_id'], ['organization_id', 'id'],
+    ]);
+    expect(assets.plantId.notNull).toBe(false);
+  });
+
   it('requires both incident foreign keys to match the tenant', () => {
     const links = getTableConfig(incidents).foreignKeys.map((key) => {
       const ref = key.reference();
