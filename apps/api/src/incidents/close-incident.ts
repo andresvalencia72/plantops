@@ -1,3 +1,4 @@
+import { postgresTextLengthIsBetween } from '../common/postgres-text-length.js';
 import { createHash } from 'node:crypto';
 import {
   BadRequestException, ConflictException, ForbiddenException,
@@ -33,8 +34,8 @@ function normalize(input: CloseIncidentInput) {
   const reason = input.reason?.trim();
   const conclusion = input.conclusion?.trim() || null;
   if (!uuidV4.test(incidentId) || !uuidV4.test(key) || !reason ||
-    reason.length < 10 || reason.length > 1000 ||
-    (conclusion !== null && (conclusion.length < 20 || conclusion.length > 4000))) {
+    !postgresTextLengthIsBetween(reason, 10, 1000) ||
+    (conclusion !== null && !postgresTextLengthIsBetween(conclusion, 20, 4000))) {
     throw new BadRequestException('Invalid incident closure');
   }
   const requestHash = createHash('sha256')
@@ -87,7 +88,7 @@ export async function closeIncident(db: NodePgDatabase,
         throw new ConflictException('No-order closure requires review and a reason only');
       }
     } else if (incident.status !== 'IN_PROGRESS' || counts.open !== 0 ||
-      !next.conclusion || next.conclusion.length < 20) {
+      !next.conclusion || !postgresTextLengthIsBetween(next.conclusion, 20, 4000)) {
       throw new ConflictException('All work orders must be terminal and a conclusion supplied');
     }
 

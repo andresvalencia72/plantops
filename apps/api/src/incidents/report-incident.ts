@@ -1,3 +1,4 @@
+import { postgresTextLengthIsBetween } from '../common/postgres-text-length.js';
 import {
   BadRequestException,
   ConflictException,
@@ -33,11 +34,9 @@ function validate(input: ReportIncidentInput) {
     !uuid.test(input.assetId ?? '') ||
     !uuidV4.test(input.idempotencyKey ?? '') ||
     !title ||
-    title.length < 3 ||
-    title.length > 160 ||
+    !postgresTextLengthIsBetween(title, 3, 160) ||
     !description ||
-    description.length < 10 ||
-    description.length > 4000
+    !postgresTextLengthIsBetween(description, 10, 4000)
   ) {
     throw new BadRequestException('Invalid incident report');
   }

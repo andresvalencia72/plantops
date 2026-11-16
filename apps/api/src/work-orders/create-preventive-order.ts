@@ -1,3 +1,4 @@
+import { postgresTextLengthIsBetween } from '../common/postgres-text-length.js';
 import { createHash } from 'node:crypto';
 import {
   BadRequestException, ConflictException, ForbiddenException,
@@ -35,8 +36,8 @@ function normalize(input: CreatePreventiveOrderInput) {
   const title = input.title?.trim();
   const description = input.description?.trim();
   if (!uuidV4.test(assetId) || !uuidV4.test(idempotencyKey) ||
-      !title || title.length < 3 || title.length > 160 ||
-      !description || description.length < 10 || description.length > 4000) {
+      !title || !postgresTextLengthIsBetween(title, 3, 160) ||
+      !description || !postgresTextLengthIsBetween(description, 10, 4000)) {
     throw new BadRequestException('Invalid preventive order');
   }
   const requestHash = createHash('sha256')
