@@ -41,10 +41,11 @@ tzdb. No se generan códigos de calendario por horas/meses sin especificar.
 
 ## Brecha de integración y propuesta sujeta a aprobación
 
-El repositorio actual almacena `assets.organization_id` y planes
-por activo, pero **no tiene una entidad planta ni una zona horaria
-IANA persistida por planta**. Por tanto, las rutas POST de generación
-y los listados siguen usando su regla UTC anterior. Se evita una
+El núcleo de la PR #89 partió de un modelo con `assets.organization_id`
+y planes por activo, **sin entidad planta persistida**. La PR posterior
+para el Sprint 3M introduce esa persistencia en un corte separado. Las rutas POST de generación y los listados **siguen usando su regla UTC
+anterior**: disponer de la columna opcional `plant_id` no integra el
+calendario automáticamente. Se evita una
 falsa integración que tome una zona elegida por la UI sin validar
 la pertenencia del activo al tenant.
 
