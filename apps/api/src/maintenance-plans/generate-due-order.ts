@@ -8,9 +8,11 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { assets } from '../database/assets.js';
 import { maintenancePlans } from '../database/maintenance-plans.js';
 import { memberships } from '../database/organizations.js';
+import { plants } from '../database/plants.js';
 import { workOrderEvents } from '../database/work-order-events.js';
 import { workOrders } from '../database/work-orders.js';
 import { requireTenantPermission, type TenantContext } from '../security/tenant-context.js';
+import { isDueOnLocalDay } from './industrial-calendar.js';
 
 const uuidV4 = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 const visible = {
@@ -43,8 +45,12 @@ function publicOrder<T extends { requestHash: string;
 export async function generateDueOrder(
   db: NodePgDatabase, context: TenantContext,
   input: Readonly<{ planId: string; idempotencyKey: string }>,
+  asOfUtc: Date = new Date(),
 ) {
   requireTenantPermission(context, 'GENERATE_MAINTENANCE_ORDER');
+  if (!Number.isFinite(asOfUtc.getTime())) {
+    throw new InternalServerErrorException('Clock is unavailable');
+  }
   const planId = input.planId?.toLowerCase();
   const key = input.idempotencyKey?.toLowerCase();
   if (!uuidV4.test(planId) || !uuidV4.test(key)) {
@@ -90,14 +96,31 @@ export async function generateDueOrder(
     if (prior) return publicOrder(prior, requestHash, plan.id);
 
     if (!plan.active) throw new ConflictException('Plan is inactive');
-    if (plan.nextDueOn > new Date().toISOString().slice(0, 10)) {
-      throw new ConflictException('Plan is not due in UTC');
-    }
-    const [asset] = await tx.select({ id: assets.id }).from(assets)
-      .where(and(eq(assets.organizationId, context.organizationId),
-        eq(assets.id, plan.assetId), eq(assets.active, true)))
-      .limit(1).for('share');
+    const [asset] = await tx.select({
+      id: assets.id, plantId: assets.plantId,
+    }).from(assets).where(and(
+      eq(assets.organizationId, context.organizationId),
+      eq(assets.id, plan.assetId), eq(assets.active, true),
+    )).limit(1).for('share');
     if (!asset) throw new NotFoundException('Active asset not found');
+
+    // The asset's tenant-safe plant link is the trusted source of local
+    // calendar semantics. Legacy unassigned assets retain UTC until linked.
+    let isDue = plan.nextDueOn <= asOfUtc.toISOString().slice(0, 10);
+    if (asset.plantId !== null) {
+      const [plant] = await tx.select({ zone: plants.timeZone })
+        .from(plants).where(and(
+          eq(plants.organizationId, context.organizationId),
+          eq(plants.id, asset.plantId),
+        )).limit(1).for('share');
+      if (!plant) throw new InternalServerErrorException('Linked plant unavailable');
+      try {
+        isDue = isDueOnLocalDay(plan.nextDueOn, plant.zone, asOfUtc);
+      } catch {
+        throw new InternalServerErrorException('Plant time zone unsupported');
+      }
+    }
+    if (!isDue) throw new ConflictException('Maintenance plan is not due');
 
     const [created] = await tx.insert(workOrders).values({
       organizationId: context.organizationId,
