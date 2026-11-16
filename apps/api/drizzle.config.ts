@@ -4,6 +4,7 @@ export default defineConfig({
   dialect: 'postgresql',
   schema: [
     './src/database/organizations.ts',
+    './src/database/plants.ts',
     './src/database/assets.ts',
     './src/database/incidents.ts',
     './src/database/audit-events.ts',
