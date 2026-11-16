@@ -12,6 +12,7 @@ import { WorkOrdersController } from './work-orders/work-orders.controller.js';
 import { OrganizationWorkOrdersController } from './work-orders/organization-work-orders.controller.js';
 import { PreventiveWorkOrdersController } from './work-orders/preventive-work-orders.controller.js';
 import { PreventiveAssignmentsController } from './work-orders/preventive-assignments.controller.js';
+import { PreventiveExecutionController } from './work-orders/preventive-execution.controller.js';
 import { TechniciansController } from './work-orders/technicians.controller.js';
 import { WorkOrderExecutionController } from './work-orders/work-order-execution.controller.js';
 import { WorkOrderCancellationController } from './work-orders/work-order-cancellation.controller.js';
@@ -50,6 +51,7 @@ const oidcConfig = buildOidcConfig();
     OrganizationWorkOrdersController,
     PreventiveWorkOrdersController,
     PreventiveAssignmentsController,
+    PreventiveExecutionController,
     TechniciansController,
     WorkOrderExecutionController,
     WorkOrderCancellationController,

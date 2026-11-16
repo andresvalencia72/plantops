@@ -9,10 +9,11 @@ import { memberships } from '../database/organizations.js';
 import { workOrderExecutions } from '../database/work-order-executions.js';
 import { workOrders } from '../database/work-orders.js';
 import { requireTenantPermission, type TenantContext } from '../security/tenant-context.js';
+import { workOrderScope } from './work-order-scope.js';
 
 const uuidV4 = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 export type ExecutionInput = Readonly<{
-  incidentId: string; orderId: string; idempotencyKey: string;
+  incidentId: string | null; orderId: string; idempotencyKey: string;
   action: 'STARTED' | 'COMPLETED'; result?: string;
 }>;
 const visible = {
@@ -27,10 +28,11 @@ const visible = {
   requestHash: workOrderExecutions.requestHash,
 };
 function normalize(input: ExecutionInput) {
-  const incidentId = input.incidentId?.toLowerCase();
+  const incidentId = input.incidentId === null ? null : input.incidentId?.toLowerCase();
   const orderId = input.orderId?.toLowerCase();
   const key = input.idempotencyKey?.toLowerCase();
-  if (![incidentId, orderId, key].every((item) => uuidV4.test(item))) {
+  if ((incidentId !== null && !uuidV4.test(incidentId)) ||
+    ![orderId, key].every((item) => uuidV4.test(item))) {
     throw new BadRequestException('Invalid order or retry identifier');
   }
   const result = input.action === 'COMPLETED' ? input.result?.trim() : null;
@@ -70,8 +72,8 @@ export async function executeWorkOrder(db: NodePgDatabase,
     if (!actor || actor.role !== 'TECHNICIAN' || actor.role !== context.role) {
       throw new ForbiddenException('Active technician required');
     }
-    const scope = and(eq(workOrders.organizationId, context.organizationId),
-      eq(workOrders.incidentId, next.incidentId), eq(workOrders.id, next.orderId));
+    const scope = workOrderScope(
+      context.organizationId, next.orderId, next.incidentId);
     const [order] = await tx.select({ id: workOrders.id,
       status: workOrders.status,
       responsibleMembershipId: workOrders.responsibleMembershipId,
