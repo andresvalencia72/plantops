@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { ArrowUpRight, Wrench } from 'lucide-react'
 import type { DemoOrganization } from '@/app/types'
 import { demoOrganizations } from '@/app/types'
@@ -22,6 +22,8 @@ export function DemoWorkOrdersPage({ organization, initialOrderId = null }: {
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<DemoOrderStatus | 'ALL'>('ALL')
   const [assetId, setAssetId] = useState('')
+  const lastTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const headingRef = useRef<HTMLHeadingElement>(null)
   const [selected, setSelected] = useState<DemoOrder | null>(() =>
     demoOrders.find((order) => order.organization === organization &&
       order.id === initialOrderId) ?? null)
@@ -43,7 +45,7 @@ export function DemoWorkOrdersPage({ organization, initialOrderId = null }: {
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[.16em] text-primary">
           Gestión de mantenimiento
         </p>
-        <h1 className="text-[28px] font-semibold tracking-[-.045em] sm:text-[32px]">
+        <h1 ref={headingRef} tabIndex={-1} className="text-[28px] font-semibold tracking-[-.045em] sm:text-[32px]">
           Órdenes de trabajo</h1>
         <p className="mt-2 text-[13px] text-muted-foreground">
           {demoOrganizations[organization]} · Órdenes correctivas de demostración.
@@ -82,7 +84,7 @@ export function DemoWorkOrdersPage({ organization, initialOrderId = null }: {
       </div> : <div className="divide-y divide-border">
         {visible.map((order) => {
           const asset = assets.find((item) => item.id === order.assetId)
-          return <button key={order.id} type="button" onClick={() => setSelected(order)}
+          return <button key={order.id} type="button" onClick={(event) => { lastTriggerRef.current = event.currentTarget; setSelected(order) }}
             className="flex w-full flex-wrap items-center justify-between gap-4 px-5 py-4 text-left hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring">
             <div className="min-w-0 flex-1 space-y-1">
               <p className="truncate text-[13px] font-semibold">{order.title}</p>
@@ -103,7 +105,13 @@ export function DemoWorkOrdersPage({ organization, initialOrderId = null }: {
       </footer>
     </section>
     <Sheet open={selected !== null} onOpenChange={(open) => { if (!open) setSelected(null) }}>
-      <SheetContent className="w-full gap-0 overflow-y-auto sm:max-w-[480px]">
+      <SheetContent className="w-full gap-0 overflow-y-auto sm:max-w-[480px]"
+        onCloseAutoFocus={(event) => {
+          const target = lastTriggerRef.current?.isConnected ? lastTriggerRef.current : headingRef.current
+          if (!target?.isConnected) return
+          event.preventDefault()
+          target.focus()
+        }}>
         <SheetHeader className="border-b border-border px-6 py-6">
           <SheetTitle>{selected?.title ?? 'Orden de trabajo'}</SheetTitle>
           <SheetDescription>Ficha e historial ficticios de demostración</SheetDescription>

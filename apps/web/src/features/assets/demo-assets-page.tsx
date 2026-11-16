@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { ArrowUpRight, Boxes, Search } from 'lucide-react'
 import type { DemoOrganization } from '@/app/types'
 import { demoOrganizations } from '@/app/types'
@@ -19,6 +19,8 @@ export function DemoAssetsPage({ organization, onOpenIncident, onOpenOrder }: {
 }) {
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const lastTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const headingRef = useRef<HTMLHeadingElement>(null)
   const { records, loading, error, refresh } = useIncidents(organization)
   const scoped = useMemo(() => assets.filter((asset) =>
     asset.organization === organization &&
@@ -36,7 +38,7 @@ export function DemoAssetsPage({ organization, onOpenIncident, onOpenOrder }: {
       <div>
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[.16em] text-primary">
           Gestión de mantenimiento</p>
-        <h1 className="text-[28px] font-semibold tracking-[-.045em] sm:text-[32px]">Activos</h1>
+        <h1 ref={headingRef} tabIndex={-1} className="text-[28px] font-semibold tracking-[-.045em] sm:text-[32px]">Activos</h1>
         <p className="mt-2 text-[13px] text-muted-foreground">
           Catálogo de equipos de {demoOrganizations[organization]}.
         </p>
@@ -68,7 +70,7 @@ export function DemoAssetsPage({ organization, onOpenIncident, onOpenOrder }: {
       </div>}
       {scoped.length > 0 && <div className="divide-y divide-border">
         {scoped.map((asset) => <button key={asset.id} type="button"
-          onClick={() => setSelectedId(asset.id)}
+          onClick={(event) => { lastTriggerRef.current = event.currentTarget; setSelectedId(asset.id) }}
           className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring">
           <span className="min-w-0 space-y-1">
             <span className="block truncate text-[13px] font-semibold">{asset.name}</span>
@@ -83,7 +85,13 @@ export function DemoAssetsPage({ organization, onOpenIncident, onOpenOrder }: {
       </footer>
     </section>
     <Sheet open={Boolean(selected)} onOpenChange={(open) => { if (!open) setSelectedId(null) }}>
-      <SheetContent className="w-full gap-0 overflow-y-auto sm:max-w-[480px]">
+      <SheetContent className="w-full gap-0 overflow-y-auto sm:max-w-[480px]"
+        onCloseAutoFocus={(event) => {
+          const target = lastTriggerRef.current?.isConnected ? lastTriggerRef.current : headingRef.current
+          if (!target?.isConnected) return
+          event.preventDefault()
+          target.focus()
+        }}>
         <SheetHeader className="border-b border-border px-6 py-6">
           <SheetTitle>Ficha del activo</SheetTitle>
           <SheetDescription>Equipo ficticio · Información de demostración</SheetDescription>
