@@ -1,6 +1,7 @@
 import { Client } from 'pg';
+import { runtimeLockColumns, runtimePermissions } from './runtime-role-policy.mjs';
 
-/** Read-only privilege preflight: never print URLs or credentials. */
+/** Read-only runtime privilege preflight. Never prints URL or credentials. */
 if (!process.env.DATABASE_URL) {
   console.error('DATABASE_URL required for read-only role preflight');
   process.exit(2);
@@ -26,43 +27,63 @@ try {
       pg_get_userbyid(c.relowner) = current_user AS owns_table,
       has_table_privilege(current_user, c.oid, 'TRIGGER')
         AS can_manage_triggers,
+      has_table_privilege(current_user, c.oid, 'TRUNCATE')
+        AS can_truncate,
+      has_table_privilege(current_user, c.oid, 'REFERENCES')
+        AS can_reference,
       has_table_privilege(current_user, c.oid, 'SELECT')
         AS can_select,
       has_table_privilege(current_user, c.oid, 'INSERT')
         AS can_insert,
       has_table_privilege(current_user, c.oid, 'UPDATE')
-        AS can_update
-    FROM pg_class c
-    JOIN pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'public'
-      AND c.relkind IN ('r', 'p')
-      AND c.relname IN (
-        'work_orders', 'assets', 'asset_plant_transfers',
-        'work_order_events', 'asset_plant_assignments'
-      )
+        AS can_update,
+      has_table_privilege(current_user, c.oid, 'DELETE')
+        AS can_delete
+    FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p')
     ORDER BY c.relname
   `);
+  const expected = Object.keys(runtimePermissions).sort();
+  const actual = tables.map((row) => row.table_name).sort();
+  const drift = JSON.stringify(expected) !== JSON.stringify(actual);
+  const rightsMismatch = tables.some((row) => {
+    const rights = runtimePermissions[row.table_name];
+    if (!rights) return true;
+    return [
+      ['SELECT', row.can_select], ['INSERT', row.can_insert],
+      ['UPDATE', row.can_update], ['DELETE', row.can_delete],
+    ].some(([name, granted]) => rights.split(', ').includes(name) !== granted);
+  });
+  let lockDrift = false;
+  for (const [table, column] of Object.entries(runtimeLockColumns)) {
+    const { rows: [item] } = await db.query(`
+      SELECT has_column_privilege(current_user, $1, $2, 'UPDATE')
+        AS can_lock_column`, [`public.${table}`, column]);
+    if (!item.can_lock_column) lockDrift = true;
+  }
   const dangerous = [
     role.superuser, role.can_create_roles, role.can_create_databases,
     role.bypasses_rls, role.can_create_in_public,
-    tables.some((row) => row.owns_table || row.can_manage_triggers),
+    tables.some((row) => row.owns_table || row.can_manage_triggers ||
+      row.can_truncate || row.can_reference),
   ].some(Boolean);
-  const allTables = tables.length === 5;
+  const approved = !dangerous && !drift && !rightsMismatch && !lockDrift;
   const report = {
-    role: role.role_name, suitability: dangerous || !allTables
-      ? 'NOT_APPROVED' : 'PRIVILEGE_PREFLIGHT_PASS',
+    role: role.role_name,
+    suitability: approved ? 'PRIVILEGE_PREFLIGHT_PASS' : 'NOT_APPROVED',
     roleCapabilities: {
-      superuser: role.superuser,
-      canCreateRoles: role.can_create_roles,
+      superuser: role.superuser, canCreateRoles: role.can_create_roles,
       canCreateDatabases: role.can_create_databases,
-      bypassesRls: role.bypasses_rls,
-      canCreateInPublic: role.can_create_in_public,
+      bypassesRls: role.bypasses_rls, canCreateInPublic: role.can_create_in_public,
     },
+    schemaMatchesManifest: !drift,
+    tableDmlMatchesManifest: !rightsMismatch,
+    lockColumnGrantsPresent: !lockDrift,
     tables,
-    caveat: 'Read-only preflight; production grants, RLS and migrations require separate audit',
+    caveat: 'Read-only DDL/DML preflight only. SQL injection, membership privilege escalation and RLS are NOT certified.',
   };
   console.log(JSON.stringify(report, null, 2));
-  if (dangerous || !allTables) process.exitCode = 1;
+  if (!approved) process.exitCode = 1;
 } catch (error) {
   console.error('PostgreSQL privilege audit failed:', error?.code ?? 'connection_or_sql_error');
   process.exitCode = 2;

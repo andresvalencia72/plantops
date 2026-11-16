@@ -148,6 +148,13 @@
       "when": 1794839743152,
       "tag": "0020_guard_terminal_work_order_status",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794841544815,
+      "tag": "0021_lock_work_order_core_metadata",
+      "breakpoints": true
     }
   ]
 }
