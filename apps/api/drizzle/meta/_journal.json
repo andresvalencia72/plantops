@@ -141,6 +141,13 @@
       "when": 1794838975482,
       "tag": "0019_allow_closed_order_history",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794839743152,
+      "tag": "0020_guard_terminal_work_order_status",
+      "breakpoints": true
     }
   ]
 }
