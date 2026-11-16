@@ -35,6 +35,7 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 9l | [Auditoría de integración MVP](quality/mvp-integration-readiness.md) | Bloqueos de despliegue, bifurcación visual, puertas de decisión y ensayo de migraciones históricas |
 | 9m | [Preparación del frontend autenticado](architecture/authenticated-app-surface.md) | Build separado de demo, OIDC, solo lectura y pruebas Chrome de producción |
 | 9n | [Listado global de órdenes](architecture/organization-work-orders.md) | Consulta tenant-scoped, filtros, historial reutilizado y navegación real/demo |
+| 9y | [Sprint 3J — pausa y reanudación](architecture/maintenance-plan-state-http.md) | Acciones supervisor, versión optimista e historial |
 | 9x | [Sprint 3I — auditoría de cambios de planes](architecture/maintenance-plan-change-audit.md) | Versión, eventos inmutables y control de calendario |
 | 9w | [Sprint 3H — generación manual de vencimientos](architecture/recurring-maintenance-generation.md) | Una OT por fecha, transacción, auditoría y deduplicación |
 | 9v | [Sprint 3G — API de planes](architecture/recurring-maintenance-plan-api.md) | Crear, listar y consultar con idempotencia y permisos |
