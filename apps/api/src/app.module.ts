@@ -10,6 +10,7 @@ import { AssetsController } from './assets/assets.controller.js';
 import { AssetPlantAssignmentController } from './assets/asset-plant-assignment.controller.js';
 import { AssetLocationEvidenceController } from './assets/asset-location-evidence.controller.js';
 import { AssetTransferReviewController } from './assets/asset-transfer-review.controller.js';
+import { AssetPlantTransfersController } from './assets/asset-plant-transfers.controller.js';
 import { IncidentsController } from './incidents/incidents.controller.js';
 import { WorkOrdersController } from './work-orders/work-orders.controller.js';
 import { OrganizationWorkOrdersController } from './work-orders/organization-work-orders.controller.js';
@@ -56,6 +57,7 @@ const oidcConfig = buildOidcConfig();
     AssetPlantAssignmentController,
     AssetLocationEvidenceController,
     AssetTransferReviewController,
+    AssetPlantTransfersController,
     IncidentsController,
     WorkOrdersController,
     OrganizationWorkOrdersController,

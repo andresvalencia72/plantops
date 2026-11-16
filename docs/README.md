@@ -35,6 +35,7 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 9l | [Auditoría de integración MVP](quality/mvp-integration-readiness.md) | Bloqueos de despliegue, bifurcación visual, puertas de decisión y ensayo de migraciones históricas |
 | 9m | [Preparación del frontend autenticado](architecture/authenticated-app-surface.md) | Build separado de demo, OIDC, solo lectura y pruebas Chrome de producción |
 | 9n | [Listado global de órdenes](architecture/organization-work-orders.md) | Consulta tenant-scoped, filtros, historial reutilizado y navegación real/demo |
+| 9ak | [Sprint 3V — API de traslados conservadores](architecture/asset-plant-transfers-http.md) | Supervisor, idempotencia, versiones y consulta de ledger, sin equipos con OT/planes |
 | 9aj | [Sprint 3U — ledger y versión de traslados](architecture/asset-plant-transfer-schema.md) | SQL 0018 con auditoría inmutable y restricciones conservadoras |
 | 9ai | [Sprint 3T — evaluación de impacto de traslados](architecture/asset-transfer-impact-review.md) | GET solo para supervisor, planes/OT/incidencias, sin habilitar movimientos |
 | 9ah | [Sprint 3S — evidencias de ubicación por activo](architecture/asset-location-evidence.md) | Lectura tenant-safe del primer vínculo y snapshots de OT, sin traslados |
