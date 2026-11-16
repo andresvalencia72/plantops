@@ -156,7 +156,12 @@ try {
   // Migration 0017 must NOT invent historical locations on upgrade.
   const before = join(staging, 'before-location-snapshot');
   await mkdir(join(before, 'meta'), { recursive: true });
-  const previous = { ...journal, entries: journal.entries.slice(0, -1) };
+  // Always stage before migration 0017: later migrations must not move
+  // the historic order past the snapshot cutover being rehearsed.
+  const previous = {
+    ...journal,
+    entries: journal.entries.filter(({ idx }) => idx < 17),
+  };
   await writeFile(join(before, 'meta/_journal.json'), JSON.stringify(previous));
   for (const { tag } of previous.entries) {
     await cp(join(folder, `${tag}.sql`), join(before, `${tag}.sql`));

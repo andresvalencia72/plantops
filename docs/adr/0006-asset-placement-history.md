@@ -89,6 +89,21 @@ entre plantas del mismo tenant. La respuesta nunca equivale a
 autorización; no cambia el estado PROPUESTO del contrato de
 traslado ni el bloqueo SQL vigente.
 
+## Decisión acotada para el primer movimiento (16/11/2026)
+
+El propietario aprobó comenzar por **equipos con primera planta
+registrada y sin ningún plan ni ninguna OT histórica**, y
+sin incidencias abiertas. Las incidencias cerradas permanecen
+consultables. La PR de Sprint 3U introduce únicamente el modelo
+versionado y las guardas SQL; el futuro POST debe aplicar las mismas
+reglas en una transacción autorizada y revalidar la versión.
+
+Esta aprobación **no permite** movimientos de equipos con
+planes pausados/activos, OT completadas/canceladas, ni reinterpretar
+la historia o recalcular `next_due_on`. Esos casos continúan sin
+decisión de producto y requieren otra aprobación. No se aprueba
+la transferencia retroactiva ni la modificación de zona IANA.
+
 ## Contrato de traslado candidato
 
 1. Supervisor solicita traslado a otra planta del **mismo tenant**,
