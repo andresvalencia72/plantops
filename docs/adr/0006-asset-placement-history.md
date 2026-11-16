@@ -70,6 +70,16 @@ nuevas ya está implementada en 0017. El diseño de la futura tabla de
 versiones, su autorización y los cambios para planes abiertos siguen
 sin aprobarse.
 
+## Evidencia de lectura disponible antes de decidir traslados
+
+El Sprint 3S incorpora una
+[consulta de evidencias de ubicación](../architecture/asset-location-evidence.md)
+que reúne el primer evento de asignación y las instantáneas de
+órdenes ya almacenadas, sin nuevas tablas ni permisos de escritura.
+Este registro distingue ubicación actual, evidencia histórica e
+histórico anterior a 0017 incompleto. **No reemplaza un ledger
+de movimientos futuro** ni implica aprobar la reasignación.
+
 ## Contrato de traslado candidato
 
 1. Supervisor solicita traslado a otra planta del **mismo tenant**,

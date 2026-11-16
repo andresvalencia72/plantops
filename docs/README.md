@@ -35,6 +35,7 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 9l | [Auditoría de integración MVP](quality/mvp-integration-readiness.md) | Bloqueos de despliegue, bifurcación visual, puertas de decisión y ensayo de migraciones históricas |
 | 9m | [Preparación del frontend autenticado](architecture/authenticated-app-surface.md) | Build separado de demo, OIDC, solo lectura y pruebas Chrome de producción |
 | 9n | [Listado global de órdenes](architecture/organization-work-orders.md) | Consulta tenant-scoped, filtros, historial reutilizado y navegación real/demo |
+| 9ah | [Sprint 3S — evidencias de ubicación por activo](architecture/asset-location-evidence.md) | Lectura tenant-safe del primer vínculo y snapshots de OT, sin traslados |
 | 9ag | [Sprint 3R — instantáneas de ubicación en OT](architecture/work-order-location-snapshots.md) | Contexto IANA inmutable, migración 0017 y compatibilidad histórica |
 | 9af | [Sprint 3Q — bloqueo de INSERT con planta sin auditoría](quality/asset-insert-guard.md) | Migración 0016, prueba roja/verde y compatibilidad |
 | ADR | [ADR-0006 parcial — ubicación histórica](adr/0006-asset-placement-history.md) | Alternativas y controles previos a traslados de activos |
