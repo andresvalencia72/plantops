@@ -63,6 +63,15 @@ Con instante `2026-03-29T22:30:00Z`:
 Además: pruebas anteriores de DST primavera/otoño, fechas bisiestas,
 unicidad, permisos, concurrencia y PostgreSQL del proyecto completo.
 
+## Evolución de permisos posterior a este corte
+
+Sprint 3O permite registrar y consultar plantas. Sprint 3P permite
+asignar por primera vez activos **sin planes ni órdenes previas**
+mediante un supervisor ACTIVE con auditoría inmutable. Por tanto, el
+motor de día local pasa a ser utilizable tras una asignación
+explícita, sin migrar equipos antiguos automáticamente. El traslado
+entre plantas sigue prohibido.
+
 ## Bloqueos de producto restantes
 
 - Falta API para registrar/consultar plantas y asignar equipos con

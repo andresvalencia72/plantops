@@ -44,6 +44,18 @@ pueden usar versiones diferentes. Una futura API deberá comprobar
 la zona nombrada con el módulo `industrial-calendar.ts` y la
 persistencia, y ensayar diferencias de versiones tzdb.
 
+## Evolución posterior, sin alterar el alcance de esta migración
+
+- Sprint 3O introduce la [API de plantas](plants-http.md), con
+  autorización real de supervisor para crear y lectura tenant-safe.
+- Sprint 3P introduce la [asignación inicial auditada](asset-plant-initial-assignment.md):
+  ya no se admite actualizar `assets.plant_id` directamente por SQL
+  sin un evento de auditoría en la misma transacción. Se siguen
+  prohibiendo traslados y cambios de zona, y los equipos con planes
+  u órdenes históricas no se pueden vincular desde la nueva API.
+- Estos cortes posteriores no equivalen a fusionar `main`, habilitar
+  producción ni migrar la base del piloto.
+
 ## Invariantes de seguridad
 
 - La referencia planta–activo **no** es prueba de autorización por sí
