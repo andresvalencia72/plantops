@@ -9,6 +9,7 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { assets } from '../src/database/assets.js';
+import { assignAssetInitialPlant } from '../src/assets/asset-plant-assignment.js';
 import { maintenancePlans } from '../src/database/maintenance-plans.js';
 import { memberships, organizations, users } from '../src/database/organizations.js';
 import { plants } from '../src/database/plants.js';
@@ -74,12 +75,21 @@ describe('Sprint 3N — plant-local due evaluation in PostgreSQL transactions', 
     ]);
     await db.insert(assets).values([
       { id: ids.madridAsset, organizationId: ids.orgA,
-        code: 'N-MAD', name: 'Madrid pump', plantId: ids.madridPlant },
+        code: 'N-MAD', name: 'Madrid pump' },
       { id: ids.bogotaAsset, organizationId: ids.orgA,
-        code: 'N-BOG', name: 'Bogota pump', plantId: ids.bogotaPlant },
+        code: 'N-BOG', name: 'Bogota pump' },
       { id: ids.legacyAsset, organizationId: ids.orgA,
         code: 'N-OLD', name: 'Unassigned legacy pump' },
     ]);
+    for (const [assetId, plantId] of [
+      [ids.madridAsset, ids.madridPlant],
+      [ids.bogotaAsset, ids.bogotaPlant],
+    ] as const) {
+      await assignAssetInitialPlant(db, context, {
+        assetId, plantId, idempotencyKey: randomUUID(),
+        reason: 'First location verified before due-date evaluation',
+      });
+    }
   });
   afterAll(async () => { await pool.end(); });
 

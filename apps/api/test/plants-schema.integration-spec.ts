@@ -23,7 +23,7 @@ const ids = {
   orgA: randomUUID(), orgB: randomUUID(),
   madrid: randomUUID(), bogota: randomUUID(),
   oldAsset: randomUUID(), foreignAsset: randomUUID(),
-  userA: randomUUID(), actorA: randomUUID(),
+  spareAsset: randomUUID(), userA: randomUUID(), actorA: randomUUID(),
 };
 const sqlCode = (expected: string) => (value: unknown) => {
   const error = value as { code?: string; cause?: { code?: string } } | null;
@@ -54,6 +54,8 @@ describe('Sprint 3M — tenant-scoped plants and legacy assets', () => {
         code: 'LEGACY-A', name: 'Legacy asset' },
       { id: ids.foreignAsset, organizationId: ids.orgB,
         code: 'LEGACY-B', name: 'Other tenant asset' },
+      { id: ids.spareAsset, organizationId: ids.orgA,
+        code: 'LEGACY-SPARE', name: 'Spare unassigned asset' },
     ]);
   });
   afterAll(async () => { await pool.end(); });
@@ -103,6 +105,16 @@ describe('Sprint 3M — tenant-scoped plants and legacy assets', () => {
     expect(bogota?.timeZone).toBe('America/Bogota');
   });
 
+  it('rejects an initial asset INSERT prelinked to an existing same-tenant plant', async () => {
+    await expect(db.insert(assets).values({
+      organizationId: ids.orgA, plantId: ids.madrid,
+      code: 'UNTRACKED-INSERT', name: 'Bypassed audit path',
+    })).rejects.toSatisfy(sqlCode('55000'));
+    const [asset] = await db.select().from(assets)
+      .where(eq(assets.code, 'UNTRACKED-INSERT'));
+    expect(asset).toBeUndefined();
+  });
+
   it('rejects linking assets to a plant of another organization', async () => {
     const [foreignPlant] = await db.insert(plants).values({
       organizationId: ids.orgB, name: 'Foreign Plant',
@@ -111,10 +123,22 @@ describe('Sprint 3M — tenant-scoped plants and legacy assets', () => {
     await expect(db.insert(assets).values({
       organizationId: ids.orgA, plantId: foreignPlant!.id,
       code: 'CROSS-A', name: 'Cross-tenant asset A',
-    })).rejects.toSatisfy(sqlCode('23503'));
+    })).rejects.toSatisfy(sqlCode('55000'));
     await expect(db.insert(assets).values({
       organizationId: ids.orgB, plantId: ids.madrid,
       code: 'CROSS-B', name: 'Cross-tenant asset B',
+    })).rejects.toSatisfy(sqlCode('55000'));
+    await expect(db.insert(assetPlantAssignments).values({
+      organizationId: ids.orgA, assetId: ids.spareAsset,
+      plantId: foreignPlant!.id, actorMembershipId: ids.actorA,
+      reason: 'Foreign plant cannot enter an audit event',
+      idempotencyKey: randomUUID(), requestHash: randomUUID(),
+    })).rejects.toSatisfy(sqlCode('23503'));
+    await expect(db.insert(assetPlantAssignments).values({
+      organizationId: ids.orgA, assetId: ids.foreignAsset,
+      plantId: ids.madrid, actorMembershipId: ids.actorA,
+      reason: 'Foreign asset cannot enter an audit event',
+      idempotencyKey: randomUUID(), requestHash: randomUUID(),
     })).rejects.toSatisfy(sqlCode('23503'));
     await expect(db.update(assets).set({ plantId: foreignPlant!.id })
       .where(eq(assets.id, ids.oldAsset)))
