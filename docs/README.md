@@ -35,6 +35,8 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 9l | [Auditoría de integración MVP](quality/mvp-integration-readiness.md) | Bloqueos de despliegue, bifurcación visual, puertas de decisión y ensayo de migraciones históricas |
 | 9m | [Preparación del frontend autenticado](architecture/authenticated-app-surface.md) | Build separado de demo, OIDC, solo lectura y pruebas Chrome de producción |
 | 9n | [Listado global de órdenes](architecture/organization-work-orders.md) | Consulta tenant-scoped, filtros, historial reutilizado y navegación real/demo |
+| 9ao | [Sprint 3Z — permisos de negocio, identidad y operador](quality/identity-sql-boundary.md) | Resolución OIDC aislada, grants mínimos y guardas SQL 0022–0024 |
+| ADR | [ADR-0007 propuesto — frontera SQL de identidad](adr/0007-identity-sql-privilege-boundary.md) | Alternativas, responsabilidades y riesgos pendientes |
 | 9an | [Sprint 3Y — identidad runtime y evidencia original inmutable](quality/runtime-role-separation.md) | Migración 0021 y prueba real de usuario SQL restringido, pendiente de revisión de roles de autorización |
 | 9am | [Sprint 3X — estados terminales y permisos PostgreSQL](quality/terminal-status-and-db-roles.md) | Trigger 0020, prueba SQL con rol restringido y preflight runtime |
 | 9al | [Sprint 3W — traslado con OT cerradas y evidencia](architecture/asset-transfer-closed-history.md) | Migración 0019, histórico inmutable y bloqueos de planes/OT abiertos |
