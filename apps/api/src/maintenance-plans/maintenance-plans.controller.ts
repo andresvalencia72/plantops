@@ -8,6 +8,7 @@ import { DrizzleMembershipLookup } from '../security/drizzle-membership-lookup.j
 import { resolveTenantContext, type VerifiedSessionIdentity } from '../security/tenant-context.js';
 import { createMaintenancePlan } from './create-maintenance-plan.js';
 import { DrizzleMaintenancePlanReader } from './drizzle-maintenance-plan-reader.js';
+import { generateDueOrder } from './generate-due-order.js';
 
 @Controller('organizations/:organizationId/maintenance-plans')
 export class MaintenancePlansController {
@@ -41,6 +42,31 @@ export class MaintenancePlansController {
     const context = await resolveTenantContext(
       { userId } as VerifiedSessionIdentity, orgId, this.memberships);
     return this.reader.find(context, planId);
+  }
+
+  @Post(':planId/generate')
+  @HttpCode(201)
+  @Header('Cache-Control', 'no-store')
+  async generate(
+    @CurrentUser('id') userId: string,
+    @Param('organizationId', new ParseUUIDPipe({ version: '4' })) orgId: string,
+    @Param('planId', new ParseUUIDPipe({ version: '4' })) planId: string,
+    @Headers('idempotency-key') key: string | undefined,
+    @Headers('content-type') contentType: string | undefined,
+    @Body() body: unknown,
+  ) {
+    if (contentType?.split(';', 1)[0]?.trim().toLowerCase() !== 'application/json') {
+      throw new UnsupportedMediaTypeException('Expected application/json');
+    }
+    const context = await resolveTenantContext(
+      { userId } as VerifiedSessionIdentity, orgId, this.memberships);
+    if (!body || typeof body !== 'object' || Array.isArray(body) ||
+      Object.keys(body).length !== 0) {
+      throw new BadRequestException('Expected empty body');
+    }
+    return generateDueOrder(this.connection.db, context, {
+      planId, idempotencyKey: key ?? '',
+    });
   }
 
   @Post()
