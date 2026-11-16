@@ -70,7 +70,7 @@ export async function resolveTenantContext(
   });
 }
 
-export type TenantAction = 'REPORT_INCIDENT' | 'START_INCIDENT_REVIEW' | 'CREATE_CORRECTIVE_ORDER' | 'CREATE_PREVENTIVE_ORDER' | 'CREATE_MAINTENANCE_PLAN' | 'CHANGE_MAINTENANCE_PLAN' | 'GENERATE_MAINTENANCE_ORDER' | 'ASSIGN_TECHNICIAN' | 'EXECUTE_WORK_ORDER' | 'CANCEL_WORK_ORDER' | 'CLOSE_INCIDENT';
+export type TenantAction = 'REPORT_INCIDENT' | 'START_INCIDENT_REVIEW' | 'CREATE_CORRECTIVE_ORDER' | 'CREATE_PREVENTIVE_ORDER' | 'CREATE_MAINTENANCE_PLAN' | 'CREATE_PLANT' | 'CHANGE_MAINTENANCE_PLAN' | 'GENERATE_MAINTENANCE_ORDER' | 'ASSIGN_TECHNICIAN' | 'EXECUTE_WORK_ORDER' | 'CANCEL_WORK_ORDER' | 'CLOSE_INCIDENT';
 
 export function requireTenantPermission(
   context: TenantContext,
@@ -89,7 +89,8 @@ export function requireTenantPermission(
   if (action === 'EXECUTE_WORK_ORDER' && context.role === 'TECHNICIAN') return;
   if ((action === 'START_INCIDENT_REVIEW' || action === 'CLOSE_INCIDENT' ||
     action === 'CREATE_CORRECTIVE_ORDER' || action === 'CREATE_PREVENTIVE_ORDER' ||
-    action === 'CREATE_MAINTENANCE_PLAN' || action === 'CHANGE_MAINTENANCE_PLAN' ||
+    action === 'CREATE_MAINTENANCE_PLAN' || action === 'CREATE_PLANT' ||
+    action === 'CHANGE_MAINTENANCE_PLAN' ||
     action === 'GENERATE_MAINTENANCE_ORDER' ||
     action === 'ASSIGN_TECHNICIAN' ||
     action === 'CANCEL_WORK_ORDER') &&
