@@ -15,6 +15,7 @@ import { PreventiveAssignmentsController } from './work-orders/preventive-assign
 import { PreventiveExecutionController } from './work-orders/preventive-execution.controller.js';
 import { PreventiveCancellationController } from './work-orders/preventive-cancellation.controller.js';
 import { MaintenancePlansController } from './maintenance-plans/maintenance-plans.controller.js';
+import { PlantsController } from './plants/plants.controller.js';
 import { MaintenancePlanStateController } from './maintenance-plans/maintenance-plan-state.controller.js';
 import { TechniciansController } from './work-orders/technicians.controller.js';
 import { WorkOrderExecutionController } from './work-orders/work-order-execution.controller.js';
@@ -57,6 +58,7 @@ const oidcConfig = buildOidcConfig();
     PreventiveExecutionController,
     PreventiveCancellationController,
     MaintenancePlansController,
+    PlantsController,
     MaintenancePlanStateController,
     TechniciansController,
     WorkOrderExecutionController,
