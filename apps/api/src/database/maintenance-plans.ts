@@ -18,17 +18,22 @@ export const maintenancePlans = pgTable('maintenance_plans', {
   intervalDays: integer('interval_days').notNull(),
   nextDueOn: date('next_due_on', { mode: 'string' }).notNull(),
   active: boolean('active').notNull().default(true),
+  version: integer('version').notNull().default(0),
   idempotencyKey: uuid('idempotency_key').notNull(),
   requestHash: text('request_hash').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull().defaultNow(),
 }, (table) => [
+  unique('maintenance_plan_organization_id_id').on(
+    table.organizationId, table.id,
+  ),
   unique('maintenance_plan_organization_id_id_asset').on(
     table.organizationId, table.id, table.assetId,
   ),
   unique('maintenance_plan_actor_retry').on(
     table.organizationId, table.createdByMembershipId, table.idempotencyKey,
   ),
+  check('maintenance_plan_version_valid', sql`${table.version} >= 0`),
   check('maintenance_plan_interval_days_valid', sql`
     ${table.intervalDays} BETWEEN 1 AND 365
   `),

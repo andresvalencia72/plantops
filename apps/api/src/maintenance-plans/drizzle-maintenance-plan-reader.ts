@@ -13,6 +13,7 @@ export const planFields = {
   intervalDays: maintenancePlans.intervalDays,
   nextDueOn: maintenancePlans.nextDueOn,
   active: maintenancePlans.active,
+  version: maintenancePlans.version,
   createdAt: maintenancePlans.createdAt,
 };
 
