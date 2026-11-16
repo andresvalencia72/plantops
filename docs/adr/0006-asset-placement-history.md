@@ -1,9 +1,25 @@
 # ADR-0006 — Historial de ubicación y calendario de activos
 
-**Estado: PROPUESTO, NO APROBADO.** Fecha de propuesta: 2026-11-16.
-**Ámbito:** posible reasignación futura de activos entre plantas.
-No autoriza nueva migración, cambios de zona, reasignaciones ni
-backfill de datos históricos.
+**Estado: ACEPTADO PARCIALMENTE (captura histórica en órdenes);
+TRASLADOS Y SUS REGLAS SIGUEN PROPUESTOS.**
+Fecha de propuesta: 2026-11-16. Validación de principio: 2026-11-16.
+**Ámbito:** conservar ubicación y zona histórica en cada OT y diseñar
+una eventual reasignación futura entre plantas. No autoriza
+traslados, cambios de zona, scheduler ni backfill de datos antiguos.
+
+## Acuerdo de alcance y realización
+
+El propietario aprobó que cada orden conserve su planta y zona IANA
+de origen, y que cualquier cambio de calendario pendiente requiera
+una **decisión explícita** en vez de recálculo automático.
+El Sprint 3R implementa esa parte en
+[la migración 0017](../architecture/work-order-location-snapshots.md)
+con snapshots inmutables en `work_orders`. No crea aún una
+historia de traslados ni resuelve cómo proceder si hay planes u
+órdenes abiertos. Esos aspectos siguen siendo propuestas: el
+consentimiento para conservar la evidencia **no equivale a autorizar
+un movimiento concreto** ni a elegir automáticamente una regla
+sobre pendientes.
 
 ## Problema real
 
@@ -48,10 +64,11 @@ no se completarán por inferencia.
 | Solo historial de movimientos con instantes | Trazabilidad de traslados | Consultar zona histórica exige reconstrucción y reglas de límite temporal, más riesgo al cambiar TZ |
 | Versiones de ubicación + snapshot en cada OT / ocurrencia | Auditoría reproducible aun tras nuevos traslados | Migración y contratos más elaborados, exige política de planes en curso |
 
-**Recomendación aún no aprobada:** almacenar versiones inmutables
-de ubicación del activo y snapshots mínimos de contexto local en
-la creación de cada ocurrencia de un plan y OT. No se eligen nombres
-ni columnas SQL definitivas en este ADR.
+**Recomendación de traslado aún no aprobada:** almacenar versiones inmutables
+de ubicación del activo; la instantánea de contexto local en las OT
+nuevas ya está implementada en 0017. El diseño de la futura tabla de
+versiones, su autorización y los cambios para planes abiertos siguen
+sin aprobarse.
 
 ## Contrato de traslado candidato
 
@@ -108,6 +125,6 @@ ni columnas SQL definitivas en este ADR.
   previo incompleto?
 
 **Hasta resolverlas, sigue vigente la prohibición de traslado** de
-la migración 0015. Este documento es un diseño de evaluación, no
-una decisión aceptada. La semántica IANA y UTC aprobada sigue en
+la migración 0015. Solo la captura histórica de órdenes nuevas está
+aceptada; el contrato de traslados continúa pendiente de aprobación. La semántica IANA y UTC aprobada sigue en
 [ADR-0005](0005-maintenance-calendar-policy.md).

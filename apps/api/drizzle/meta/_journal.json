@@ -120,6 +120,13 @@
       "when": 1794834001147,
       "tag": "0016_prevent_prelinked_asset_insert",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794834891095,
+      "tag": "0017_right_blink",
+      "breakpoints": true
     }
   ]
 }

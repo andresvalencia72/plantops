@@ -6,7 +6,7 @@ import {
 import { assets } from './assets.js';
 import { memberships, organizations } from './organizations.js';
 
-/** UTC calendar-day recurring plans. No scheduled job runs from this table. */
+/** Calendar-day recurring plans; plant-local due checks are manual. No cron. */
 export const maintenancePlans = pgTable('maintenance_plans', {
   id: uuid('id').primaryKey().defaultRandom(),
   organizationId: uuid('organization_id').notNull()

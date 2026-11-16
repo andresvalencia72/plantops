@@ -26,6 +26,7 @@ const ids = {
   assetA: randomUUID(), assetB: randomUUID(),
   incidentLegacy: randomUUID(), incidentNewer: randomUUID(),
   incidentCross: randomUUID(),
+  olderOrder: randomUUID(),
 };
 
 async function assertPristine() {
@@ -108,6 +109,14 @@ async function verifyUpgrade() {
   ]]);
   assert.equal(fks.rows.length, 4, 'Critical tenant foreign keys must exist');
 
+  const historic = await db.query(`SELECT id, location_basis,
+    plant_id_snapshot, time_zone_snapshot, scheduled_for::text AS scheduled_for
+    FROM work_orders WHERE id = $1`, [ids.olderOrder]);
+  assert.deepEqual(historic.rows, [{
+    id: ids.olderOrder, location_basis: null,
+    plant_id_snapshot: null, time_zone_snapshot: null, scheduled_for: null,
+  }], 'Pre-snapshot work orders must remain explicitly unrecorded');
+
   const key = randomUUID();
   const result = await db.query(`INSERT INTO work_orders (organization_id,
     incident_id,asset_id,created_by_membership_id,idempotency_key,request_hash,
@@ -116,6 +125,13 @@ async function verifyUpgrade() {
   [ids.organizationA, ids.incidentLegacy, ids.assetA,
     ids.membershipA, key, 'test-new-order']);
   assert.deepEqual(result.rows[0], { status: 'PENDING', assignment_version: 0 });
+  const created = await db.query(`SELECT location_basis, plant_id_snapshot,
+    time_zone_snapshot FROM work_orders
+    WHERE idempotency_key = $1`, [key]);
+  assert.deepEqual(created.rows[0], {
+    location_basis: 'UNASSIGNED', plant_id_snapshot: null,
+    time_zone_snapshot: null,
+  }, 'New orders must be stamped even on raw SQL INSERT');
   await assert.rejects(db.query(`INSERT INTO work_orders (organization_id,
     incident_id,asset_id,created_by_membership_id,idempotency_key,request_hash,
     title,description) VALUES ($1,$2,$3,$4,$5,$6,'Cross tenant',
@@ -136,6 +152,23 @@ try {
   const driver = drizzle(db);
   await migrate(driver, { migrationsFolder: staging });
   await seedHistoricalRecords();
+  // Stage the last pre-snapshot schema and insert a real old work order.
+  // Migration 0017 must NOT invent historical locations on upgrade.
+  const before = join(staging, 'before-location-snapshot');
+  await mkdir(join(before, 'meta'), { recursive: true });
+  const previous = { ...journal, entries: journal.entries.slice(0, -1) };
+  await writeFile(join(before, 'meta/_journal.json'), JSON.stringify(previous));
+  for (const { tag } of previous.entries) {
+    await cp(join(folder, `${tag}.sql`), join(before, `${tag}.sql`));
+  }
+  await migrate(driver, { migrationsFolder: before });
+  await db.query(`INSERT INTO work_orders
+    (id,organization_id,incident_id,asset_id,created_by_membership_id,
+      idempotency_key,request_hash,title,description)
+    VALUES ($1,$2,$3,$4,$5,$6,'older-order',
+      'Old corrective maintenance','Historical order before snapshot')`,
+  [ids.olderOrder, ids.organizationA, ids.incidentLegacy, ids.assetA,
+    ids.membershipA, randomUUID()]);
   await migrate(driver, { migrationsFolder: folder });
   await verifyUpgrade();
   // Important: incremental migrations must be idempotent on a second run.
