@@ -6,16 +6,19 @@ import { assets } from './assets.js';
 import { incidents } from './incidents.js';
 import { memberships, organizations } from './organizations.js';
 
+export const workOrderKind = pgEnum('work_order_kind', ['CORRECTIVE', 'PREVENTIVE']);
+
 export const workOrderStatus = pgEnum('work_order_status', [
   'PENDING', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED',
 ]);
 
-/** UC-04: corrective orders only; preventive orders are a separate migration. */
+/** A preventive order has no incident; tenant + asset FKs still apply. */
 export const workOrders = pgTable('work_orders', {
   id: uuid('id').primaryKey().defaultRandom(),
   organizationId: uuid('organization_id').notNull()
     .references(() => organizations.id),
-  incidentId: uuid('incident_id').notNull(),
+  incidentId: uuid('incident_id'),
+  kind: workOrderKind('kind').notNull().default('CORRECTIVE'),
   assetId: uuid('asset_id').notNull(),
   createdByMembershipId: uuid('created_by_membership_id').notNull(),
   idempotencyKey: uuid('idempotency_key').notNull(),
@@ -29,6 +32,10 @@ export const workOrders = pgTable('work_orders', {
     .notNull().defaultNow(),
 }, (table) => [
   unique('work_orders_organization_id_id').on(table.organizationId, table.id),
+  check('work_order_kind_incident_consistency', sql`
+    (${table.kind} = 'CORRECTIVE' AND ${table.incidentId} IS NOT NULL)
+    OR (${table.kind} = 'PREVENTIVE' AND ${table.incidentId} IS NULL)
+  `),
   check('work_order_assignee_state', sql`
     (${table.status} = 'PENDING' AND ${table.responsibleMembershipId} IS NULL
       AND ${table.assignmentVersion} = 0)

@@ -78,6 +78,13 @@
       "when": 1794486236458,
       "tag": "0010_simple_eternity",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794824484560,
+      "tag": "0011_redundant_legion",
+      "breakpoints": true
     }
   ]
 }

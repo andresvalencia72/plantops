@@ -50,6 +50,7 @@ export class DrizzleOrganizationWorkOrders {
     const rows = await this.database.select({
       id: workOrders.id,
       incidentId: workOrders.incidentId,
+      kind: workOrders.kind,
       assetId: workOrders.assetId,
       title: workOrders.title,
       status: workOrders.status,
@@ -64,7 +65,7 @@ export class DrizzleOrganizationWorkOrders {
     }).from(workOrders)
       .innerJoin(assets, and(eq(assets.organizationId, workOrders.organizationId),
         eq(assets.id, workOrders.assetId)))
-      .innerJoin(incidents, and(eq(incidents.organizationId, workOrders.organizationId),
+      .leftJoin(incidents, and(eq(incidents.organizationId, workOrders.organizationId),
         eq(incidents.id, workOrders.incidentId)))
       .leftJoin(memberships, and(
         eq(memberships.organizationId, workOrders.organizationId),
