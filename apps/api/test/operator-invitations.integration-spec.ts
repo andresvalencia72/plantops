@@ -12,7 +12,7 @@ import {
   revokeInvitation,
 } from '../src/auth/invitation-operations.js';
 import { invitations } from '../src/auth/oidc-identity.schema.js';
-import { organizations } from '../src/database/organizations.js';
+import { organizations, users } from '../src/database/organizations.js';
 
 const databaseUrl = process.env.DATABASE_TEST_URL;
 if (!databaseUrl) throw new Error('DATABASE_TEST_URL required');
@@ -24,6 +24,7 @@ const db = drizzle(pool);
 const orgA = randomUUID();
 const orgB = randomUUID();
 const now = new Date('2026-11-11T12:00:00.000Z');
+const consumedBy = randomUUID();
 
 function input(email: string, organizationId: string = orgA) {
   return { email, organizationId, role: 'MEMBER' as const, validDays: 7 };
@@ -38,6 +39,9 @@ describe('operator invitations (no public HTTP endpoint)', () => {
       { id: orgA, name: 'Operator A' },
       { id: orgB, name: 'Operator B' },
     ]);
+    await db.insert(users).values({
+      id: consumedBy, displayName: 'Operator test invited user',
+    });
   });
   afterAll(async () => {
     await pool.end();
@@ -94,7 +98,8 @@ describe('operator invitations (no public HTTP endpoint)', () => {
   it('does not revoke an already consumed invitation', async () => {
     const created = await issueInvitation(db, input('used@example.test'), now);
     // Simulate a state after consumption; a dedicated resolver test verifies the actual redemption.
-    await db.update(invitations).set({ consumedAt: now }).where(eq(invitations.id, created.id));
+    await db.update(invitations).set({ consumedAt: now, consumedByUserId: consumedBy })
+      .where(eq(invitations.id, created.id));
     expect(await revokeInvitation(db, orgA, created.id, now)).toBe(false);
   });
 });
