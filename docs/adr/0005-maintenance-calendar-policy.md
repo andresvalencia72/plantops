@@ -26,9 +26,11 @@ implementada y probada únicamente en la PR draft del Sprint 3M.
 Esta aprobación **no** autoriza fusionar `main`, aplicar la migración
 al piloto, automatizar ni alterar por suposición calendarios existentes.
 
-La API actual conserva la regla UTC provisional hasta crear
-operaciones autorizadas para vincular activos a plantas. No confiar
-en una zona enviada por el navegador para determinar vencimientos.
+La generación manual incorpora en el Sprint 3N el **día local IANA**
+para activos que ya tengan una planta vinculada. Para activos antiguos
+con `plant_id=NULL` conserva temporalmente la regla UTC. No se ha
+habilitado aún una API para asignar plantas, ni debe confiarse en una
+zona recibida del navegador para determinar vencimientos.
 
 ## Contexto y estado actual
 
@@ -78,11 +80,11 @@ sin registrar aún workers ni cron.
 
 ## Consecuencias durante la transición
 
-- Mantener temporalmente días naturales UTC en los endpoints actuales
-  **sin modificar su comportamiento**. La PR 3M incorpora la tabla
-  de plantas pero no la migración del piloto ni una API para asignar
-  zonas a activos. El motor independiente ya calcula días locales,
-  pero aún no participa en las decisiones transaccionales.
+- La PR 3M incorpora la tabla de plantas; la PR 3N aplica la zona
+  de la planta durante la generación manual transaccional cuando
+  el activo tenga `plant_id`. Para los activos antiguos sin planta,
+  mantener temporalmente días UTC **sin migraciones silenciosas**.
+  Ninguna de estas PR se ha fusionado ni migrado al piloto.
 - La pausa conserva el vencimiento; la reanudación no genera nada.
   Una edición del calendario solo se permite con plan pausado,
   justificación, versión esperada y sin reutilizar ocurrencias
