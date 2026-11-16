@@ -102,6 +102,8 @@ describe('UC-04 protected work-order reads', () => {
         id: expect.any(String), incidentId: ids.incidentA,
         assetId: ids.assetA, title: expect.any(String),
         status: 'PENDING', responsibleMembershipId: null,
+        locationBasis: 'UNASSIGNED', plantIdSnapshot: null,
+        timeZoneSnapshot: null,
         assignmentVersion: 0, createdAt: expect.any(Date),
       });
       expect(page.items[0]).not.toHaveProperty('createdByMembershipId');
@@ -116,7 +118,9 @@ describe('UC-04 protected work-order reads', () => {
       id: ids.orderA, incidentId: ids.incidentA, assetId: ids.assetA,
       title: 'First A', description: 'Synthetic readable order details',
       status: 'PENDING', responsibleMembershipId: null,
-        assignmentVersion: 0, createdAt: expect.any(Date),
+      locationBasis: 'UNASSIGNED', plantIdSnapshot: null,
+      timeZoneSnapshot: null,
+      assignmentVersion: 0, createdAt: expect.any(Date),
     });
     await expect(reader.findById(contextA, ids.incidentA, ids.foreignOrder))
       .rejects.toThrow(NotFoundException);
