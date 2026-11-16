@@ -85,6 +85,11 @@ No se autoriza cambiar roles, compartir contraseñas, editar
 contenedores existentes ni migrar el piloto sin una validación
 de entorno independiente y una aprobación explícita.
 
+**Evolución en Sprint 3Y:** se ha implementado la
+[guarda de metadatos 0021 y prueba de separación de usuarios]
+(runtime-role-separation.md). Es un experimento de laboratorio,
+no un aprovisionamiento de roles aprobado para producción.
+
 ## Límites residuales
 
 Un propietario de tabla o superusuario puede evitar los
