@@ -216,6 +216,27 @@ describe('Sprint 3W — closed-order-only transfer extension', () => {
     }
   });
 
+  it('rejects reopening transferred completed or cancelled orders via direct SQL', async () => {
+    for (const [id, next] of [
+      [ids.completedOrder, 'IN_PROGRESS'],
+      [ids.completedOrder, 'CANCELLED'],
+      [ids.cancelledOrder, 'PENDING'],
+      [ids.cancelledOrder, 'COMPLETED'],
+    ] as const) {
+      await expect(db.update(workOrders).set({ status: next })
+        .where(eq(workOrders.id, id))).rejects.toSatisfy(
+          (error: unknown) => {
+            const e = error as { code?: string; cause?: { code?: string } };
+            return e?.code === '55000' || e?.cause?.code === '55000';
+          },
+        );
+    }
+    const preserved = await db.select({
+      status: workOrders.status, zone: workOrders.timeZoneSnapshot,
+    }).from(workOrders).where(eq(workOrders.id, ids.completedOrder));
+    expect(preserved).toEqual([{ status: 'COMPLETED', zone: 'Europe/Madrid' }]);
+  });
+
   it('rejects historical orders whose original plant zone is unknown', async () => {
     await post(ids.legacy).expect(409);
     expect((await moveSnapshot(ids.legacy))?.plantId).toBe(ids.madrid);
