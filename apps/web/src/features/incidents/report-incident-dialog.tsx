@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, RefObject } from 'react'
 import type { DemoOrganization } from '@/app/types'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -11,6 +11,7 @@ import type { AssetSummary, ReportIncidentInput } from './types'
 
 interface ReportIncidentDialogProps {
   organization: DemoOrganization
+  triggerRef: RefObject<HTMLButtonElement | null>
   open: boolean
   onOpenChange: (open: boolean) => void
   onCreated: (id: string) => void
@@ -19,7 +20,7 @@ interface ReportIncidentDialogProps {
 type FormErrors = Partial<Record<keyof ReportIncidentInput | 'general', string>>
 
 export function ReportIncidentDialog({
-  organization, open, onOpenChange, onCreated,
+  organization, triggerRef, open, onOpenChange, onCreated,
 }: ReportIncidentDialogProps) {
   const [assets, setAssets] = useState<AssetSummary[]>([])
   const [assetId, setAssetId] = useState('')
@@ -86,7 +87,12 @@ export function ReportIncidentDialog({
 
   return (
     <Dialog open={open} onOpenChange={close}>
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-[520px]">
+      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-[520px]"
+        onCloseAutoFocus={(event) => {
+          if (!triggerRef.current?.isConnected) return
+          event.preventDefault()
+          triggerRef.current.focus()
+        }}>
         <DialogHeader className="space-y-2">
           <DialogTitle className="text-lg font-semibold">Registrar incidencia</DialogTitle>
           <DialogDescription>

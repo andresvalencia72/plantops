@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Plus, Search, SlidersHorizontal } from 'lucide-react'
 import type { DemoOrganization } from '@/app/types'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,7 @@ export function IncidentsPage({ organization, initialIncidentId = null }: {
 }) {
   const { records, loading, error, refresh } = useIncidents(organization)
   const [formOpen, setFormOpen] = useState(false)
+  const reportTriggerRef = useRef<HTMLButtonElement>(null)
   const [filters, setFilters] = useState<IncidentFilters>(initialFilters)
   const [selectedId, setSelectedId] = useState<string | null>(initialIncidentId)
   const filtered = useMemo(() => filterIncidents(records, filters), [records, filters])
@@ -36,7 +37,7 @@ export function IncidentsPage({ organization, initialIncidentId = null }: {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-xs text-muted-foreground">Datos de demostración</span>
-          <Button onClick={() => setFormOpen(true)}><Plus size={15} aria-hidden="true"/> Nueva incidencia</Button>
+          <Button ref={reportTriggerRef} onClick={() => setFormOpen(true)}><Plus size={15} aria-hidden="true"/> Nueva incidencia</Button>
         </div>
       </div>
       <div className="flex flex-wrap gap-5 border-b border-border pb-5 text-[12px]">
@@ -99,6 +100,7 @@ export function IncidentsPage({ organization, initialIncidentId = null }: {
       <ReportIncidentDialog
         organization={organization}
         open={formOpen}
+        triggerRef={reportTriggerRef}
         onOpenChange={setFormOpen}
         onCreated={(id) => { setSelectedId(id); refresh() }}
       />
