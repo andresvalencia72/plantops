@@ -80,6 +80,15 @@ Este registro distingue ubicación actual, evidencia histórica e
 histórico anterior a 0017 incompleto. **No reemplaza un ledger
 de movimientos futuro** ni implica aprobar la reasignación.
 
+## Evaluación segura de impacto, aún sin traslados
+
+Sprint 3T añade una [consulta read-only de impacto](../architecture/asset-transfer-impact-review.md) que reúne, bajo
+transacción PostgreSQL REPEATABLE READ, los planes activos/pausados,
+los estados de OT, las incidencias y la diferencia de zonas IANA
+entre plantas del mismo tenant. La respuesta nunca equivale a
+autorización; no cambia el estado PROPUESTO del contrato de
+traslado ni el bloqueo SQL vigente.
+
 ## Contrato de traslado candidato
 
 1. Supervisor solicita traslado a otra planta del **mismo tenant**,
