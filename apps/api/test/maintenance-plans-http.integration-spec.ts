@@ -117,6 +117,13 @@ describe('Sprint 3G — maintenance plan creation and list', () => {
       .set('Cookie', cookies.foreign).expect(404);
   });
 
+  it('accepts PostgreSQL maximum code-point lengths for Unicode text', async () => {
+    const title = '😀'.repeat(160);
+    const description = '🔧'.repeat(4000);
+    const created = await post({ ...fields(), title, description }).expect(201);
+    expect(created.body).toMatchObject({ title, description });
+  });
+
   it('deduplicates concurrent retries and rejects key reuse with different inputs', async () => {
     const key = randomUUID();
     const responses = await Promise.all(Array.from({ length: 8 },
@@ -173,7 +180,9 @@ describe('Sprint 3G — maintenance plan creation and list', () => {
       { intervalDays: 0 }, { intervalDays: 366 },
       { intervalDays: 1.5 }, { nextDueOn: '2026-02-30' },
       { nextDueOn: '2100-01-01' },
-      { title: 'x' }, { createdByMembershipId: ids.supA },
+      { title: 'x' }, { title: '😀'.repeat(2) },
+      { description: '😀'.repeat(5) },
+      { createdByMembershipId: ids.supA },
     ]) {
       await post({ ...fields(), ...invalid }).expect(400);
     }

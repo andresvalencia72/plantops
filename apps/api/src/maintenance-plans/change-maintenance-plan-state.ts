@@ -8,6 +8,7 @@ import { maintenancePlanEvents } from '../database/maintenance-plan-events.js';
 import { maintenancePlans } from '../database/maintenance-plans.js';
 import { memberships } from '../database/organizations.js';
 import { requireTenantPermission, type TenantContext } from '../security/tenant-context.js';
+import { postgresTextLengthIsBetween } from '../common/postgres-text-length.js';
 
 const uuidV4 = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 export const eventView = {
@@ -56,7 +57,7 @@ export async function changeMaintenancePlanState(
     !['PAUSED', 'RESUMED'].includes(input.action) ||
     !Number.isInteger(input.expectedVersion) ||
     input.expectedVersion < 0 || input.expectedVersion >= 2147483647 ||
-    !reason || reason.length < 10 || reason.length > 1000) {
+    !reason || !postgresTextLengthIsBetween(reason, 10, 1000)) {
     throw new BadRequestException('Invalid maintenance plan transition');
   }
   const requestHash = createHash('sha256')

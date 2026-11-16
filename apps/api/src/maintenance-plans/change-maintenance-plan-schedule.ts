@@ -11,6 +11,7 @@ import { workOrders } from '../database/work-orders.js';
 import { requireTenantPermission, type TenantContext } from '../security/tenant-context.js';
 import { eventView, stripEventHash } from './change-maintenance-plan-state.js';
 import { isUtcCalendarDay } from './utc-calendar-day.js';
+import { postgresTextLengthIsBetween } from '../common/postgres-text-length.js';
 
 const uuidV4 = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 export type ChangeScheduleInput = Readonly<{
@@ -32,7 +33,7 @@ export async function changeMaintenancePlanSchedule(
     !Number.isInteger(input.intervalDays) ||
     input.intervalDays < 1 || input.intervalDays > 365 ||
     !isUtcCalendarDay(input.nextDueOn) ||
-    !reason || reason.length < 10 || reason.length > 1000) {
+    !reason || !postgresTextLengthIsBetween(reason, 10, 1000)) {
     throw new BadRequestException('Invalid maintenance schedule');
   }
   const requestHash = createHash('sha256')
