@@ -10,6 +10,7 @@ import { maintenancePlans } from '../database/maintenance-plans.js';
 import { memberships } from '../database/organizations.js';
 import { requireTenantPermission, type TenantContext } from '../security/tenant-context.js';
 import { isUtcCalendarDay } from './utc-calendar-day.js';
+import { postgresTextLengthIsBetween } from '../common/postgres-text-length.js';
 
 const uuidV4 = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 export type CreateMaintenancePlanInput = Readonly<{
@@ -37,8 +38,8 @@ function normalize(input: CreateMaintenancePlanInput) {
   const description = input.description?.trim();
   const firstDue = input.nextDueOn;
   if (!uuidV4.test(assetId) || !uuidV4.test(idempotencyKey) ||
-    !title || title.length < 3 || title.length > 160 ||
-    !description || description.length < 10 || description.length > 4000 ||
+    !title || !postgresTextLengthIsBetween(title, 3, 160) ||
+    !description || !postgresTextLengthIsBetween(description, 10, 4000) ||
     !Number.isInteger(input.intervalDays) ||
     input.intervalDays < 1 || input.intervalDays > 365 ||
     !isUtcCalendarDay(firstDue)) {
