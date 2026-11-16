@@ -9,10 +9,11 @@ import { memberships } from '../database/organizations.js';
 import { workOrderCancellations } from '../database/work-order-cancellations.js';
 import { workOrders } from '../database/work-orders.js';
 import { requireTenantPermission, type TenantContext } from '../security/tenant-context.js';
+import { workOrderScope } from './work-order-scope.js';
 
 const uuidV4 = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 export type CancelWorkOrderInput = Readonly<{
-  incidentId: string; orderId: string; reason: string; idempotencyKey: string;
+  incidentId: string | null; orderId: string; reason: string; idempotencyKey: string;
 }>;
 const fields = {
   id: workOrderCancellations.id,
@@ -24,11 +25,12 @@ const fields = {
   requestHash: workOrderCancellations.requestHash,
 };
 function normalize(input: CancelWorkOrderInput) {
-  const incidentId = input.incidentId?.toLowerCase();
+  const incidentId = input.incidentId === null ? null : input.incidentId?.toLowerCase();
   const orderId = input.orderId?.toLowerCase();
   const key = input.idempotencyKey?.toLowerCase();
   const reason = input.reason?.trim();
-  if (![incidentId, orderId, key].every((id) => uuidV4.test(id)) ||
+  if ((incidentId !== null && !uuidV4.test(incidentId)) ||
+    ![orderId, key].every((id) => uuidV4.test(id)) ||
     !reason || reason.length < 10 || reason.length > 1000) {
     throw new BadRequestException('Invalid cancellation reason or retry identifier');
   }
@@ -61,8 +63,8 @@ export async function cancelWorkOrder(db: NodePgDatabase,
     if (!actor || actor.role !== 'SUPERVISOR' || actor.role !== context.role) {
       throw new ForbiddenException('Active supervisor required');
     }
-    const scope = and(eq(workOrders.organizationId, context.organizationId),
-      eq(workOrders.incidentId, next.incidentId), eq(workOrders.id, next.orderId));
+    const scope = workOrderScope(
+      context.organizationId, next.orderId, next.incidentId);
     const [order] = await tx.select({ id: workOrders.id, status: workOrders.status })
       .from(workOrders).where(scope).limit(1).for('update');
     if (!order) throw new NotFoundException('Work order not found');
