@@ -96,9 +96,9 @@ describe('Sprint 3U — append-only asset transfer schema and SQL guards', () =>
     await db.insert(workOrders).values({
       organizationId: ids.org, assetId: ids.order,
       createdByMembershipId: ids.actor, kind: 'PREVENTIVE',
-      title: 'Historical completed work',
-      description: 'Even completed work requires a separate transfer policy',
-      status: 'COMPLETED', idempotencyKey: randomUUID(),
+      title: 'Historical open work',
+      description: 'An open work order always blocks a plant transfer',
+      status: 'IN_PROGRESS', idempotencyKey: randomUUID(),
       requestHash: randomUUID(),
     });
     await db.insert(incidents).values([
@@ -168,7 +168,7 @@ describe('Sprint 3U — append-only asset transfer schema and SQL guards', () =>
     expect(rows).toHaveLength(0);
   });
 
-  it('refuses any past plans/orders and unresolved incidents at SQL level', async () => {
+  it('refuses paused plans, open work and unresolved incidents at SQL level', async () => {
     for (const assetId of [ids.plan, ids.order, ids.openIncident]) {
       await expect(db.transaction(async (tx) => {
         const [event] = await tx.insert(assetPlantTransfers)

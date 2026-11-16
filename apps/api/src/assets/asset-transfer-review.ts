@@ -99,7 +99,7 @@ export class AssetTransferReview {
       ));
 
       return {
-        policyStatus: 'UNDECIDED' as const,
+        policyStatus: 'LIMITED_CLOSED_HISTORY' as const,
         transferAuthorized: false as const,
         asset,
         currentPlant,
@@ -117,7 +117,7 @@ export class AssetTransferReview {
           closedIncidents: incidentCounts?.closed ?? 0,
         },
         pendingDecisions: [
-          'TRANSFER_WITH_EXISTING_WORK',
+          'TRANSFER_WITH_OPEN_WORK_OR_PLANS',
           'PLAN_CALENDAR_ON_TRANSFER',
           'EFFECTIVE_TIME_AND_LOCATION_HISTORY',
         ],

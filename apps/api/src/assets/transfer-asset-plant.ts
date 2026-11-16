@@ -3,7 +3,7 @@ import {
   BadRequestException, ConflictException, ForbiddenException,
   InternalServerErrorException, NotFoundException,
 } from '@nestjs/common';
-import { and, eq, ne } from 'drizzle-orm';
+import { and, eq, ne, sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { postgresTextLengthIsBetween } from '../common/postgres-text-length.js';
 import { assetPlantAssignments } from '../database/asset-plant-assignments.js';
@@ -104,15 +104,23 @@ export async function transferAssetPlant(
         eq(maintenancePlans.organizationId, context.organizationId),
         eq(maintenancePlans.assetId, assetId),
       )).limit(1);
+    // Completed/cancelled orders retain a trusted, immutable location.
+    // Unknown pre-0017 or unassigned provenance is NOT trusted.
     const [order] = await tx.select({ id: workOrders.id }).from(workOrders)
-      .where(and(eq(workOrders.organizationId, context.organizationId),
-        eq(workOrders.assetId, assetId))).limit(1);
+      .where(and(
+        eq(workOrders.organizationId, context.organizationId),
+        eq(workOrders.assetId, assetId),
+        sql`(${workOrders.status} NOT IN ('COMPLETED', 'CANCELLED')
+          OR ${workOrders.locationBasis} IS DISTINCT FROM 'PLANT_LOCAL'
+          OR ${workOrders.plantIdSnapshot} IS NULL
+          OR ${workOrders.timeZoneSnapshot} IS NULL)`,
+      )).limit(1);
     const [openIncident] = await tx.select({ id: incidents.id }).from(incidents)
       .where(and(eq(incidents.organizationId, context.organizationId),
         eq(incidents.assetId, assetId), ne(incidents.status, 'CLOSED'),
       )).limit(1);
     if (plan || order || openIncident) {
-      throw new ConflictException('Asset has plans, work orders or open incidents');
+      throw new ConflictException('Asset has plans, unsafe orders or open incidents');
     }
 
     const [created] = await tx.insert(assetPlantTransfers).values({

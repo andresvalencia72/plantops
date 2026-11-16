@@ -1,5 +1,12 @@
 # Sprint 3T — evaluación de impacto previo a traslado de activos
 
+**Evolución 3W (PR en borrador):** la revisión informa ahora
+`LIMITED_CLOSED_HISTORY`, porque existe una política limitada
+para equipos sin planes y con OT terminales que conservan la
+instantánea local. **Sigue devolviendo `transferAuthorized=false`:**
+un GET no reserva ni autoriza un POST y debe reevaluarse siempre
+bajo locks. El resto de los criterios de esta página permanece.
+
 **Fecha:** 2026-11-16. **Estado:** PR draft encadenada sobre #96.
 **No autoriza ni ejecuta traslados.** No incluye migraciones de
 esquema, nueva tabla de eventos, cambios en UI ni datos del piloto.
@@ -30,7 +37,7 @@ La respuesta tiene esta estructura (datos ilustrativos):
 
 ```json
 {
-  "policyStatus": "UNDECIDED",
+  "policyStatus": "LIMITED_CLOSED_HISTORY",
   "transferAuthorized": false,
   "asset": {"id":"UUID","active":true,"plantId":"UUID"},
   "currentPlant": {
@@ -52,7 +59,7 @@ La respuesta tiene esta estructura (datos ilustrativos):
     "closedIncidents": 1
   },
   "pendingDecisions": [
-    "TRANSFER_WITH_EXISTING_WORK",
+    "TRANSFER_WITH_OPEN_WORK_OR_PLANS",
     "PLAN_CALENDAR_ON_TRANSFER",
     "EFFECTIVE_TIME_AND_LOCATION_HISTORY"
   ]
@@ -88,7 +95,7 @@ motivos privados ni filas individuales en el resumen.
 ## Garantías y límites
 
 Esta evaluación **nunca declara un activo transferible**:
-`transferAuthorized=false` y `policyStatus=UNDECIDED` son
+`transferAuthorized=false` y `policyStatus=LIMITED_CLOSED_HISTORY` son
 constantes, incluso para un activo sin planes/OT/incidencias.
 El endpoint no bloquea el activo ni reserva una autorización.
 Una política aprobada y un comando de traslado futuros deben
