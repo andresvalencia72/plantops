@@ -163,6 +163,11 @@ describe('corrective order persistence constraints', () => {
       'organization_id', 'created_by_membership_id', 'idempotency_key',
     ]);
     expect(workOrders.status.default).toBe('PENDING');
+    expect(workOrders.kind.default).toBe('CORRECTIVE');
+    expect(workOrders.incidentId.notNull).toBe(false);
+    expect(order.checks.map((item) => item.name)).toContain(
+      'work_order_kind_incident_consistency',
+    );
     const event = getTableConfig(workOrderEvents);
     expect(event.checks.map((check) => check.name))
       .toContain('work_order_event_incident_transition');
