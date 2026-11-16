@@ -213,6 +213,7 @@ describe('Sprint 3E — preventive cancellations and races', () => {
       .set('Cookie', cookies.supervisor).set('Sec-Fetch-Site', 'same-origin')
       .set('Idempotency-Key', randomUUID()).send({ reason }).expect(404);
     await cancel(id, { reason: 'short' }).expect(400);
+    await cancel(id, { reason: '😀'.repeat(5) }).expect(400);
     await cancel(id, { reason, actorRole: 'SUPERVISOR' }).expect(400);
     await request(app.getHttpServer()).post(`${base()}/${id}/cancellation`)
       .set('Cookie', cookies.supervisor).set('Sec-Fetch-Site', 'cross-site')

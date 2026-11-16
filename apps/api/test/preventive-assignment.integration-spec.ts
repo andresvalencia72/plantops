@@ -188,7 +188,7 @@ describe('Sprint 3C — preventive assignments and audit', () => {
     const orderId = await makeOrder();
     for (const data of [input(ids.tech1A, -1), input(ids.supA),
       { ...input(), incidentId: ids.incident }, { ...input(), expectedVersion: 1.5 },
-      input(ids.tech1A, 0, 'x')]) {
+      input(ids.tech1A, 0, 'x'), input(ids.tech1A, 0, '😀'.repeat(2))]) {
       const res = await assign(orderId, data);
       expect([400, 409]).toContain(res.status);
     }
