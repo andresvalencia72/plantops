@@ -106,6 +106,22 @@ la historia o recalcular `next_due_on`. Esos casos continúan sin
 decisión de producto y requieren otra aprobación. No se aprueba
 la transferencia retroactiva ni la modificación de zona IANA.
 
+## Extensión histórica acotada propuesta — Sprint 3W
+
+El trabajo nuevo de
+[3W](../architecture/asset-transfer-closed-history.md)
+introduce en una PR **draft** la posibilidad de mover activos
+sin planes ni incidencias abiertas aunque conserven órdenes
+`COMPLETED` o `CANCELLED`, **solo** cuando todas
+registraron `PLANT_LOCAL`, planta y zona IANA de origen.
+No permite órdenes abiertas ni datos históricos desconocidos,
+no altera calendarios y no crea permisos por un GET de impacto.
+
+Esta extensión no está fusionada ni aprobada para el piloto; su
+aceptación de producto queda sujeta a revisión personal.
+Las decisiones sobre traslados con planes, vencimientos pendientes
+y corrección retroactiva de ubicaciones siguen sin aprobarse.
+
 ## Contrato de traslado candidato
 
 1. Supervisor solicita traslado a otra planta del **mismo tenant**,
@@ -160,7 +176,10 @@ la transferencia retroactiva ni la modificación de zona IANA.
 - ¿Qué plantId y zona se mostrarán para activos con historial
   previo incompleto?
 
-**Hasta resolverlas, sigue vigente la prohibición de traslado** de
-la migración 0015. Solo la captura histórica de órdenes nuevas está
-aceptada; el contrato de traslados continúa pendiente de aprobación. La semántica IANA y UTC aprobada sigue en
+El traslado estrictamente limitado a activos sin trabajo,
+aprobado en 3U–3V, ya existe como PR en borrador.
+La extensión 3W para OT terminales tiene una migración y pruebas
+adicionales, también en borrador. **No se permite** todavía
+trasladar equipos con planes ni órdenes abiertas: su política de
+calendarios continúa pendiente de aprobación. La semántica IANA y UTC aprobada sigue en
 [ADR-0005](0005-maintenance-calendar-policy.md).

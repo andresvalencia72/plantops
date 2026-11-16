@@ -4,6 +4,13 @@
 esquema 0018 y este contrato están en ramas encadenadas, no en
 `main` ni en la base del piloto. No hay UI ni automatización.
 
+**Evolución posterior (Sprint 3W, PR draft):** este documento
+describe las restricciones originales de la fase 3V.
+La [propuesta 3W](asset-transfer-closed-history.md) amplía
+exclusivamente las OT terminales que tengan origen histórico
+verificable. Las reglas de no mover con planes u órdenes abiertas
+se mantienen; esta ampliación sigue pendiente de revisión personal.
+
 ## Política aprobada, sin inferencias
 
 Solo se permite mover un equipo con planta **actual y primera

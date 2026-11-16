@@ -4,6 +4,12 @@
 aplicar al piloto antes de revisión personal. Esquema multitenant
 compartido, sin modificaciones en la UI.
 
+**Evolución posterior (Sprint 3W, PR draft):** la
+[migración 0019](asset-transfer-closed-history.md) amplía
+solo los casos con OT completadas/canceladas y snapshots
+inmutables fiables. El texto que sigue describe la guarda
+original de 0018 y no sustituye las restricciones de 0019.
+
 ## Política conservadora aprobada para el primer traslado
 
 - Solo se puede mover un activo **activo, con planta y primera
