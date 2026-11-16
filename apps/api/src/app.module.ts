@@ -3,6 +3,7 @@ import { AuthenticationModule } from '@nestjs/authentication';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { DatabaseConnection } from './auth/database-connection.js';
+import { IdentityDatabaseConnection } from './auth/identity-database-connection.js';
 import { PlantOpsSessionAuth } from './auth/session-auth.provider.js';
 import { SessionController } from './auth/session.controller.js';
 import { MeController } from './auth/me.controller.js';
@@ -77,6 +78,7 @@ const oidcConfig = buildOidcConfig();
   providers: [
     AppService,
     DatabaseConnection,
+    IdentityDatabaseConnection,
     SessionPersistence,
     PlantOpsSessionAuth,
     ...(oidcConfig ? [OidcStatePersistence, PlantOpsOidcInviteResolver] : []),

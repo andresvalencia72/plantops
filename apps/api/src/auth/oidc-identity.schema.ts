@@ -31,6 +31,10 @@ export const oidcAccounts = pgTable(
       .on(table.provider, table.subject),
     unique('oidc_accounts_user_provider_unique')
       .on(table.userId, table.provider),
+    // Account linking is explicitly disabled: one immutable OIDC identity
+    // per local principal prevents a second-provider SQL takeover.
+    unique('oidc_accounts_user_single_identity')
+      .on(table.userId),
   ],
 );
 

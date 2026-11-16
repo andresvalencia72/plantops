@@ -68,6 +68,14 @@ REFERENCES, drift en las tablas actuales, DML fuera del
 manifiesto o ausencia de los dos grants de bloqueo. En la prueba
 con el usuario efímero devuelve `PRIVILEGE_PREFLIGHT_PASS`.
 
+**Evolución en Sprint 3Z:** el
+[aislamiento de identidad e invitaciones](identity-sql-boundary.md)
+retira al rol empresarial el INSERT de usuarios, membresías e
+invitaciones, crea un perfil separado de OIDC y otro de operador
+administrativo, y añade guardas en 0022–0024.
+La política original 3Y descrita debajo se conserva como
+evidencia del hallazgo y no debe aplicarse a producción.
+
 ## Riesgos para el despliegue (no resueltos)
 
 - El perfil necesita INSERT en `memberships`/`invitations`

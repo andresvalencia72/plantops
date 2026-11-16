@@ -1,0 +1,1 @@
+ALTER TABLE "oidc_accounts" ADD CONSTRAINT "oidc_accounts_user_single_identity" UNIQUE("user_id");
