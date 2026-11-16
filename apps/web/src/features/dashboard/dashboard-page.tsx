@@ -130,7 +130,7 @@ export function DashboardPage({ organization, onViewIncidents }: DashboardPagePr
               <div className="flex items-start gap-3 border-t border-border bg-muted/30 px-5 py-5">
                 <ClipboardList size={17} className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <p className="text-xs leading-5 text-muted-foreground">
-                  Las órdenes de trabajo se incorporarán en el Sprint 2.
+                  Consulta las órdenes correctivas ficticias en la sección «Órdenes de trabajo».
                 </p>
               </div>
             </section>

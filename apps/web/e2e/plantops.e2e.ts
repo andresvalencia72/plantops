@@ -152,7 +152,7 @@ test('order sheet returns focus to its row after Escape and close', async ({ pag
   await expect(page.getByRole('dialog')).not.toBeVisible()
   await expect(trigger).toBeFocused()
   await trigger.click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Cerrar' }).click()
   await expect(trigger).toBeFocused()
 })
 
@@ -167,6 +167,16 @@ test('asset sheet returns focus to its row after Escape and close', async ({ pag
   await expect(page.getByRole('dialog')).not.toBeVisible()
   await expect(trigger).toBeFocused()
   await trigger.click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Cerrar' }).click()
   await expect(trigger).toBeFocused()
+})
+
+test('demo controls use Spanish accessible labels and current dashboard copy', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByText('Consulta las órdenes correctivas ficticias')).toBeVisible()
+  await expect(page.locator('[aria-label="Perfil de demostración"]')).toHaveCount(0)
+  await expect(page.locator('header [aria-hidden="true"]').last()).toBeVisible()
+  await page.getByRole('button', { name: 'Ver incidencias' }).click()
+  await page.getByRole('button', { name: 'Nueva incidencia' }).click()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Cerrar' })).toBeVisible()
 })

@@ -37,6 +37,7 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 9n | [Listado global de órdenes](architecture/organization-work-orders.md) | Consulta tenant-scoped, filtros, historial reutilizado y navegación real/demo |
 | 9o | [Catálogo de activos e historial](architecture/asset-catalog-history.md) | Inventario paginado, historial por equipo, navegación y aislamiento por empresa |
 | 10 | [Estándares de ingeniería](quality/engineering.md) | CI, PR, seguridad y definición de terminado |
+| 10a | [Correcciones a11y demo, 16/11](quality/demo-accessibility-fixes-2026-11-16.md) | Retorno de foco, etiquetas, copy, evidencias y límites |
 | 10b | [Revisión real del frontend](quality/frontend-review-2026-11-10.md) | Pruebas, capturas y riesgos restantes |
 | 11 | [Roadmap y primer corte](plan/roadmap.md) | Secuencia de ejecución, sin fechas artificiales |
 | 12 | [Primer corte vertical](plan/first-slice.md) | Guía operativa para comenzar a escribir el frontend |
