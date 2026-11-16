@@ -35,6 +35,7 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 9l | [Auditoría de integración MVP](quality/mvp-integration-readiness.md) | Bloqueos de despliegue, bifurcación visual, puertas de decisión y ensayo de migraciones históricas |
 | 9m | [Preparación del frontend autenticado](architecture/authenticated-app-surface.md) | Build separado de demo, OIDC, solo lectura y pruebas Chrome de producción |
 | 9n | [Listado global de órdenes](architecture/organization-work-orders.md) | Consulta tenant-scoped, filtros, historial reutilizado y navegación real/demo |
+| 9ad | [Sprint 3O — API de plantas](architecture/plants-http.md) | Alta supervisor, lecturas paginadas, tenant y zona IANA |
 | 9ac | [Sprint 3N — generación según día local de planta](architecture/plant-local-due-generation.md) | Orden preventiva manual con zona persistida y fallback legado |
 | 9ab | [Sprint 3M — plantas y zonas IANA en PostgreSQL](architecture/plants-persistence.md) | Tabla plants, FK tenant-safe, activos antiguos sin zona |
 | 9aa | [Sprint 3L — núcleo de calendario industrial](architecture/industrial-calendar-core.md) | Zonas IANA por planta y fechas locales, sin migrar todavía |
