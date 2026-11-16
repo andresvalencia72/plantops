@@ -98,6 +98,13 @@ describe('Sprint 3S — read-only tenant-scoped location evidence', () => {
         title: `Evidence order ${i}`,
         description: 'Synthetic work order with immutable location evidence',
         idempotencyKey: randomUUID(), requestHash: randomUUID(),
+        // Native PG microsecond precision is set at creation, not
+        // retroactively rewritten after an audit-sensitive INSERT.
+        createdAt: sql`${[
+          '2026-11-16T14:00:00.123900Z',
+          '2026-11-16T14:00:00.123500Z',
+          '2026-11-16T14:00:00.123100Z',
+        ][i]}::timestamptz`,
       }))),
       { organizationId: ids.orgB, assetId: ids.assetB,
         createdByMembershipId: ids.memberB,
@@ -114,12 +121,6 @@ describe('Sprint 3S — read-only tenant-scoped location evidence', () => {
         idempotencyKey: randomUUID(), requestHash: randomUUID(),
       },
     ]);
-    for (const [id, stamp] of [
-      [ids.order1, '2026-11-16T14:00:00.123900Z'],
-      [ids.order2, '2026-11-16T14:00:00.123500Z'],
-      [ids.order3, '2026-11-16T14:00:00.123100Z'],
-    ]) await db.execute(sql`UPDATE work_orders
-      SET created_at = ${stamp}::timestamptz WHERE id = ${id}::uuid`);
     const mod = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = mod.createNestApplication(new NodeAdapter());
     app.enableCsrfProtection(); await app.init();

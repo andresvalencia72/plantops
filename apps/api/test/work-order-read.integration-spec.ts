@@ -64,20 +64,14 @@ describe('UC-04 protected work-order reads', () => {
         reportedByMembershipId: ids.memberB, title: 'Read B', description: 'Read test B' },
     ]);
     await db.insert(workOrders).values([
-      insertOrder(ids.orderA, ids.orgA, ids.incidentA, ids.assetA, ids.memberA, 'First A'),
-      insertOrder(ids.orderB, ids.orgA, ids.incidentA, ids.assetA, ids.memberA, 'Second A'),
-      insertOrder(ids.orderC, ids.orgA, ids.incidentA, ids.assetA, ids.memberA, 'Third A'),
+      { ...insertOrder(ids.orderA, ids.orgA, ids.incidentA, ids.assetA, ids.memberA, 'First A'),
+        createdAt: sql`'2026-11-12T12:00:00.123456Z'::timestamptz` },
+      { ...insertOrder(ids.orderB, ids.orgA, ids.incidentA, ids.assetA, ids.memberA, 'Second A'),
+        createdAt: sql`'2026-11-12T12:00:00.123123Z'::timestamptz` },
+      { ...insertOrder(ids.orderC, ids.orgA, ids.incidentA, ids.assetA, ids.memberA, 'Third A'),
+        createdAt: sql`'2026-11-12T12:00:00.122999Z'::timestamptz` },
       insertOrder(ids.foreignOrder, ids.orgB, ids.incidentB, ids.assetB, ids.memberB, 'Private B'),
     ]);
-    // Sub-millisecond timestamps reproduce the precision loss of JS Date.
-    for (const [id, value] of [
-      [ids.orderA, '2026-11-12T12:00:00.123456Z'],
-      [ids.orderB, '2026-11-12T12:00:00.123123Z'],
-      [ids.orderC, '2026-11-12T12:00:00.122999Z'],
-    ]) {
-      await db.execute(sql`UPDATE work_orders SET created_at = ${value}::timestamptz
-        WHERE id = ${id}::uuid`);
-    }
     const membershipLookup = new DrizzleMembershipLookup(db);
     contextA = await resolveTenantContext({ userId: ids.userA } as VerifiedSessionIdentity,
       ids.orgA, membershipLookup);
