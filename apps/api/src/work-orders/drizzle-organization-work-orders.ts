@@ -51,6 +51,8 @@ export class DrizzleOrganizationWorkOrders {
       id: workOrders.id,
       incidentId: workOrders.incidentId,
       kind: workOrders.kind,
+      maintenancePlanId: workOrders.maintenancePlanId,
+      scheduledFor: workOrders.scheduledFor,
       assetId: workOrders.assetId,
       title: workOrders.title,
       status: workOrders.status,
