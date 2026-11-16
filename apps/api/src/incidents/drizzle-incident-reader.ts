@@ -1,13 +1,14 @@
 import { BadRequestException } from '@nestjs/common';
-import { and, desc, eq, lt, or } from 'drizzle-orm';
+import { and, desc, eq, lt, or, sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { incidents } from '../database/incidents.js';
 import type { TenantContext } from '../security/tenant-context.js';
 
 const uuidV4 = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
+const cursorUtc = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.(?:\d{3}|\d{6})Z$/;
 
 type IncidentCursor = Readonly<{
-  reportedAt: Date;
+  reportedAt: string;
   id: string;
 }>;
 
@@ -41,12 +42,18 @@ function parseCursor(value: string | undefined): IncidentCursor | null {
       typeof item.reportedAt !== 'string') {
       throw new Error('Invalid cursor');
     }
-    const date = new Date(item.reportedAt);
-    if (!Number.isFinite(date.getTime()) ||
-      date.toISOString() !== item.reportedAt) {
+    // Keep six PostgreSQL fractional digits; Date would silently truncate to three.
+    const millisecondUtc = item.reportedAt.replace(/(\.\d{3})\d{3}Z$/, '$1Z');
+    const date = new Date(millisecondUtc);
+    if (!cursorUtc.test(item.reportedAt) ||
+      !Number.isFinite(date.getTime()) || date.toISOString() !== millisecondUtc) {
       throw new Error('Invalid cursor');
     }
-    return { id: item.id, reportedAt: date };
+    return {
+      id: item.id,
+      reportedAt: /\.\d{3}Z$/.test(item.reportedAt)
+        ? item.reportedAt.replace(/Z$/, '000Z') : item.reportedAt,
+    };
   } catch {
     throw new BadRequestException('Invalid incident cursor');
   }
@@ -65,6 +72,11 @@ const detail = {
   description: incidents.description,
 };
 
+// Date loses microseconds; encode the exact PostgreSQL UTC value in cursors.
+const preciseReportedAt = sql<string>`to_char(
+  ${incidents.reportedAt} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'
+)`;
+
 /** Each query carries the server-resolved organization; cursors are NOT auth. */
 export class DrizzleIncidentReader {
   constructor(private readonly database: NodePgDatabase) {}
@@ -82,14 +94,14 @@ export class DrizzleIncidentReader {
     const cursor = parseCursor(cursorParam);
     const earlier = cursor
       ? or(
-        lt(incidents.reportedAt, cursor.reportedAt),
+        sql`${incidents.reportedAt} < ${cursor.reportedAt}::timestamptz`,
         and(
-          eq(incidents.reportedAt, cursor.reportedAt),
+          sql`${incidents.reportedAt} = ${cursor.reportedAt}::timestamptz`,
           lt(incidents.id, cursor.id),
         ),
       )
       : undefined;
-    const rows = await this.database.select(summary)
+    const rows = await this.database.select({ ...summary, cursorTime: preciseReportedAt })
       .from(incidents)
       .where(and(eq(incidents.organizationId, context.organizationId),
         assetId ? eq(incidents.assetId, assetId) : undefined, earlier))
@@ -99,10 +111,13 @@ export class DrizzleIncidentReader {
     const items = rows.slice(0, limit);
     const last = items[items.length - 1];
     return {
-      items,
+      items: items.map(({ cursorTime: _cursorTime, ...item }) => {
+        void _cursorTime;
+        return item;
+      }),
       nextCursor: rows.length > limit && last
         ? Buffer.from(JSON.stringify({
-          reportedAt: last.reportedAt.toISOString(),
+          reportedAt: last.cursorTime,
           id: last.id,
         })).toString('base64url')
         : null,

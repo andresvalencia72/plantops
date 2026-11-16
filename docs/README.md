@@ -39,6 +39,7 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 9p | [Sprint 3A — base de preventivo](architecture/preventive-foundation.md) | Tipo preventivo sin incidencia, invariantes y límites de integración |
 | 9o | [Catálogo de activos e historial](architecture/asset-catalog-history.md) | Inventario paginado, historial por equipo, navegación y aislamiento por empresa |
 | 10 | [Estándares de ingeniería](quality/engineering.md) | CI, PR, seguridad y definición de terminado |
+| 10c | [Corrección P1 de cursor de incidencias](quality/incident-cursor-microseconds.md) | Precisión PostgreSQL, compatibilidad y prueba de regresión |
 | 10b | [Revisión real del frontend](quality/frontend-review-2026-11-10.md) | Pruebas, capturas y riesgos restantes |
 | 11 | [Roadmap y primer corte](plan/roadmap.md) | Secuencia de ejecución, sin fechas artificiales |
 | 12 | [Primer corte vertical](plan/first-slice.md) | Guía operativa para comenzar a escribir el frontend |

@@ -175,7 +175,10 @@ describe('HTTP incident read isolation and keyset pagination', () => {
 
   it('validates size, cursor and UUIDs without querying unauthorized data', async () => {
     for (const query of [{ limit: '0' }, { limit: '99' }, { limit: 'bad' },
-      { cursor: 'not-a-cursor' }]) {
+      { cursor: 'not-a-cursor' },
+      { cursor: Buffer.from(JSON.stringify({
+        reportedAt: '2026-11-11T10:00:00.12345Z', id: ids.incidentsA[0],
+      })).toString('base64url') }]) {
       await request(app.getHttpServer()).get(routeA)
         .query(query).set('Cookie', cookie).expect(400);
     }
@@ -185,6 +188,45 @@ describe('HTTP incident read isolation and keyset pagination', () => {
     await request(app.getHttpServer())
       .get(`${routeA}/not-a-uuid`)
       .set('Cookie', cookie).expect(400);
+  });
+
+  it('keeps every row when incident timestamps share a millisecond', async () => {
+    const assetId = randomUUID();
+    const ordered = [randomUUID(), randomUUID(), randomUUID()];
+    await db.insert(assets).values({
+      id: assetId, organizationId: ids.orgA,
+      code: 'MICROSECOND-TEST', name: 'Precision test pump',
+    });
+    await db.insert(incidents).values(ordered.map((id, index) => ({
+      id, organizationId: ids.orgA, assetId,
+      reportedByMembershipId: ids.memberA,
+      title: `Microsecond incident ${index}`,
+      description: 'All timestamps belong to the same millisecond',
+    })));
+    for (const [index, microseconds] of ['123900', '123500', '123100'].entries()) {
+      await pool.query('UPDATE incidents SET reported_at = $1::timestamptz WHERE id = $2', [
+        `2026-11-11T10:00:00.${microseconds}Z`, ordered[index],
+      ]);
+    }
+    const seen: string[] = [];
+    let cursor: string | undefined;
+    for (let i = 0; i < 3; i++) {
+      const res = await request(app.getHttpServer()).get(routeA)
+        .query({ assetId, limit: 1, ...(cursor ? { cursor } : {}) })
+        .set('Cookie', cookie).expect(200);
+      expect(res.body.items).toHaveLength(1);
+      seen.push(res.body.items[0].id);
+      if (i < 2) {
+        expect(res.body.nextCursor).toEqual(expect.any(String));
+        const decoded = JSON.parse(Buffer.from(res.body.nextCursor, 'base64url')
+          .toString('utf8')) as { reportedAt: string };
+        expect(decoded.reportedAt).toMatch(/\.\d{6}Z$/);
+      } else {
+        expect(res.body.nextCursor).toBeNull();
+      }
+      cursor = res.body.nextCursor ?? undefined;
+    }
+    expect(seen).toEqual(ordered);
   });
 
   it('rejects an existing session after its membership was suspended', async () => {
