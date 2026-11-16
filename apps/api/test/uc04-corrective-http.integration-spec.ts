@@ -183,6 +183,10 @@ describe('HTTP UC-04 — authenticated corrective order from reviewed incident',
       .set('Cookie', cookies.supA).set('Sec-Fetch-Site', 'same-origin')
       .set('Idempotency-Key', randomUUID())
       .send({ ...orderBody, role: 'SUPERVISOR' }).expect(400);
+    await request(app.getHttpServer()).post(route(id))
+      .set('Cookie', cookies.supA).set('Sec-Fetch-Site', 'same-origin')
+      .set('Idempotency-Key', randomUUID())
+      .send({ ...orderBody, title: '😀'.repeat(2) }).expect(400);
     expect(await counts(id)).toEqual({ orders: 0, events: 0 });
   });
 

@@ -152,6 +152,7 @@ describe('Sprint 3B — manual preventive order HTTP and audit', () => {
   it('validates body, content type, idempotency key and CSRF', async () => {
     await post({ ...body, status: 'COMPLETED' }).expect(400);
     await post({ ...body, title: 'a' }).expect(400);
+    await post({ ...body, title: '😀'.repeat(2) }).expect(400);
     await post({ ...body, assetId: 'invalid' }).expect(400);
     await request(app.getHttpServer()).post(route())
       .set('Cookie', cookies.supervisor).set('Sec-Fetch-Site', 'same-origin')

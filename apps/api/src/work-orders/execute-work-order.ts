@@ -1,3 +1,4 @@
+import { postgresTextLengthIsBetween } from '../common/postgres-text-length.js';
 import { createHash } from 'node:crypto';
 import {
   BadRequestException, ConflictException, ForbiddenException,
@@ -38,7 +39,7 @@ function normalize(input: ExecutionInput) {
   const result = input.action === 'COMPLETED' ? input.result?.trim() : null;
   if (!['STARTED', 'COMPLETED'].includes(input.action) ||
     (input.action === 'COMPLETED' &&
-      (!result || result.length < 10 || result.length > 4000)) ||
+      (!result || !postgresTextLengthIsBetween(result, 10, 4000))) ||
     (input.action === 'STARTED' && input.result !== undefined)) {
     throw new BadRequestException('Invalid execution action or result');
   }

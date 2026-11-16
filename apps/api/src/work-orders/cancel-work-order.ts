@@ -1,3 +1,4 @@
+import { postgresTextLengthIsBetween } from '../common/postgres-text-length.js';
 import { createHash } from 'node:crypto';
 import {
   BadRequestException, ConflictException, ForbiddenException,
@@ -31,7 +32,7 @@ function normalize(input: CancelWorkOrderInput) {
   const reason = input.reason?.trim();
   if ((incidentId !== null && !uuidV4.test(incidentId)) ||
     ![orderId, key].every((id) => uuidV4.test(id)) ||
-    !reason || reason.length < 10 || reason.length > 1000) {
+    !reason || !postgresTextLengthIsBetween(reason, 10, 1000)) {
     throw new BadRequestException('Invalid cancellation reason or retry identifier');
   }
   const requestHash = createHash('sha256')

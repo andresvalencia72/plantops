@@ -152,6 +152,7 @@ describe('UC08 closure HTTP session, guards, audit and CSRF', () => {
       .send({ reason }).expect(403);
     await post(id, cookies.sup, { reason, actor: ids.ms }).expect(400);
     await post(id, cookies.sup, { reason: 'short' }).expect(400);
+    await post(id, cookies.sup, { reason: '😀'.repeat(5) }).expect(400);
     await post(id, cookies.sup, { reason, conclusion: 'too short' }).expect(400);
     await request(app.getHttpServer()).post(path(id))
       .set('Cookie', cookies.sup).set('Sec-Fetch-Site', 'same-origin')

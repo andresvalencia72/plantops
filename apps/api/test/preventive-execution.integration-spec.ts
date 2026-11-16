@@ -202,6 +202,7 @@ describe('Sprint 3D — preventive execution', () => {
       .set('Idempotency-Key', randomUUID()).set('Content-Type', 'text/plain')
       .send('{}').expect(415);
     await execute(id, 'start').expect(201);
+    await execute(id, 'complete', { result: '😀'.repeat(5) }).expect(400);
     await execute(id, 'start').expect(409);
     await execute(id, 'complete').expect(201);
     await execute(id, 'complete').expect(409);

@@ -123,6 +123,8 @@ describe('authenticated HTTP incident reporting and idempotency', () => {
     await report(randomUUID(), { ...data, userId: ids.userB }).expect(400);
     await report(randomUUID(), { ...data, organizationId: ids.orgB }).expect(400);
     await report(randomUUID(), { ...data, status: 'CLOSED' }).expect(400);
+    await report(randomUUID(), { ...data, title: '😀'.repeat(2) }).expect(400);
+    await report(randomUUID(), { ...data, description: '😀'.repeat(5) }).expect(400);
     await report(randomUUID(), { assetId: ids.assetA, title: 'X', description: 'short' })
       .expect(400);
     await report(randomUUID(), []).expect(400);

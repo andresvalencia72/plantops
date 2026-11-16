@@ -1,3 +1,4 @@
+import { postgresTextLengthIsBetween } from '../common/postgres-text-length.js';
 import { createHash } from 'node:crypto';
 import {
   BadRequestException, ConflictException, ForbiddenException,
@@ -48,7 +49,7 @@ function normalize(input: AssignTechnicianInput) {
       .every((id) => uuidV4.test(id)) ||
     !Number.isSafeInteger(input.expectedVersion) ||
     input.expectedVersion < 0 || input.expectedVersion >= 2147483647 ||
-    (reason !== null && (reason.length < 3 || reason.length > 500))) {
+    (reason !== null && !postgresTextLengthIsBetween(reason, 3, 500))) {
     throw new BadRequestException('Invalid technician assignment');
   }
   const requestHash = createHash('sha256').update(JSON.stringify([
