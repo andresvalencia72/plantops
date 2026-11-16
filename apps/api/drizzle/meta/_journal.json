@@ -134,6 +134,13 @@
       "when": 1794837678599,
       "tag": "0018_icy_romulus",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794838975482,
+      "tag": "0019_allow_closed_order_history",
+      "breakpoints": true
     }
   ]
 }
