@@ -64,12 +64,14 @@ ha creado el evento correspondiente. También verifica nuevamente
 la ausencia de planes y OT, de manera que un SQL externo no pueda
 esquivar esa regla solo omitiendo la comprobación de NestJS.
 
-**Limitación explícita:** el trigger se aplica a UPDATE, no a INSERT
-inicial de `assets`, porque los fixtures existentes y el esquema
-permiten inserciones privilegiadas de activos ya ubicados. No existe
-en esta fase un endpoint de alta de activos. Antes de crearlo
-se deberá definir cómo auditar la ubicación en el INSERT y aplicar
-la política de manera uniforme a las credenciales SQL reales.
+**Evolución en Sprint 3Q:** la migración 0016 incorpora una segunda
+barrera SQL que rechaza INSERT de activos con `plant_id` no nulo,
+cerrando la limitación de esta PR sin editar la migración 0015.
+Los activos nacen sin planta y solo pueden vincularse mediante
+la asignación auditada de este contrato. La protección por trigger
+debe reforzarse con permisos mínimos del usuario SQL antes de
+desplegar, pues un administrador puede desactivarlos. Aún no
+existe un endpoint de alta de activos.
 
 La zona IANA de una planta permanece inmutable en SQL gracias
 al trigger de la migración 0014. Unido a la prohibición de mover
