@@ -94,9 +94,11 @@ traslado ni el bloqueo SQL vigente.
 El propietario aprobó comenzar por **equipos con primera planta
 registrada y sin ningún plan ni ninguna OT histórica**, y
 sin incidencias abiertas. Las incidencias cerradas permanecen
-consultables. La PR de Sprint 3U introduce únicamente el modelo
-versionado y las guardas SQL; el futuro POST debe aplicar las mismas
-reglas en una transacción autorizada y revalidar la versión.
+consultables. La PR de Sprint 3U introduce el modelo
+versionado y las guardas SQL; Sprint 3V incorpora el POST autenticado,
+idempotente y transaccional y el GET del ledger. Ambos cortes
+respetan esta política restrictiva; el resto de movimientos
+continúa sin aprobación.
 
 Esta aprobación **no permite** movimientos de equipos con
 planes pausados/activos, OT completadas/canceladas, ni reinterpretar
