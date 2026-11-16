@@ -8,6 +8,9 @@ import { memberships, organizations } from './organizations.js';
 import { maintenancePlans } from './maintenance-plans.js';
 
 export const workOrderKind = pgEnum('work_order_kind', ['CORRECTIVE', 'PREVENTIVE']);
+export const workOrderLocationBasis = pgEnum('work_order_location_basis', [
+  'PLANT_LOCAL', 'UTC_LEGACY', 'UNASSIGNED',
+]);
 
 export const workOrderStatus = pgEnum('work_order_status', [
   'PENDING', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED',
@@ -22,6 +25,10 @@ export const workOrders = pgTable('work_orders', {
   kind: workOrderKind('kind').notNull().default('CORRECTIVE'),
   maintenancePlanId: uuid('maintenance_plan_id'),
   scheduledFor: date('scheduled_for', { mode: 'string' }),
+  // Historical rows remain NULL/unknown; new INSERTs are stamped by SQL.
+  locationBasis: workOrderLocationBasis('location_basis'),
+  plantIdSnapshot: uuid('plant_id_snapshot'),
+  timeZoneSnapshot: text('time_zone_snapshot'),
   assetId: uuid('asset_id').notNull(),
   createdByMembershipId: uuid('created_by_membership_id').notNull(),
   idempotencyKey: uuid('idempotency_key').notNull(),
@@ -35,6 +42,24 @@ export const workOrders = pgTable('work_orders', {
     .notNull().defaultNow(),
 }, (table) => [
   unique('work_orders_organization_id_id').on(table.organizationId, table.id),
+  check('work_order_location_snapshot_consistency', sql`
+    (${table.locationBasis} IS NULL
+      AND ${table.plantIdSnapshot} IS NULL
+      AND ${table.timeZoneSnapshot} IS NULL)
+    OR (${table.locationBasis} = 'PLANT_LOCAL'
+      AND ${table.plantIdSnapshot} IS NOT NULL
+      AND ${table.timeZoneSnapshot} IS NOT NULL
+      AND length(${table.timeZoneSnapshot}) BETWEEN 3 AND 128)
+    OR (${table.locationBasis} = 'UTC_LEGACY'
+      AND ${table.plantIdSnapshot} IS NULL
+      AND ${table.timeZoneSnapshot} IS NULL
+      AND ${table.scheduledFor} IS NOT NULL
+      AND ${table.maintenancePlanId} IS NOT NULL)
+    OR (${table.locationBasis} = 'UNASSIGNED'
+      AND ${table.plantIdSnapshot} IS NULL
+      AND ${table.timeZoneSnapshot} IS NULL
+      AND ${table.scheduledFor} IS NULL)
+  `),
   check('work_order_kind_incident_consistency', sql`
     (${table.kind} = 'CORRECTIVE' AND ${table.incidentId} IS NOT NULL
       AND ${table.maintenancePlanId} IS NULL AND ${table.scheduledFor} IS NULL)
