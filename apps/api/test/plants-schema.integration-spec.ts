@@ -5,8 +5,9 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { assetPlantAssignments } from '../src/database/asset-plant-assignments.js';
 import { assets } from '../src/database/assets.js';
-import { organizations } from '../src/database/organizations.js';
+import { memberships, organizations, users } from '../src/database/organizations.js';
 import { plants } from '../src/database/plants.js';
 
 const raw = process.env.DATABASE_TEST_URL;
@@ -22,6 +23,7 @@ const ids = {
   orgA: randomUUID(), orgB: randomUUID(),
   madrid: randomUUID(), bogota: randomUUID(),
   oldAsset: randomUUID(), foreignAsset: randomUUID(),
+  userA: randomUUID(), actorA: randomUUID(),
 };
 const sqlCode = (expected: string) => (value: unknown) => {
   const error = value as { code?: string; cause?: { code?: string } } | null;
@@ -40,6 +42,13 @@ describe('Sprint 3M — tenant-scoped plants and legacy assets', () => {
       { id: ids.orgA, name: 'Tenant A' },
       { id: ids.orgB, name: 'Tenant B' },
     ]);
+    await db.insert(users).values({
+      id: ids.userA, displayName: 'Legacy-asset fixture supervisor',
+    });
+    await db.insert(memberships).values({
+      id: ids.actorA, userId: ids.userA,
+      organizationId: ids.orgA, role: 'SUPERVISOR',
+    });
     await db.insert(assets).values([
       { id: ids.oldAsset, organizationId: ids.orgA,
         code: 'LEGACY-A', name: 'Legacy asset' },
@@ -76,9 +85,16 @@ describe('Sprint 3M — tenant-scoped plants and legacy assets', () => {
     expect(madrid).toMatchObject({ id: ids.madrid,
       organizationId: ids.orgA, name: 'Main Factory',
       timeZone: 'Europe/Madrid' });
-    const [updated] = await db.update(assets)
-      .set({ plantId: ids.madrid })
-      .where(eq(assets.id, ids.oldAsset)).returning();
+    const [updated] = await db.transaction(async (tx) => {
+      await tx.insert(assetPlantAssignments).values({
+        organizationId: ids.orgA, assetId: ids.oldAsset,
+        plantId: ids.madrid, actorMembershipId: ids.actorA,
+        reason: 'Asociación inicial con trazabilidad en el test de esquema',
+        idempotencyKey: randomUUID(), requestHash: randomUUID(),
+      });
+      return tx.update(assets).set({ plantId: ids.madrid })
+        .where(eq(assets.id, ids.oldAsset)).returning();
+    });
     expect(updated).toMatchObject({ plantId: ids.madrid,
       organizationId: ids.orgA });
     const [bogota] = await db.insert(plants).values(newPlant({
@@ -92,12 +108,17 @@ describe('Sprint 3M — tenant-scoped plants and legacy assets', () => {
       organizationId: ids.orgB, name: 'Foreign Plant',
       timeZone: 'Asia/Kathmandu',
     }).returning();
+    await expect(db.insert(assets).values({
+      organizationId: ids.orgA, plantId: foreignPlant!.id,
+      code: 'CROSS-A', name: 'Cross-tenant asset A',
+    })).rejects.toSatisfy(sqlCode('23503'));
+    await expect(db.insert(assets).values({
+      organizationId: ids.orgB, plantId: ids.madrid,
+      code: 'CROSS-B', name: 'Cross-tenant asset B',
+    })).rejects.toSatisfy(sqlCode('23503'));
     await expect(db.update(assets).set({ plantId: foreignPlant!.id })
       .where(eq(assets.id, ids.oldAsset)))
-      .rejects.toSatisfy(sqlCode('23503'));
-    await expect(db.update(assets).set({ plantId: ids.madrid })
-      .where(eq(assets.id, ids.foreignAsset)))
-      .rejects.toSatisfy(sqlCode('23503'));
+      .rejects.toSatisfy(sqlCode('55000'));
     const [old] = await db.select().from(assets)
       .where(eq(assets.id, ids.oldAsset));
     expect(old?.plantId).toBe(ids.madrid);
