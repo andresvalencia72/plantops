@@ -72,6 +72,13 @@ política restringida, pero **`transferAuthorized=false`**:
 no existe un permiso de traslado transferible desde un GET.
 Todos los requisitos se comprueban bajo locks en el POST.
 
+## Protección posterior a la revisión
+
+La [migración 0020](../quality/terminal-status-and-db-roles.md)
+impide reabrir o cambiar a otro estado una OT ya completada
+o cancelada, incluso desde SQL directo y después de trasladar
+su activo. No se aplica al piloto sin revisión personal.
+
 ## TDD, regresión y riesgo pendiente
 
 - Primero se confirma una prueba **roja**: el esquema anterior
