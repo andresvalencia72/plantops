@@ -43,9 +43,10 @@ tzdb. No se generan códigos de calendario por horas/meses sin especificar.
 
 El núcleo de la PR #89 partió de un modelo con `assets.organization_id`
 y planes por activo, **sin entidad planta persistida**. La PR posterior
-para el Sprint 3M introduce esa persistencia en un corte separado. Las rutas POST de generación y los listados **siguen usando su regla UTC
-anterior**: disponer de la columna opcional `plant_id` no integra el
-calendario automáticamente. Se evita una
+para el Sprint 3M introduce esa persistencia en un corte separado. La PR posterior del Sprint 3N integra el cálculo local únicamente en
+el POST de generación manual cuando el activo tiene planta asociada.
+Para los activos sin `plant_id`, sigue UTC como comportamiento
+provisional y compatible. Los listados conservan sus contratos. Se evita una
 falsa integración que tome una zona elegida por la UI sin validar
 la pertenencia del activo al tenant.
 
