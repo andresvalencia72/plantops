@@ -149,6 +149,14 @@ describe('Sprint 3K — audited schedule changes for paused plans', () => {
       .toEqual(['PAUSED', 'SCHEDULE_CHANGED', 'RESUMED']);
   });
 
+  it('accepts a full 1000-character Unicode justification', async () => {
+    const id = await createPlan();
+    await state(id, 'pause', 0).expect(201);
+    const reason = '😀'.repeat(1000);
+    const edited = await change(id, { ...schedule(), reason }).expect(201);
+    expect(edited.body.reason).toBe(reason);
+  });
+
   it('never rewrites historic work orders or permits reusing a generated slot', async () => {
     const id = await createPlan();
     const created = await request(app.getHttpServer())
@@ -221,6 +229,7 @@ describe('Sprint 3K — audited schedule changes for paused plans', () => {
       { intervalDays: 2.5 }, { nextDueOn: '2026-02-30' },
       { nextDueOn: '2100-01-01' }, { nextDueOn: 'invalid' },
       { expectedVersion: -1 }, { reason: 'short' },
+      { reason: '😀'.repeat(5) },
       { actorMembershipId: ids.memSup },
     ]) await change(id, { ...schedule(), ...invalid }).expect(400);
     expect(await storedPlan(id)).toMatchObject({

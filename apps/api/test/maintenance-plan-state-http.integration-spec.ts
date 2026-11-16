@@ -144,6 +144,14 @@ describe('Sprint 3J — pause and resume maintenance plans', () => {
       active: true, version: 3, nextDueOn: '2020-01-31' });
   });
 
+  it('accepts a reason of 1000 Unicode code points like PostgreSQL', async () => {
+    const id = await createPlan();
+    const reason = '😀'.repeat(1000);
+    const response = await change(id, 'pause', 0, randomUUID(),
+      cookies.supervisor, { reason, expectedVersion: 0 }).expect(201);
+    expect(response.body.reason).toBe(reason);
+  });
+
   it('replays 8 parallel same-key pauses without another audit record', async () => {
     const id = await createPlan();
     const key = randomUUID();
@@ -231,6 +239,7 @@ describe('Sprint 3J — pause and resume maintenance plans', () => {
       { expectedVersion: -1, reason },
       { expectedVersion: 0.5, reason },
       { expectedVersion: 0, reason: 'corto' },
+      { expectedVersion: 0, reason: '😀'.repeat(5) },
       { expectedVersion: 0, reason, active: false },
     ]) await change(id, 'pause', 0, randomUUID(), cookies.supervisor, body)
       .expect(400);
