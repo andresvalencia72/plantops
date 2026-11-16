@@ -179,6 +179,29 @@ describe('corrective order persistence constraints', () => {
 });
 
 
+describe('maintenance plan revisions and immutable change events', () => {
+  it('rejects negative revisions and enforces tenant + actor event keys', async () => {
+    const { maintenancePlans } = await import('./maintenance-plans.js');
+    const { maintenancePlanEvents } = await import('./maintenance-plan-events.js');
+    const plans = getTableConfig(maintenancePlans);
+    expect(plans.checks.map((entry) => entry.name))
+      .toContain('maintenance_plan_version_valid');
+    expect(maintenancePlans.version.default).toBe(0);
+    const events = getTableConfig(maintenancePlanEvents);
+    expect(events.foreignKeys.map((key) => key.reference()).map((ref) =>
+      ref.columns.map((col) => col.name))).toEqual(expect.arrayContaining([
+      ['organization_id', 'plan_id'],
+      ['organization_id', 'actor_membership_id'],
+    ]));
+    expect(events.uniqueConstraints.map((key) =>
+      key.columns.map((col) => col.name))).toContainEqual([
+      'organization_id', 'actor_membership_id', 'idempotency_key',
+    ]);
+    expect(events.checks.map((entry) => entry.name))
+      .toContain('maintenance_plan_event_action_consistency');
+  });
+});
+
 describe('UC-05 assignment safety constraints', () => {
   it('pins current assignee and every immutable history reference to one tenant', async () => {
     const { workOrders } = await import('./work-orders.js');
