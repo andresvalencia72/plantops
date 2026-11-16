@@ -18,12 +18,17 @@ calendario industrial:
 4. Los **vencimientos atrasados se revisarán y generarán manualmente**;
    no se introducen cron, workers ni recuperación masiva automática.
 
-**Importante:** la aprobación de la semántica no aprueba una migración
-de esquema ni define todavía el modelo persistente de plantas y activos.
-La API existente sigue con la regla UTC provisional hasta disponer de
-una zona IANA autenticada, persistida y vinculada al activo/plan.
-No es válido confiar en un encabezado o parámetro de zona suministrado
-por el navegador para tomar decisiones de mantenimiento.
+**Ampliación del acuerdo (16/11/2026):** posteriormente se aprobó
+expresamente añadir `plants` (empresa, nombre y zona IANA) y
+`assets.plant_id` opcional para preservar los activos existentes, sin
+inventar zonas ni modificar datos piloto. La migración 0014 está
+implementada y probada únicamente en la PR draft del Sprint 3M.
+Esta aprobación **no** autoriza fusionar `main`, aplicar la migración
+al piloto, automatizar ni alterar por suposición calendarios existentes.
+
+La API actual conserva la regla UTC provisional hasta crear
+operaciones autorizadas para vincular activos a plantas. No confiar
+en una zona enviada por el navegador para determinar vencimientos.
 
 ## Contexto y estado actual
 
@@ -39,7 +44,7 @@ afectaría la continuidad de órdenes y los informes históricos.
 
 | Cuestión | Alternativas | Riesgo si no se define |
 | --- | --- | --- |
-| Zona horaria | **ACEPTADO:** IANA por planta; falta modelar la relación planta–activo | Si no se persiste y protege, el usuario podría alterar el día operativo |
+| Zona horaria | **ACEPTADO:** IANA por planta; tabla y relación opcional en PR draft 3M; integración API pendiente | Si no se valida la pertenencia, el usuario podría alterar el día operativo |
 | Semántica de fecha | **ACEPTADO:** vencimiento por fecha local; ventana de turno aún pendiente | 23/25 horas en cambios de horario de verano |
 | Frecuencia | Días naturales / días hábiles / semanas / meses / horas de uso | Intervalos incompatibles con contratos de mantenimiento |
 | Meses cortos | Mover al último día / saltar ocurrencia / fijar día hábil | Ambigüedad de revisiones el día 29–31 |
@@ -50,11 +55,14 @@ afectaría la continuidad de órdenes y los informes históricos.
 | Prioridad | Fija por plan / basada en criticidad del activo / reglas de riesgo | Trabajo urgente oculto entre inspecciones rutinarias |
 | Notificaciones | Aviso informativo / aprobación previa / ejecución automática | Duplicados, spam y acciones no consentidas |
 
-## Recomendación para el modelo persistente, pendiente de aprobación
+## Modelo persistente parcialmente aprobado; reglas adicionales pendientes
 
-Para la implementación multitenant, persistir la **zona horaria IANA de
-cada planta** y resolver las fechas de vencimiento como días de
-calendario locales, separadas de instantes UTC de ejecución. Versionar una política de calendario por plan, con
+La ampliación de esquema aprobada persiste la **zona IANA por planta**
+y una relación opcional planta–activo, aunque los endpoints siguen en
+UTC hasta integrar permisos y vínculos reales. Las fechas de vencimiento
+deben resolverse como días de calendario locales, separadas de
+instantes UTC de ejecución. Versionar una política de calendario por
+plan, con
 reglas de ajustes por festivos, hora/turno, y tratamiento de
 ocurrencias vencidas. No calcular recurrencias sumando automáticamente
 24 horas a un instante UTC cuando la intención es «día de calendario».
@@ -71,16 +79,18 @@ sin registrar aún workers ni cron.
 ## Consecuencias durante la transición
 
 - Mantener temporalmente días naturales UTC en los endpoints actuales
-  **sin modificar su comportamiento**, hasta que una migración aprobada
-  proporcione de forma segura la zona IANA de la planta. El motor
-  independiente puede calcular días locales sin acceso a la base.
+  **sin modificar su comportamiento**. La PR 3M incorpora la tabla
+  de plantas pero no la migración del piloto ni una API para asignar
+  zonas a activos. El motor independiente ya calcula días locales,
+  pero aún no participa en las decisiones transaccionales.
 - La pausa conserva el vencimiento; la reanudación no genera nada.
   Una edición del calendario solo se permite con plan pausado,
   justificación, versión esperada y sin reutilizar ocurrencias
   ya emitidas.
-- No introducir calendarios festivos, tabla de plantas, hora/turno,
-  scheduler ni notificaciones antes de una decisión explícita.
+- No introducir calendarios festivos, hora/turno, scheduler,
+  notificaciones ni reglas de reasignación de zonas antes de una
+  decisión explícita.
 - Registrar nuevas decisiones manteniendo separado **ACEPTADO** de
   **PROPUESTO**. La auditoría de instantes UTC ya es compatible con
-  las columnas `timestamptz` actuales, pero requerirá revisar el contexto
-  de zona horaria en históricos cuando exista la entidad planta.
+  las columnas `timestamptz` actuales, pero requerirá registrar
+  contexto histórico de zona y fecha local cuando se integre la API.
