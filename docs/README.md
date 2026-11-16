@@ -35,8 +35,9 @@ Este directorio es la **fuente de verdad técnica** del proyecto. El [README ra�
 | 9l | [Auditoría de integración MVP](quality/mvp-integration-readiness.md) | Bloqueos de despliegue, bifurcación visual, puertas de decisión y ensayo de migraciones históricas |
 | 9m | [Preparación del frontend autenticado](architecture/authenticated-app-surface.md) | Build separado de demo, OIDC, solo lectura y pruebas Chrome de producción |
 | 9n | [Listado global de órdenes](architecture/organization-work-orders.md) | Consulta tenant-scoped, filtros, historial reutilizado y navegación real/demo |
+| 9ag | [Sprint 3R — instantáneas de ubicación en OT](architecture/work-order-location-snapshots.md) | Contexto IANA inmutable, migración 0017 y compatibilidad histórica |
 | 9af | [Sprint 3Q — bloqueo de INSERT con planta sin auditoría](quality/asset-insert-guard.md) | Migración 0016, prueba roja/verde y compatibilidad |
-| ADR | [ADR-0006 propuesto — ubicación histórica](adr/0006-asset-placement-history.md) | Alternativas y controles previos a traslados de activos |
+| ADR | [ADR-0006 parcial — ubicación histórica](adr/0006-asset-placement-history.md) | Alternativas y controles previos a traslados de activos |
 | 9ae | [Sprint 3P — asignación inicial de activo a planta](architecture/asset-plant-initial-assignment.md) | Auditoría append-only y guardas SQL contra traslado histórico |
 | 9ad | [Sprint 3O — API de plantas](architecture/plants-http.md) | Alta supervisor, lecturas paginadas, tenant y zona IANA |
 | 9ac | [Sprint 3N — generación según día local de planta](architecture/plant-local-due-generation.md) | Orden preventiva manual con zona persistida y fallback legado |
