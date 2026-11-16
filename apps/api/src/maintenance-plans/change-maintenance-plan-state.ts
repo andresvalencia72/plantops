@@ -10,7 +10,7 @@ import { memberships } from '../database/organizations.js';
 import { requireTenantPermission, type TenantContext } from '../security/tenant-context.js';
 
 const uuidV4 = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
-const eventView = {
+export const eventView = {
   id: maintenancePlanEvents.id,
   planId: maintenancePlanEvents.planId,
   actorMembershipId: maintenancePlanEvents.actorMembershipId,

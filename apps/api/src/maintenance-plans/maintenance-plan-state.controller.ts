@@ -7,6 +7,7 @@ import { DatabaseConnection } from '../auth/database-connection.js';
 import { DrizzleMembershipLookup } from '../security/drizzle-membership-lookup.js';
 import { resolveTenantContext, type VerifiedSessionIdentity } from '../security/tenant-context.js';
 import { changeMaintenancePlanState } from './change-maintenance-plan-state.js';
+import { changeMaintenancePlanSchedule } from './change-maintenance-plan-schedule.js';
 import { MaintenancePlanEventsReader } from './maintenance-plan-events-reader.js';
 
 @Controller('organizations/:organizationId/maintenance-plans/:planId')
@@ -30,6 +31,41 @@ export class MaintenancePlanStateController {
     const context = await resolveTenantContext(
       { userId } as VerifiedSessionIdentity, orgId, this.memberships);
     return this.events.list(context, planId, limit, afterVersion);
+  }
+
+  @Post('schedule-changes')
+  @HttpCode(201)
+  @Header('Cache-Control', 'no-store')
+  async changeSchedule(
+    @CurrentUser('id') userId: string,
+    @Param('organizationId', new ParseUUIDPipe({ version: '4' })) orgId: string,
+    @Param('planId', new ParseUUIDPipe({ version: '4' })) planId: string,
+    @Headers('idempotency-key') key: string | undefined,
+    @Headers('content-type') contentType: string | undefined,
+    @Body() body: unknown,
+  ) {
+    if (contentType?.split(';', 1)[0]?.trim().toLowerCase() !== 'application/json') {
+      throw new UnsupportedMediaTypeException('Expected application/json');
+    }
+    const context = await resolveTenantContext(
+      { userId } as VerifiedSessionIdentity, orgId, this.memberships);
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      throw new BadRequestException('Expected schedule change fields');
+    }
+    const data = body as Record<string, unknown>;
+    if (Object.keys(data).sort().join(',') !==
+      'expectedVersion,intervalDays,nextDueOn,reason' ||
+      typeof data.expectedVersion !== 'number' ||
+      typeof data.intervalDays !== 'number' ||
+      typeof data.nextDueOn !== 'string' ||
+      typeof data.reason !== 'string') {
+      throw new BadRequestException('Expected only schedule change fields');
+    }
+    return changeMaintenancePlanSchedule(this.connection.db, context, {
+      planId, expectedVersion: data.expectedVersion,
+      intervalDays: data.intervalDays, nextDueOn: data.nextDueOn,
+      reason: data.reason, idempotencyKey: key ?? '',
+    });
   }
 
   @Post(':transition')
