@@ -52,7 +52,8 @@ try {
     return [
       ['SELECT', row.can_select], ['INSERT', row.can_insert],
       ['UPDATE', row.can_update], ['DELETE', row.can_delete],
-    ].some(([name, granted]) => rights.split(', ').includes(name) !== granted);
+    ].some(([name, granted]) =>
+      (rights === 'NONE' ? false : rights.split(', ').includes(name)) !== granted);
   });
   let lockDrift = false;
   for (const [table, column] of Object.entries(runtimeLockColumns)) {

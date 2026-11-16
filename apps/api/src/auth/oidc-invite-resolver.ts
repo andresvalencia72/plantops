@@ -9,7 +9,7 @@ import {
 import { and, eq, gt, inArray, isNull, sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { memberships, users } from '../database/organizations.js';
-import { DatabaseConnection } from './database-connection.js';
+import { IdentityDatabaseConnection } from './identity-database-connection.js';
 import { invitations, oidcAccounts } from './oidc-identity.schema.js';
 
 function verifiedInvitationEmail(profile: OidcProfile): string | null {
@@ -140,7 +140,7 @@ export async function resolveInvitedIdentity(
 @Injectable()
 export class PlantOpsOidcInviteResolver extends OidcAccountResolver {
   constructor(
-    private readonly connection: DatabaseConnection,
+    private readonly connection: IdentityDatabaseConnection,
     registry: AuthenticationRegistry,
   ) {
     super();

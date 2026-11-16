@@ -7,10 +7,10 @@
  */
 export const runtimePermissions = Object.freeze({
   organizations: 'SELECT',
-  users: 'SELECT, INSERT',
-  memberships: 'SELECT, INSERT',
-  invitations: 'SELECT, INSERT, UPDATE',
-  oidc_accounts: 'SELECT, INSERT',
+  users: 'SELECT',
+  memberships: 'SELECT',
+  invitations: 'NONE',
+  oidc_accounts: 'NONE',
   oidc_states: 'SELECT, INSERT, DELETE',
   sessions: 'SELECT, INSERT, UPDATE, DELETE',
   assets: 'SELECT, UPDATE',
@@ -44,8 +44,10 @@ export function runtimeGrantStatements(role) {
   const quotedRole = `"${role}"`;
   return [
     `GRANT USAGE ON SCHEMA public TO ${quotedRole}`,
-    ...Object.entries(runtimePermissions).map(([table, privileges]) =>
-      `GRANT ${privileges} ON TABLE public."${table}" TO ${quotedRole}`),
+    ...Object.entries(runtimePermissions)
+      .filter(([, privileges]) => privileges !== 'NONE')
+      .map(([table, privileges]) =>
+        `GRANT ${privileges} ON TABLE public."${table}" TO ${quotedRole}`),
     ...Object.entries(runtimeLockColumns).map(([table, column]) =>
       `GRANT UPDATE ("${column}") ON TABLE public."${table}" TO ${quotedRole}`),
   ];
