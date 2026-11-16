@@ -121,9 +121,11 @@ describe('Sprint 3H — manual due-slot generation', () => {
       expect(first.body).not.toHaveProperty(field);
     }
     expect((await plan(id))?.nextDueOn).toBe('2024-02-29');
+    expect((await plan(id))?.version).toBe(1);
     const second = await generate(id).expect(201);
     expect(second.body.scheduledFor).toBe('2024-02-29');
     expect((await plan(id))?.nextDueOn).toBe('2024-03-01');
+    expect((await plan(id))?.version).toBe(2);
     expect(await orders(id)).toHaveLength(2);
     for (const order of await orders(id)) {
       const log = await db.select().from(workOrderEvents)

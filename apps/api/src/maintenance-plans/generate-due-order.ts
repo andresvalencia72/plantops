@@ -119,6 +119,7 @@ export async function generateDueOrder(
     });
     const [advanced] = await tx.update(maintenancePlans).set({
       nextDueOn: sql<string>`${maintenancePlans.nextDueOn} + (${plan.intervalDays}::integer)`,
+      version: sql<number>`${maintenancePlans.version} + 1`,
     }).where(and(planScope, eq(maintenancePlans.nextDueOn, plan.nextDueOn)))
       .returning({ id: maintenancePlans.id });
     if (!advanced) {

@@ -8,6 +8,7 @@ export default defineConfig({
     './src/database/incidents.ts',
     './src/database/audit-events.ts',
     './src/database/maintenance-plans.ts',
+    './src/database/maintenance-plan-events.ts',
     './src/database/work-orders.ts',
     './src/database/work-order-events.ts',
     './src/database/work-order-assignments.ts',
