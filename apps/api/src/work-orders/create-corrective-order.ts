@@ -26,7 +26,10 @@ export type CreateCorrectiveOrderInput = Readonly<{
 
 const projected = {
   id: workOrders.id, incidentId: workOrders.incidentId,
-  assetId: workOrders.assetId, title: workOrders.title,
+  assetId: workOrders.assetId,
+  locationBasis: workOrders.locationBasis,
+  plantIdSnapshot: workOrders.plantIdSnapshot,
+  timeZoneSnapshot: workOrders.timeZoneSnapshot, title: workOrders.title,
   description: workOrders.description, status: workOrders.status,
   responsibleMembershipId: workOrders.responsibleMembershipId,
   assignmentVersion: workOrders.assignmentVersion,

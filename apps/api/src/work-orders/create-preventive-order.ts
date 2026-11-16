@@ -24,6 +24,9 @@ export type CreatePreventiveOrderInput = Readonly<{
 const projected = {
   id: workOrders.id, kind: workOrders.kind, incidentId: workOrders.incidentId,
   assetId: workOrders.assetId, title: workOrders.title,
+  locationBasis: workOrders.locationBasis,
+  plantIdSnapshot: workOrders.plantIdSnapshot,
+  timeZoneSnapshot: workOrders.timeZoneSnapshot,
   description: workOrders.description, status: workOrders.status,
   responsibleMembershipId: workOrders.responsibleMembershipId,
   assignmentVersion: workOrders.assignmentVersion,
