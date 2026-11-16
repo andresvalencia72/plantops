@@ -155,6 +155,27 @@
       "when": 1794841544815,
       "tag": "0021_lock_work_order_core_metadata",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794842959811,
+      "tag": "0022_protect_oidc_invite_identity",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794843181271,
+      "tag": "0023_require_consumed_invitation_for_membership",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794843276220,
+      "tag": "0024_eager_energizer",
+      "breakpoints": true
     }
   ]
 }
