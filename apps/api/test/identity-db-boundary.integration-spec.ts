@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID } from 'node:crypto';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import type { OidcProfile } from '@nestjs/authentication';
 import { drizzle } from 'drizzle-orm/node-postgres';
@@ -78,6 +79,47 @@ describe('Sprint 3Z — independent invite provisioning and identity DB principa
       await admin.query(`DROP ROLE "${role}"`);
     }
     await admin.end();
+  });
+
+  it('read-only preflight checks 3 distinct non-admin database principals', () => {
+    const asUrl = (name: string, password: string) => {
+      const target = new URL(raw!);
+      target.username = name;
+      target.password = password;
+      return target.toString();
+    };
+    const env = {
+      ...process.env,
+      DATABASE_URL: asUrl(businessRole, businessPassword),
+      IDENTITY_DATABASE_URL: asUrl(identityRole, identityPassword),
+      OPERATOR_DATABASE_URL: asUrl(operatorRole, operatorPassword),
+    };
+    const cwd = fileURLToPath(new URL('..', import.meta.url));
+    const stdout = execFileSync(process.execPath,
+      ['scripts/identity-privilege-preflight.mjs'], {
+        cwd, env, encoding: 'utf8', timeout: 8_000,
+      });
+    const report = JSON.parse(stdout) as Record<string, unknown>;
+    expect(report).toMatchObject({
+      status: 'PREFLIGHT_PASS_NOT_DEPLOY_APPROVAL',
+      evidence: {
+        business: { principalDistinct: true, grantsMatchBoundary: true },
+        identity: { principalDistinct: true, grantsMatchBoundary: true },
+        operator: { principalDistinct: true, grantsMatchBoundary: true },
+        schema: { noDuplicateAccounts: true, uniqueIdentity: true,
+          immutableAccounts: true, immutableInvitations: true,
+          consumesBeforeMembership: true },
+      },
+    });
+    const blocked = spawnSync(process.execPath,
+      ['scripts/identity-privilege-preflight.mjs'], {
+        cwd, env: { ...env, OPERATOR_DATABASE_URL: env.DATABASE_URL },
+        encoding: 'utf8', timeout: 8_000,
+      });
+    expect(blocked.status).toBe(1);
+    expect(JSON.parse(blocked.stdout)).toMatchObject({
+      status: 'BLOCKED', distinctPrincipals: false,
+    });
   });
 
   it('business SQL login cannot forge an invitation, user, membership or account', async () => {
