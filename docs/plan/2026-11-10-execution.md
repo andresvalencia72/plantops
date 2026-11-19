@@ -99,4 +99,12 @@ Falta de conexión con Mac/GitHub, instalación fallida, tests rotos no explicad
 - [Informe de revisión y limitaciones](../quality/mobile-navigation-review.md). [PR #10](https://github.com/andresvalencia72/plantops/pull/10) draft apilada sobre #8; [GitHub Actions #42844650702](https://github.com/andresvalencia72/plantops/actions/runs/42844650702) finalizada con éxito para `b8a3937`. En revisión posterior: 17/17 pruebas unitarias, 5/5 E2E, typecheck/build correctos, lint 0 errores/2 advertencias y límite de 400 líneas correcto.
 - Esta es una revisión adicional, **no equivale a nuevas horas trabajadas ni modifica el cierre inicial A–F**. Se mantienen los límites del alcance; `main` estaba intacta en el corte histórico del 10/11/2026.
 
-**Estado de integración a 19/11/2026:** PR #8 fusionada en `main` (merge `0e86551`); PR #10 todavía pendiente de validación y merge.
+**Actualización posterior del 19/11/2026:** PR #8 fusionada en `main` (`0e86551`) y PR #10 fusionada después (`180e5e9`); 17 pruebas de componentes y 6 de navegador verificadas en #10. Los párrafos anteriores reflejan el estado histórico del 10/11/2026.
+
+## Continuación del Sprint 1 — 2026-11-11
+
+- **Estado histórico del 11/11/2026 — siguiente bloque definido, no backend implementado entonces:** [puerta de decisión](2026-11-11-backend-gate.md) sobre identidad, organización y persistencia segura. ADR-0002 y ADR-0003 figuraban como **PROPUESTOS** en esta PR; su aprobación posterior se documenta en la [PR #12](https://github.com/andresvalencia72/plantops/pull/12).
+- Rama `docs/plantops-s1-backend-gate` basada en `fix/plantops-mobile-navigation`; commit de contenido `a7cab71`; [PR #11 draft](https://github.com/andresvalencia72/plantops/pull/11) apilada sobre #10. Sin merge en `main` al redactarse el 11/11/2026.
+- Antes del commit: `git diff --check` correcto; `npm --prefix apps/web run typecheck`, `lint`, `test`, `build`, `check:lines` ejecutados y correctos (17/17 tests; lint con 0 errores y 2 advertencias preexistentes de shadcn; archivos manuales ≤400 líneas).
+- Estado al iniciar: worktree limpio, un solo worktree, sin sesiones terminales de Desktop Commander activas; servidor Vite de visualización existente, no detenido.
+- **Puerta de validación para las PR posteriores:** verificar la aceptación documentada de la arquitectura y tenancy; revisar mecanismo de identidad y modelo físico antes de persistir datos. Los tests de UI no acreditan aislamiento seguro.
