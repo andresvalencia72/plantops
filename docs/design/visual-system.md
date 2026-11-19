@@ -63,6 +63,10 @@ No fijar hexadecimales definitivos hasta muestrear las referencias y probar cont
 - Carga, sin datos, error, confirmación, permisos, datos extensos y nombres largos.
 - Mismo flujo para solicitante, técnico y supervisor; el modo de demo no implementa permisos reales.
 
+## Evidencia de implementación
+
+[Capturas reales y verificadas del corte frontend](previews/README.md), generadas mediante Playwright con datos ficticios en modo claro, oscuro y móvil. No son imágenes sintéticas de inspiración.
+
 ## Aceptación del diseño
 
 El usuario aprueba la **dirección** v0.4, no cada pixel, gráfico o componente. Antes de incorporar una nueva pantalla se compara con Dashboard/Incidencias, se toman capturas en ambos temas y móvil y se verifica que la estructura no vuelva a una plantilla SaaS genérica.

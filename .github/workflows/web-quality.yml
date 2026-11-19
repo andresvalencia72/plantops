@@ -1,0 +1,72 @@
+name: Frontend quality
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'scripts/**'
+      - '.github/workflows/web-quality.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'scripts/**'
+      - '.github/workflows/web-quality.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, test, lint & build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install reproducibly
+        run: npm ci --no-audit --no-fund
+
+      - name: Check file limits
+        run: npm run check:lines
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit and UI tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser smoke tests
+        run: npm run test:e2e
+
+      - name: Upload browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-results
+          path: apps/web/test-results/
+          retention-days: 7
