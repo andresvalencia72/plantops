@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Plus, Search, SlidersHorizontal } from 'lucide-react'
 import type { DemoOrganization } from '@/app/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { statusOptions, priorityOptions } from './incident-options'
 import { IncidentInspector } from './incident-inspector'
 import { IncidentTable } from './incident-table'
+import { ReportIncidentDialog } from './report-incident-dialog'
 import { filterIncidents, summarizeIncidents } from './selectors'
 import { useIncidents } from './use-incidents'
 import type { IncidentFilters, IncidentPriority, IncidentStatus } from './types'
@@ -13,7 +14,8 @@ import type { IncidentFilters, IncidentPriority, IncidentStatus } from './types'
 const initialFilters: IncidentFilters = { query: '', status: 'ALL', priority: 'ALL' }
 
 export function IncidentsPage({ organization }: { organization: DemoOrganization }) {
-  const { records, loading, error } = useIncidents(organization)
+  const { records, loading, error, refresh } = useIncidents(organization)
+  const [formOpen, setFormOpen] = useState(false)
   const [filters, setFilters] = useState<IncidentFilters>(initialFilters)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const filtered = useMemo(() => filterIncidents(records, filters), [records, filters])
@@ -30,7 +32,10 @@ export function IncidentsPage({ organization }: { organization: DemoOrganization
             Avisos sobre activos, prioridades y seguimiento del trabajo.
           </p>
         </div>
-        <span className="border border-border bg-card px-3 py-2 text-[11px] text-muted-foreground">Modo demo · Solo lectura</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-[11px] text-muted-foreground">Datos de demostración</span>
+          <Button onClick={() => setFormOpen(true)}><Plus size={15} aria-hidden="true"/> Nueva incidencia</Button>
+        </div>
       </div>
       <div className="flex flex-wrap gap-5 border-b border-border pb-5 text-[12px]">
         <p><span className="mr-2 text-muted-foreground">Incidencias</span><strong className="font-semibold">{loading ? '—' : summary.total}</strong></p>
@@ -89,6 +94,12 @@ export function IncidentsPage({ organization }: { organization: DemoOrganization
         </p>
       </section>
       <IncidentInspector incident={selected} onClose={() => setSelectedId(null)} />
+      <ReportIncidentDialog
+        organization={organization}
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        onCreated={(id) => { setSelectedId(id); refresh() }}
+      />
     </div>
   )
 }

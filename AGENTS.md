@@ -36,4 +36,4 @@ Leer en orden: `docs/README.md`, `docs/product/domain-model.md`, `docs/plan/firs
 
 ## Estado de arranque
 
-Repos existente con documentación. Ningún frontend/backend funcional ni CI validada al escribir esta guía. Los prototipos v0.4 anteriores son referencia estética, no implementación de producción.
+Repositorio con documentación y frontend de demostración en ramas de PR apiladas; no existe backend ni autenticación, tenancy o CI productiva validada. Los prototipos v0.4 anteriores son referencia estética, no código de producción.

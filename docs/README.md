@@ -4,7 +4,7 @@
 
 Este directorio es la **fuente de verdad técnica** del proyecto. El [README raíz](../README.md) presenta el producto al público; los documentos de aquí especifican sus reglas, decisiones, arquitectura candidata y criterios de calidad. El tablero de GitHub contiene trabajo accionable y los PR contienen evidencia de implementación. Notion enlaza el estado del proyecto, no duplica estos documentos.
 
-> **Alcance real:** existe un repositorio con README y documentación inicial; no hay frontend ni backend implementados. El prototipo visual **v0.4** fue aceptado como dirección estética, no como código de producción ni contrato técnico.
+> **Alcance real:** el repositorio `main` conserva la documentación de arranque; en ramas apiladas existe un **frontend de demostración** con datos ficticios, sin backend ni autorización real. El prototipo visual **v0.4** fue aceptado como dirección estética, no como código de producción ni contrato técnico.
 
 ## Ruta de lectura sugerida
 

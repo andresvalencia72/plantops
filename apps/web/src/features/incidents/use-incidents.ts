@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import type { DemoOrganization } from '@/app/types'
 import { mockIncidentRepository } from './mock-repository'
 import type { IncidentView } from './types'
@@ -11,6 +11,7 @@ interface IncidentState {
 }
 
 export function useIncidents(organization: DemoOrganization) {
+  const [revision, refresh] = useReducer((current: number) => current + 1, 0)
   const [state, setState] = useState<IncidentState>({
     organization, records: [], loading: true, error: null,
   })
@@ -23,11 +24,11 @@ export function useIncidents(organization: DemoOrganization) {
       if (active) setState({ organization, records: [], loading: false, error: 'No se pudo cargar la información.' })
     })
     return () => { active = false }
-  }, [organization])
+  }, [organization, revision])
 
-  // Never display rows from the previous organization during a context switch.
+  // Prevent a previous organization's rows from flashing during a context change.
   if (state.organization !== organization) {
-    return { records: [], loading: true, error: null }
+    return { records: [], loading: true, error: null, refresh }
   }
-  return { records: state.records, loading: state.loading, error: state.error }
+  return { records: state.records, loading: state.loading, error: state.error, refresh }
 }
