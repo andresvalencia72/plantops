@@ -88,3 +88,15 @@ Cadena GitHub: [#2 Plan](https://github.com/andresvalencia72/plantops/pull/2) �
 ## Criterios de parada
 
 Falta de conexión con Mac/GitHub, instalación fallida, tests rotos no explicados, archivos >400 líneas, worktree modificado por terceros o conflictos con cambios nuevos: parar y documentar, **nunca forzar**.
+
+## Revisión adicional del frontend — 2026-11-10
+
+
+- [Issue #9](https://github.com/andresvalencia72/plantops/issues/9): el menú móvil no implementaba una superficie modal accesible.
+- Reproducción con test Playwright inicialmente rojo y corrección en rama `fix/plantops-mobile-navigation` desde `test/plantops-ui-review`.
+- Commit `51e6254`: transición a `Sheet`/Radix, foco gestionado y restaurado, Escape, escritorio fijo sin modal.
+- Validación local: **17 tests de componentes + 5 E2E Chrome**, typecheck, build, 0 errores lint y máximo 400 líneas.
+- [Informe de revisión y limitaciones](../quality/mobile-navigation-review.md). [PR #10](https://github.com/andresvalencia72/plantops/pull/10) draft apilada sobre #8; [GitHub Actions #42844650702](https://github.com/andresvalencia72/plantops/actions/runs/42844650702) finalizada con éxito para `b8a3937`. En revisión posterior: 17/17 pruebas unitarias, 5/5 E2E, typecheck/build correctos, lint 0 errores/2 advertencias y límite de 400 líneas correcto.
+- Esta es una revisión adicional, **no equivale a nuevas horas trabajadas ni modifica el cierre inicial A–F**. Se mantienen los límites del alcance; `main` estaba intacta en el corte histórico del 10/11/2026.
+
+**Estado de integración a 19/11/2026:** PR #8 fusionada en `main` (merge `0e86551`); PR #10 todavía pendiente de validación y merge.

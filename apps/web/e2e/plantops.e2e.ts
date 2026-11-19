@@ -55,13 +55,45 @@ test('mobile navigation and incident inspector remain usable without page overfl
   await page.getByRole('navigation', { name: 'Navegación principal' })
     .getByRole('button', { name: 'Incidencias' }).click()
   await expect(page.getByText('6 de 6 incidencias')).toBeVisible()
-  // Capture only after the mobile sidebar has finished closing.
-  await expect.poll(async () => page.locator('aside').evaluate(
-    (element) => element.getBoundingClientRect().right,
-  )).toBeLessThanOrEqual(1)
+  // Wait for the accessible mobile dialog to close before capturing the page.
+  await expect(page.getByRole('dialog', { name: 'Navegación móvil' })).not.toBeVisible()
   await page.screenshot({ path: info.outputPath('incidents-mobile.png'), fullPage: true })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.getByRole('button', { name: /Presión inestable en circuito auxiliar/ }).first().click()
   await expect(page.getByRole('dialog')).toContainText('Compresor principal')
   await page.screenshot({ path: info.outputPath('inspector-mobile.png'), fullPage: true })
+})
+
+
+test('mobile menu is a modal navigation surface and restores keyboard focus', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.goto('/')
+  const openButton = page.getByRole('button', { name: 'Abrir menú' })
+  await openButton.click()
+  const navigationDialog = page.getByRole('dialog', { name: 'Navegación móvil' })
+  await expect(navigationDialog).toBeVisible()
+  await expect(navigationDialog.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible()
+  await page.keyboard.press('Tab')
+  expect(await page.evaluate(() => {
+    const dialog = document.querySelector('[role="dialog"]')
+    return Boolean(dialog && document.activeElement && dialog.contains(document.activeElement))
+  })).toBe(true)
+  await page.keyboard.press('Escape')
+  await expect(navigationDialog).not.toBeVisible()
+  await expect(openButton).toBeFocused()
+})
+
+test('resizing to desktop dismisses the mobile dialog and restores usable navigation', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Abrir menú' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Navegación móvil' })
+  await expect(dialog).toBeVisible()
+
+  await page.setViewportSize({ width: 1024, height: 768 })
+  await expect(dialog).not.toBeVisible()
+  const desktopNav = page.locator('aside').getByRole('navigation', { name: 'Navegación principal' })
+  await expect(desktopNav.getByRole('button', { name: 'Vista general' })).toBeFocused()
+  await desktopNav.getByRole('button', { name: 'Incidencias' }).click()
+  await expect(page.getByText('6 de 6 incidencias')).toBeVisible()
 })
