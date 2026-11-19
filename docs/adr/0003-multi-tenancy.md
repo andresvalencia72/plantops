@@ -1,6 +1,6 @@
 # ADR-0003 — Estrategia de aislamiento multiempresa
 
-**Estado:** PROPUESTO · **Fecha:** 2026-11-10 · **Prioridad:** alta antes de persistencia real.
+**Estado:** ACEPTADO (estrategia base) · **Fecha:** 2026-11-10 · **Aprobación:** 2026-11-11 · **Prioridad:** alta antes de persistencia real.
 
 ## Contexto
 
@@ -35,13 +35,13 @@ El MVP debe demostrar que dos empresas independientes no comparten ni ven incide
 4. Comportamiento en tests y transacciones.
 5. Evolución si aumenta número de empresas o requisitos regulatorios.
 
-## Recomendación inicial (NO aceptada)
+## Decisión de estrategia base (aceptada)
 
-`organization_id` explícito en entidades operativas y restricciones de integridad donde sean viables; contexto de tenant autenticado; queries filtradas y pruebas de autorización negativas. Evaluar RLS más adelante como defensa adicional si puede configurarse de forma segura.
+`organization_id` explícito en entidades operativas y restricciones de integridad donde sean viables; contexto de tenant autenticado; queries filtradas y pruebas de autorización negativas. Evaluar RLS más adelante como defensa adicional si puede configurarse de forma segura; **RLS no se ha aprobado ni implementado**.
 
 **Nunca** aceptar `organizationId` del cuerpo HTTP como autorización. La pertenencia del recurso se comprueba en servidor y, donde sea posible, mediante claves/restricciones del modelo persistente.
 
-## Verificación necesaria para aceptación
+## Verificación obligatoria antes de declarar aislamiento efectivo
 
 - Dos tenants A/B con usuarios/membresías y datos ficticios independientes.
 - Lectura de recurso B desde identidad A → denegada o “no encontrado” sin fuga.

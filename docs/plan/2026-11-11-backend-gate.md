@@ -1,7 +1,9 @@
 # Sprint 1 — Puerta de decisión antes de la API real
 
-**Estado:** PROPUESTA para revisión · **Fecha:** 2026-11-11.
-**Base de trabajo:** `fix/plantops-mobile-navigation` (PR #10). Mantener esta PR apilada; sin merge en `main`.
+**Estado del corte histórico (11/11/2026):** ADR-0002/0003 aceptados; integración de identidad y modelo físico pendientes de diseño y verificación.
+**Base de trabajo original:** `fix/plantops-mobile-navigation` (PR #10). Esta referencia registra la rama de partida del 11/11/2026, no la base vigente de integración.
+
+> **Actualización de revisión (19/11/2026):** tras esta propuesta se seleccionó OIDC Google/Microsoft con acceso por invitación y sesiones de servidor persistentes en PostgreSQL. La selección de la dirección de identidad **no demuestra** integración, revocación, CSRF ni autorización efectiva; esas comprobaciones siguen exigidas en las PRs posteriores. El esquema físico también requiere revisión y pruebas A/B reales antes de considerar seguro el sistema.
 
 ## Objetivo del siguiente corte vertical
 
@@ -23,7 +25,7 @@ El formulario actual sigue usando un repositorio mock en memoria.
 | Contexto de empresa | Permitir selección sólo entre membresías verificadas en servidor | El cliente puede solicitar un contexto, pero no autorizarse a sí mismo |
 | Acceso a activos | Sólo activo existente, visible y elegible dentro del tenant | Evitar referencias cruzadas incluso con ID manipulado |
 
-Estas recomendaciones **no cambian los ADR de PROPUESTO a ACEPTADO**. El diseño
+La estrategia de monolito modular y esquema compartido con aislamiento por organización está **aprobada**; la eficacia del aislamiento todavía no está comprobada. El diseño
 de membresía, revocación de sesiones, método de selección de organización y
 restricciones SQL se revisará antes de crear la API persistente.
 
@@ -75,9 +77,9 @@ de demostración inseguro como atajo para saltarse la decisión de identidad.
 - [x] Opciones y riesgos de backend/tenancy expuestos con ADR vinculados.
 - [x] Reglas comprobables de aislamiento y mutación enumeradas.
 - [x] Secuencia de PR pequeñas definida sin asumir autorización ficticia.
-- [ ] Revisión/aceptación explícita de ADR-0002 y ADR-0003.
+- [x] Revisión/aceptación explícita de ADR-0002 y ADR-0003 (2026-11-11).
 - [ ] Selección explícita de mecanismo real de identidad y contexto de organización.
 - [ ] Modelo de claves foráneas y migraciones aprobado antes de persistencia.
 
-**Bloqueo:** no iniciar persistencia real mientras las tres últimas decisiones
-sigan abiertas. El frontend actual puede revisarse independientemente.
+**Bloqueo:** no iniciar persistencia real mientras identidad y modelo físico
+sigan abiertos. El frontend actual puede revisarse independientemente.

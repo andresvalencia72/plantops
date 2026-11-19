@@ -13,8 +13,8 @@ El término “Sprint” indica **un hito funcional**, no una ceremonia Scrum ni
 - [x] Validar la **dirección visual v0.4** light/dark, con retoques pendientes.
 - [x] Crear repositorio público con README.
 - [x] Preparar documentación inicial `docs/` (este entregable).
-- [ ] Revisar y decidir ADR-0002 (arquitectura backend).
-- [ ] Revisar y decidir ADR-0003 (tenancy antes de API/BD).
+- [x] Revisar y decidir ADR-0002 (arquitectura backend, 2026-11-11).
+- [x] Revisar y decidir ADR-0003 (estrategia base, 2026-11-11).
 - [ ] Convertir primer corte en Issue e iniciar PR frontend.
 - [ ] Confirmar arquitectura de frontend real con el primer componente, no solo en documento.
 
