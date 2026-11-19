@@ -20,10 +20,16 @@ Desde `apps/web`:
 - `npm ci` — instalación reproducible desde lockfile.
 - `npm run dev` — ejecución de desarrollo.
 - `npm run typecheck` — chequeo estático de TypeScript.
-- `npm run lint` — Oxlint (advertencias de export de variantes provienen de shadcn generado).
+- `npm run lint` — Oxlint, con excepción focalizada para los exports oficiales de variantes en `Button` y `Badge`.
 - `npm test` — Vitest + React Testing Library.
 - `npm run build` — compilación de producción.
 - `npm run check:lines` — máximo 400 líneas para archivos escritos a mano, excluidos lockfiles generados.
+
+## Dependencias y seguridad de la demo
+
+`shadcn`, Tailwind y `@tailwindcss/vite` se instalan como dependencias de desarrollo para generar y compilar la aplicación. Los componentes utilizados por React permanecen como código local.
+
+**Auditoría verificada el 19/11/2026:** `npm audit --omit=dev` no informa vulnerabilidades. La auditoría completa todavía registra cuatro avisos moderados vinculados a `shadcn` y sus dependencias transitivas; no aplicar una actualización mayor automática sin comprobar compatibilidad. La UI es una demostración, no una garantía de aislamiento ni autorización entre organizaciones.
 
 ## Fuentes de verdad
 
