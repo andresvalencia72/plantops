@@ -1,6 +1,6 @@
 # Plan de ejecución supervisable — PlantOps (10-11-2026)
 
-**Estado:** EN EJECUCIÓN; esta página distingue plan de resultados verificables.
+**Estado documental:** plan inicial del 10/11/2026, conservado como registro histórico. **No describe el estado actual del proyecto ni acredita la finalización de sus bloques.**
 **Ventana objetivo:** 6 bloques de trabajo de hasta 1 hora, sin forzar duración ni actividad ficticia.
 **Repo:** `andresvalencia72/plantops` · **Issue principal:** [#1](https://github.com/andresvalencia72/plantops/issues/1).
 
@@ -17,11 +17,13 @@
 | E · Flujo incidentes | Listado, búsqueda, filtros, inspector, creación si cabe | Interacciones verificables, estados vacío/error |
 | F · Calidad/entrega | Tests, revisión accesibilidad/responsive, documentación y PR | Build/tests verdes, reporte y limitaciones |
 
-**Si se termina antes:** continuar con el primer punto pendiente del siguiente bloque. No llenar tiempo con características nuevas que no correspondan a la Issue.
+**Alcance histórico:** los seis bloques anteriores corresponden a la planificación original del 10/11/2026; no deben interpretarse como tareas pendientes hoy. Para revisar avances posteriores, consultar las [PRs del repositorio](https://github.com/andresvalencia72/plantops/pulls) y su evidencia individual. Una PR abierta no significa que su código esté integrado en `main`.
+
+**Regla de ejecución original:** si se termina antes, continuar con el primer punto pendiente del siguiente bloque. No llenar tiempo con características nuevas que no correspondan a la Issue.
 
 ## Estrategia Git
 
-Ramas apiladas; cada rama parte del HEAD verificado de la anterior:
+Esquema inicial, parcial, de ramas apiladas (10/11/2026); la cadena real puede incluir otras ramas y bifurcaciones. Cada rama parte del HEAD verificado de su base:
 
 ```text
 main
@@ -56,9 +58,9 @@ main
 | Inicio | Revisados Git, documentación y herramienta Mac | `main` · `3ac543b` | Árbol limpio, proyecto vacío salvo docs |
 | Inicio | Plan creado; ramas posteriores condicionadas a verificaciones | `chore/plantops-execution-plan` | Este archivo |
 
-Los siguientes registros se añadirán **solo tras ejecutar y verificar** los cambios.
+**Alcance del registro:** esta tabla documenta únicamente el arranque del 10/11/2026. No es una bitácora actualizada de todo PlantOps. Los cambios posteriores se deben contrastar con sus commits, PRs, comprobaciones y estado de integración; no se consideran realizados o fusionados por aparecer en este plan.
 
-## Qué revisar a la vuelta
+## Lista de revisión original (10/11/2026)
 
 1. Leer el final de este registro y `git log --oneline --all --decorate`.
 2. Ver ramas publicadas y PR abiertas; **no asumir que una rama está fusionada**.
