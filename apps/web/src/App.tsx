@@ -21,7 +21,7 @@ export default function App() {
     >
       {screen === 'overview'
         ? <DashboardPage organization={organization} onViewIncidents={() => setScreen('incidents')} />
-        : <IncidentsPage />}
+        : <IncidentsPage key={organization} organization={organization} />}
     </AppShell>
   )
 }
