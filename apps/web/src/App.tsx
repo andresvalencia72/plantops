@@ -1,15 +1,27 @@
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react'
+import { useTheme } from '@/app/use-theme'
+import type { DemoOrganization, Screen } from '@/app/types'
+import { AppShell } from '@/components/layout/app-shell'
+import { DashboardPage } from '@/features/dashboard/dashboard-page'
+import { IncidentsPage } from '@/features/incidents/incidents-page'
 
 export default function App() {
+  const [screen, setScreen] = useState<Screen>('overview')
+  const [organization, setOrganization] = useState<DemoOrganization>('atlas')
+  const { theme, setTheme } = useTheme()
+
   return (
-    <main className="flex min-h-svh flex-col items-start justify-center gap-5 bg-background px-8 text-foreground">
-      <Badge variant="outline">PlantOps · entorno de desarrollo</Badge>
-      <h1 className="text-3xl font-semibold tracking-tight">Preparando la consola de operaciones</h1>
-      <p className="max-w-xl text-sm text-muted-foreground">
-        Este es un placeholder técnico de la rama de fundación, no la interfaz v0.4 aprobada.
-      </p>
-      <Button type="button" disabled>Interfaz en construcción</Button>
-    </main>
+    <AppShell
+      screen={screen}
+      onNavigate={setScreen}
+      organization={organization}
+      onOrganizationChange={setOrganization}
+      theme={theme}
+      onThemeChange={setTheme}
+    >
+      {screen === 'overview'
+        ? <DashboardPage organization={organization} onViewIncidents={() => setScreen('incidents')} />
+        : <IncidentsPage />}
+    </AppShell>
   )
 }

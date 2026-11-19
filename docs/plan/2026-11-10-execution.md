@@ -59,6 +59,7 @@ main
 | Inicio | Plan creado; ramas posteriores condicionadas a verificaciones | `chore/plantops-execution-plan` | Este archivo |
 | Bloque B | Vite 8, React 19, TypeScript 7, Tailwind 4, shadcn (preset Nova), 4 componentes oficiales; CI local: Typecheck, 1 test, build, npm ci y límite de líneas superados | `feat/plantops-web-foundation` · `06bba5c` | `apps/web`, `scripts/check-file-length.mjs` |
 | Bloque B | Oxlint: 0 errores y 2 advertencias en exports de variantes generadas por shadcn | `06bba5c` | Pendiente evaluar si ajustar regla o mantener componente oficial |
+| Bloque C | App Shell responsive, sidebar móvil, selector de empresa demo, tema persistente, tokens v0.4 y 3 tests de navegación | `feat/plantops-app-shell` · `eeb0762`, `0d4595d` | Typecheck, 3 tests, build y límite de líneas OK; placeholders deliberados en Dashboard/Incidencias |
 
 **Alcance del registro:** esta tabla documenta únicamente el arranque del 10/11/2026. No es una bitácora actualizada de todo PlantOps. Los cambios posteriores se deben contrastar con sus commits, PRs, comprobaciones y estado de integración; no se consideran realizados o fusionados por aparecer en este plan.
 
