@@ -15,8 +15,8 @@ El término “Sprint” indica **un hito funcional**, no una ceremonia Scrum ni
 - [x] Preparar documentación inicial `docs/` (este entregable).
 - [x] Revisar y decidir ADR-0002 (arquitectura backend, 2026-11-11).
 - [x] Revisar y decidir ADR-0003 (estrategia base, 2026-11-11).
-- [ ] Convertir primer corte en Issue e iniciar PR frontend.
-- [ ] Confirmar arquitectura de frontend real con el primer componente, no solo en documento.
+- [x] Convertir primer corte en Issue e iniciar PR frontend (#1 y #2–#10).
+- [x] Confirmar arquitectura de frontend real con componentes y pruebas (PR #3–#10).
 
 ## Sprint 1 — Fundamentos + primer flujo visible
 
@@ -30,6 +30,8 @@ El término “Sprint” indica **un hito funcional**, no una ceremonia Scrum ni
 5. Diseñar adaptador de datos / contrato HTTP sin fijar innecesariamente todo backend.
 6. Iniciar backend de identidad/tenant y activos, aplicar ADR-0003.
 7. Conectar reporte con servidor, pruebas de aislamiento A/B e integración.
+
+**Estado 2026-11-11:** frontend demo y base NestJS sin auth/BD en PR draft. Los pasos de identidad, persistencia e integración segura siguen pendientes.
 
 **Resultado verificable:** una identidad real permitida reporta una incidencia sobre un activo propio; no puede hacerlo sobre otro tenant.
 
