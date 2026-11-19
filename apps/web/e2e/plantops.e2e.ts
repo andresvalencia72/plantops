@@ -82,3 +82,18 @@ test('mobile menu is a modal navigation surface and restores keyboard focus', as
   await expect(navigationDialog).not.toBeVisible()
   await expect(openButton).toBeFocused()
 })
+
+test('resizing to desktop dismisses the mobile dialog and restores usable navigation', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Abrir menú' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Navegación móvil' })
+  await expect(dialog).toBeVisible()
+
+  await page.setViewportSize({ width: 1024, height: 768 })
+  await expect(dialog).not.toBeVisible()
+  const desktopNav = page.locator('aside').getByRole('navigation', { name: 'Navegación principal' })
+  await expect(desktopNav.getByRole('button', { name: 'Vista general' })).toBeFocused()
+  await desktopNav.getByRole('button', { name: 'Incidencias' }).click()
+  await expect(page.getByText('6 de 6 incidencias')).toBeVisible()
+})
