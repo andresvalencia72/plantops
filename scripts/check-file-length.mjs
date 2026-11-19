@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { extname, join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const root = new URL('../', import.meta.url).pathname
+const root = fileURLToPath(new URL('../', import.meta.url))
 const suffixes = new Set(['.ts', '.tsx', '.js', '.mjs', '.css', '.md', '.json'])
 const ignored = new Set(['.git', '.engram', '.codegraph', 'node_modules', 'dist', 'build', 'coverage'])
 const generated = new Set(['package-lock.json'])

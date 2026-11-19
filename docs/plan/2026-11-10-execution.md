@@ -1,6 +1,6 @@
 # Plan de ejecución supervisable — PlantOps (10-11-2026)
 
-**Estado:** bloques A–F completados y verificados; PRs apiladas en borrador, revisión humana pendiente. Las verificaciones posteriores continuarán solo si existe trabajo autorizado.
+**Estado documental:** plan inicial del 10/11/2026, conservado como registro histórico. **No describe el estado actual del proyecto ni acredita la finalización de sus bloques.**
 **Ventana objetivo:** 6 bloques de trabajo de hasta 1 hora, sin forzar duración ni actividad ficticia.
 **Repo:** `andresvalencia72/plantops` · **Issue principal:** [#1](https://github.com/andresvalencia72/plantops/issues/1).
 
@@ -17,11 +17,13 @@
 | E · Flujo incidentes | Listado, búsqueda, filtros, inspector, creación si cabe | Interacciones verificables, estados vacío/error |
 | F · Calidad/entrega | Tests, revisión accesibilidad/responsive, documentación y PR | Build/tests verdes, reporte y limitaciones |
 
-**Si se termina antes:** continuar con el primer punto pendiente del siguiente bloque. No llenar tiempo con características nuevas que no correspondan a la Issue.
+**Alcance histórico:** los seis bloques anteriores corresponden a la planificación original del 10/11/2026; no deben interpretarse como tareas pendientes hoy. Para revisar avances posteriores, consultar las [PRs del repositorio](https://github.com/andresvalencia72/plantops/pulls) y su evidencia individual. Una PR abierta no significa que su código esté integrado en `main`.
+
+**Regla de ejecución original:** si se termina antes, continuar con el primer punto pendiente del siguiente bloque. No llenar tiempo con características nuevas que no correspondan a la Issue.
 
 ## Estrategia Git
 
-Ramas apiladas; cada rama parte del HEAD verificado de la anterior:
+Esquema inicial, parcial, de ramas apiladas (10/11/2026); la cadena real puede incluir otras ramas y bifurcaciones. Cada rama parte del HEAD verificado de su base:
 
 ```text
 main
@@ -63,19 +65,19 @@ main
 | Bloque E (alta) | Formulario shadcn y validaciones, guardado in-memory, refresh y selección del nuevo aviso; comprobaciones de tenant demo en adaptador | `feat/plantops-incident-report` · `4310021`, `4a7f088` | 17 tests, typecheck, build y límite de líneas OK. Sin persistencia real. |
 | Bloque F | GitHub Actions, 4 E2E Playwright, capturas desktop light/dark y móvil, informe QA | `test/plantops-ui-review`: `1205621`, `82da67c`, `81cc9a2`; [PR #8](https://github.com/andresvalencia72/plantops/pull/8) | 17 tests UI + 4 E2E + `npm ci`, typecheck, lint (0 errores/2 warnings shadcn), build y ≤400 líneas OK. [CI GitHub run 42834121257](https://github.com/andresvalencia72/plantops/actions/runs/42834121257) concluida en éxito para `81cc9a2`. |
 
-## Revisión y entrega (sin fusionar)
+## Revisión y entrega — corte histórico (10/11/2026)
 
-Cadena GitHub: [#2 Plan](https://github.com/andresvalencia72/plantops/pull/2) → [#3 Fundación](https://github.com/andresvalencia72/plantops/pull/3) → [#4 App Shell](https://github.com/andresvalencia72/plantops/pull/4) → [#5 Listado](https://github.com/andresvalencia72/plantops/pull/5) → [#7 Alta mock](https://github.com/andresvalencia72/plantops/pull/7) → [#8 Calidad/CI](https://github.com/andresvalencia72/plantops/pull/8). Todas **draft**, cada una basada en la anterior. `main` permanece en `3ac543b`, sin merges.
+Cadena GitHub: [#2 Plan](https://github.com/andresvalencia72/plantops/pull/2) → [#3 Fundación](https://github.com/andresvalencia72/plantops/pull/3) → [#4 App Shell](https://github.com/andresvalencia72/plantops/pull/4) → [#5 Listado](https://github.com/andresvalencia72/plantops/pull/5) → [#7 Alta mock](https://github.com/andresvalencia72/plantops/pull/7) → [#8 Calidad/CI](https://github.com/andresvalencia72/plantops/pull/8). En el corte original, todas estaban **draft** y `main` permanecía en `3ac543b`, sin merges. **Actualización verificada el 19/11/2026:** #2, #3, #4, #5 y #7 integradas en `main` (`136506a`); #8 continúa abierta, pendiente de revisión e integración.
 
 - [Capturas reales verificadas](../design/previews/README.md); [informe de calidad](../quality/frontend-review-2026-11-10.md).
 - El navegador móvil pasó la revisión tras esperar el cierre de la transición de navegación.
 - No existe backend, autenticación, autorización multitenant ni persistencia. La seguridad real es trabajo posterior.
 - Un **check verde para un commit** no garantiza automáticamente checks verdes en futuros commits; validar el commit HEAD antes de fusionar.
-- **Pendiente:** revisión visual del propietario y posterior decisión de merge por orden. No agregar funcionalidad sin nueva Issue o autorización.
+- **Pendiente en el corte original:** revisión visual del propietario y decisión de merge por orden. No agregar funcionalidad sin nueva Issue o autorización.
 
-Los siguientes registros se añadirán **solo tras ejecutar y verificar** los cambios.
+**Alcance del registro:** esta tabla resume el corte original del 10/11/2026. No es una bitácora actualizada de todo PlantOps. Los cambios posteriores se deben contrastar con sus commits, PRs, comprobaciones y estado de integración; no se consideran realizados o fusionados por aparecer en este plan.
 
-## Qué revisar a la vuelta
+## Lista de revisión original (10/11/2026)
 
 1. Leer el final de este registro y `git log --oneline --all --decorate`.
 2. Ver ramas publicadas y PR abiertas; **no asumir que una rama está fusionada**.
