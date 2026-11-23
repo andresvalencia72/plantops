@@ -63,6 +63,7 @@ export async function resolveInvitedIdentity(
       };
     };
 
+    // Found-but-suspended accounts must never fall through to re-provisioning.
     const existing = await existingAccount();
     if (existing.found) return existing.principal;
 
@@ -104,6 +105,7 @@ export async function resolveInvitedIdentity(
       organizationId: invitation.organizationId,
       userId: person.id,
       role: invitation.role,
+      status: 'ACTIVE' as const, // Only verified OIDC + valid, locked invitation activates access.
     })));
     await tx.update(invitations)
       .set({ consumedAt: new Date(), consumedByUserId: person.id })
