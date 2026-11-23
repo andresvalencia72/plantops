@@ -14,7 +14,8 @@ Vitest y Oxlint. Generado a partir de la CLI oficial y ajustado para PlantOps.
 
 La ruta `/health` **sólo prueba que el proceso responde**, no que haya una
 base de datos disponible ni aislamiento multiempresa. Las demás rutas aún
-no están creadas. No se incluye autenticación, persistencia ni credenciales.
+no están creadas. Hay un esquema y repositorios Drizzle en PR draft, pero
+no se incluye autenticación ni conexión a una BD persistente.
 
 ## Validación
 

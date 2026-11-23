@@ -6,6 +6,9 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.integration-spec.ts'],
+    fileParallelism: false,
     maxWorkers: 1,
+    hookTimeout: 20_000,
+    testTimeout: 20_000,
   },
 });
