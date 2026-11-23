@@ -30,8 +30,8 @@ Este documento permite diseñar fixtures y adaptadores **sin convertir propuesta
 | Cerrar incidencia | `POST /incidents/:id/close` | Supervisor |
 | Crear orden | `POST /work-orders` | Supervisor |
 | Asignar/reasignar | `POST /work-orders/:id/assign` | Supervisor |
-| Iniciar orden | `POST /work-orders/:id/start` | Técnico responsable |
-| Completar orden | `POST /work-orders/:id/complete` | Técnico responsable |
+| Iniciar orden | `POST /work-orders/:id/start` | Responsable asignado (técnico o supervisor) |
+| Completar orden | `POST /work-orders/:id/complete` | Responsable asignado (técnico o supervisor) |
 | Cancelar orden | `POST /work-orders/:id/cancel` | Supervisor |
 
 **Alternativa:** transiciones mediante `PATCH` con comandos tipados. Evaluarla en ADR si simplifica auditabilidad, idempotencia y coherencia.
