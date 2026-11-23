@@ -1,0 +1,17 @@
+# Development-only and disposable. No persistent volume or public DB binding.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: plantops
+      POSTGRES_DB: plantops_dev
+      POSTGRES_PASSWORD: ${PLANTOPS_POSTGRES_DEV_PASSWORD:?Set local dev password in ignored .env}
+    ports:
+      - "127.0.0.1:55432:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U plantops -d plantops_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 12

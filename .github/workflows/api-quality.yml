@@ -63,6 +63,14 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Refuse unsafe migrations and confirm dry run
+        run: |
+          env -u DATABASE_URL node ./scripts/migrate-dev.mjs | grep -Fx 'Dry run: no migration executed. Pass --apply explicitly.'
+          if DATABASE_URL='postgresql://plantops:fixture@db.invalid:55432/plantops_dev' node ./scripts/migrate-dev.mjs --apply; then
+            echo 'Unsafe migration target was accepted' >&2
+            exit 1
+          fi
+
       - name: Preview operator invite without database access
         run: |
           env -u DATABASE_URL node ./scripts/invitations-operator.mjs \
