@@ -35,8 +35,12 @@ npm run dev -- --host 127.0.0.1 --port 5184 --strictPort
   válida consulta `/api/me/organizations`, activos e incidencias de las
   empresas autorizadas. No envía tokens ni user IDs desde el cliente.
 - Sin sesión la API responde 401; se muestra un estado de acceso pendiente
-  **sin caer en los mocks**. El login externo y las cookies `Secure`
-  sobre loopback siguen siendo TODO.
+  **sin caer en los mocks**. Si el backend anuncia Google en
+  `GET /api/auth/oidc/providers`, aparece un enlace
+  «Continuar con Google»; el navegador entra por
+  `/auth/oidc/google/login` y retorna al callback del mismo origen Vite.
+  Aún falta verificar las cookies `Secure` con un cliente OAuth real.
+  Consulta [la guía](../../docs/architecture/oidc-local-validation.md).
 - Con sesión válida, solo lectura: selector de organizaciones devueltas por
   el servidor, activos, listado paginado (20 por página), detalle y errores
   401/403. No hay formulario de creación ni permisos simulados.

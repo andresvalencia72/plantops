@@ -1,5 +1,6 @@
 import { BadRequestException, Controller, Get, Param, Query, Redirect } from '@nestjs/common';
 import { OidcService, Public } from '@nestjs/authentication';
+import { buildOidcConfig } from './oidc.config.js';
 
 /** OIDC protocol endpoints only; never accept self-signup or email-linking. */
 @Public()
@@ -7,14 +8,21 @@ import { OidcService, Public } from '@nestjs/authentication';
 export class OidcController {
   constructor(private readonly oidc: OidcService) {}
 
+  /** Public names only, never configuration values or client credentials. */
+  @Get('providers')
+  providers(): { providers: string[] } {
+    const enabled = buildOidcConfig();
+    return { providers: enabled && typeof enabled.providers === 'object'
+      ? Object.keys(enabled.providers) : [] };
+  }
+
   @Get(':provider/login')
   @Redirect()
   login(
     @Param('provider') provider: string,
     @Query('redirectTo') redirectTo?: string,
   ) {
-    // Dynamic post-login redirects have not been reviewed; fail closed.
-    // The server-side redirectAfterLogin setting remains a trusted constant.
+    // The post-login destination is configured server-side, never from the request.
     if (redirectTo !== undefined) {
       throw new BadRequestException('Custom OIDC redirect is not enabled');
     }

@@ -45,6 +45,15 @@ describe('opt-in OIDC HTTP routing without real provider credentials', () => {
     }
   });
 
+  it('lists enabled provider names without exposing credentials', async () => {
+    const result = await request(app.getHttpServer())
+      .get('/auth/oidc/providers')
+      .expect(200);
+    expect(result.body).toEqual({ providers: ['google'] });
+    expect(result.text).not.toContain('fixture-only-secret');
+    expect(result.text).not.toContain('fixture-only-google-client');
+  });
+
   it('still exposes only health without authentication', async () => {
     await request(app.getHttpServer()).get('/health')
       .expect(200).expect({ status: 'ok' });
@@ -57,7 +66,7 @@ describe('opt-in OIDC HTTP routing without real provider credentials', () => {
       .expect(404);
   });
 
-  it('rejects user-selected redirect destinations before OIDC discovery', async () => {
+  it('rejects user-selected redirect destinations before starting OIDC', async () => {
     await request(app.getHttpServer())
       .get('/auth/oidc/google/login?redirectTo=https%3A%2F%2Fevil.invalid')
       .expect(400);

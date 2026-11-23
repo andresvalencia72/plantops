@@ -13,6 +13,11 @@ export default defineConfig({
         target: 'http://127.0.0.1:3001',
         rewrite: (path: string) => path.replace(/^\/api(?=\/)/, ''),
       },
+      // OAuth provider must return to the SAME Vite origin, so /?source=api
+      // opens the React workspace and host-bound cookies survive the callback.
+      '/auth/oidc': {
+        target: 'http://127.0.0.1:3001',
+      },
     },
   },
   test: {

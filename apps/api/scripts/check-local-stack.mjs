@@ -68,7 +68,8 @@ async function verifyHttp() {
     ['/me', 401],
     ['/me/organizations', 401],
     ['/organizations/11111111-1111-4111-8111-111111111111/assets', 401],
-    ['/auth/oidc/google/login', 404],
+    ['/auth/oidc/providers', process.env.GOOGLE_OIDC_CLIENT_ID ||
+      process.env.MICROSOFT_OIDC_CLIENT_ID ? 200 : 404],
     ['/', 404],
   ];
   for (const [path, expected] of checks) {

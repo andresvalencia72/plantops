@@ -101,9 +101,11 @@ propio ni un login ficticio. La elección posterior no invalida la comparación.
   tests negativos y de concurrencia.
 - [PR #35–#36](https://github.com/andresvalencia72/plantops/pull/36):
   identidad y organizaciones accesibles, activos filtrados por tenant.
-- **No configurado en servicios externos:** sin clientes OAuth reales ni
-  invitaciones administrativas; ningún login real contra proveedores
-  verificado. Las pruebas usan PostgreSQL efímero en CI.
+- [PR #46](https://github.com/andresvalencia72/plantops/pull/46):
+  cliente Google Web y callback configurados en secreto local (no en Git),
+  invitación de operador consumida y login real verificado en Chrome
+  contra PostgreSQL efímero el 11/11/2026. UI React mostró perfil y
+  rol `MEMBER` tras recarga. Microsoft y producción no probados.
 
 ## Fuentes consultadas (2026-11-11)
 
@@ -112,7 +114,10 @@ propio ni un login ficticio. La elección posterior no invalida la comparación.
 - [NestJS CSRF](https://docs.nestjs.com/security/csrf)
 - [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 
-**Bloqueo para uso real:** registrar clientes OIDC reales, definir emisión de
-invitaciones, verificar Microsoft `emailVerified`, desplegar PostgreSQL
-y aprobar contrato de mutaciones/CSRF. No conectar frontend como si existiera
-login operativo antes de estas verificaciones.
+**Bloqueo para producción:** el registro del piloto #46 documenta un login
+Google real en Chrome y PostgreSQL local efímero el 11/11/2026, pero **no se
+ha revalidado después de corregir las redirecciones de esta integración**.
+Quedan política de invitaciones administradas, Microsoft `emailVerified`,
+HTTPS/CORS/CSRF, logout/revocación E2E, migraciones persistentes, copias y
+restauración y contrato de mutaciones. La vista de desarrollo no es un
+servicio público ni una prueba de producción.

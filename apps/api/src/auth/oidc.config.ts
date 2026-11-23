@@ -74,10 +74,13 @@ export function buildOidcConfig(
       clientSecret: microsoftSecret,
     });
   }
+  const callbackBase = callbackOrigin(origin);
   return {
-    callbackUrl: `${callbackOrigin(origin)}/auth/oidc/:provider/callback`,
+    callbackUrl: `${callbackBase}/auth/oidc/:provider/callback`,
     providers,
     transactionTtl: '10m',
-    redirectAfterLogin: '/',
+    // Fixed server-owned local destination; never trust redirectTo from a request.
+    redirectAfterLogin: callbackBase === 'http://127.0.0.1:5184'
+      ? '/?source=api' : '/',
   };
 }
