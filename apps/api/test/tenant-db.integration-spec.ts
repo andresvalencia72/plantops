@@ -129,6 +129,7 @@ describe('real PostgreSQL tenant constraints', () => {
       organizationId: id.orgB,
       userId: id.userA,
       role: 'TECHNICIAN',
+      status: 'ACTIVE', // Authorized fixture; the database defaults to SUSPENDED.
     });
 
     const contextB = await resolveTenantContext(sessionA, id.orgB, membershipLookup);
