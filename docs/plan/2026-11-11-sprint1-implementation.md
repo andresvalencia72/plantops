@@ -53,3 +53,15 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   por lo que tampoco debe borrarse indiscriminadamente.
 - Los bloques 2–4 quedan **sin implementar**. El diseño de sesiones de
   ADR-0004 sigue propuesto, pendiente de elección del mecanismo real.
+
+## Nota de revisión — 23/11/2026
+
+El bloqueo ENOSPC y los bloques pendientes descritos arriba son una
+**instantánea histórica del 11/11/2026**, no el estado actual del Sprint 1.
+La [PR #15](https://github.com/andresvalencia72/plantops/pull/15) existe
+como propuesta de esquema PostgreSQL; todavía exige revisión del modelo,
+migraciones en PostgreSQL de prueba y evidencias de aislamiento A/B.
+La dirección de identidad se seleccionó después: OIDC Google/Microsoft,
+acceso por invitación y sesiones persistidas en PostgreSQL. No hay licencia
+para publicar endpoints privados sin verificaciones de autenticación, CSRF,
+autorización y revocación.
