@@ -6,7 +6,7 @@ CREATE TABLE "memberships" (
 	"organization_id" uuid NOT NULL,
 	"user_id" uuid NOT NULL,
 	"role" "membership_role" NOT NULL,
-	"status" "membership_status" DEFAULT 'ACTIVE' NOT NULL,
+	"status" "membership_status" DEFAULT 'SUSPENDED' NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "membership_per_user_organization" UNIQUE("user_id","organization_id"),
 	CONSTRAINT "memberships_organization_id_id" UNIQUE("organization_id","id")
