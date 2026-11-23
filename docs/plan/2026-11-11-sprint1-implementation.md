@@ -33,12 +33,11 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 | Bloque | Rama/PR | Resultado | Pruebas/bloqueos |
 | --- | --- | --- | --- |
 | 1 Identidad | `docs/plantops-auth-boundaries` · [PR #14](https://github.com/andresvalencia72/plantops/pull/14) | ADR-0004 propuesta; commit `619f798` | Sin login ficticio ni elección de proveedor |
-| 2 Modelo SQL | `feat/plantops-s1-schema` · [PR #15](https://github.com/andresvalencia72/plantops/pull/15) | Migración Drizzle generada, no aplicada fuera de CI | 4 tests de esquema; CI API y web verdes; corrección lockfile `006c0d2` |
-| 3 Autorización | `feat/plantops-tenant-authorization` · [PR #16](https://github.com/andresvalencia72/plantops/pull/16) | Resolver tenant + membresía ACTIVE + permisos de reporte/cierre sin login mock | 7 tests; CI verde; no se exponen endpoints privados |
-| 4 Repositorios | `feat/plantops-tenant-repositories` · [PR #17](https://github.com/andresvalencia72/plantops/pull/17) | Lecturas de activos y membresías con filtro tenant obligatorio | 4 tests SQL; CI verde; aún sin integración con rutas |
-| 5 Integración DB | `test/plantops-postgres-isolation` · [PR #18](https://github.com/andresvalencia72/plantops/pull/18) | Test CI real contra PostgreSQL 17 temporal | [GitHub Actions #43000678007](https://github.com/andresvalencia72/plantops/actions/runs/43000678007) SUCCESS; no DB persistente tocada |
+| 2 Modelo SQL | `feat/plantops-s1-database-schema` (sólo rama local) | **BLOQUEADO**, sin archivos ni commit | `npm install` → ENOSPC (sin espacio), 2026-11-11 10:43 CET |
+| 3 Autorización | pendiente | pendiente | pendiente |
+| 4 Repositorios | pendiente | pendiente | pendiente |
 
-## Bloqueo histórico del entorno — 2026-11-11, 10:43 CET (resuelto)
+## Bloqueo histórico del entorno — 2026-11-11, 10:43 CET
 
 - Al instalar Drizzle/pg en `apps/api`, npm falló con `ENOSPC`.
 - `df -h` en Mac: volumen de datos de 228 GiB, **124 MiB libres**,
@@ -55,7 +54,7 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 - Los bloques 2–4 quedan **sin implementar**. El diseño de sesiones de
   ADR-0004 sigue propuesto, pendiente de elección del mecanismo real.
 
-## Reanudación y resultados — 2026-11-11
+## Reanudación y resultados — registro histórico 2026-11-11
 
 - Usuario autorizó limpiar caché descargable npm y basura inequívoca solo
   en Descargas. Ejecutado `npm cache clean --force`: el espacio disponible
@@ -73,10 +72,22 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 - PR #18 ejecuta 5 escenarios sobre PostgreSQL 17 efímero de GitHub Actions:
   contexto A/B, listado restringido, rechazo de FK cruzada de activo,
   rechazo de FK cruzada de autor y reporte legítimo. CI verde.
-- **No es un login ni API privada lista:** ADR-0004 sigue propuesto; sesiones
+- **Estado de 11/11 (no vigente):** aún no existía login ni API privada: ADR-0004 seguía propuesto; sesiones
   y credenciales reales no están elegidas. PostgreSQL no se desplegó en Mac,
   ni se aplicó migración sobre datos persistentes; ningún cambio en `main`.
 - El trabajo autorizado se entrega en PR draft encadenadas #14 → #15 →
   #16 → #17 → #18, con commits verificables. Los siguientes pasos
   requieren revisión del proveedor de identidad, modelo físico y permisos
   antes de conectar endpoints privados y frontend.
+
+## Nota de revisión — 23/11/2026
+
+El bloqueo ENOSPC y los bloques pendientes descritos arriba son una
+**instantánea histórica del 11/11/2026**, no el estado actual del Sprint 1.
+La [PR #15](https://github.com/andresvalencia72/plantops/pull/15) existe
+como propuesta de esquema PostgreSQL; todavía exige revisión del modelo,
+migraciones en PostgreSQL de prueba y evidencias de aislamiento A/B.
+La dirección de identidad se seleccionó después: OIDC Google/Microsoft,
+acceso por invitación y sesiones persistidas en PostgreSQL. No hay licencia
+para publicar endpoints privados sin verificaciones de autenticación, CSRF,
+autorización y revocación.
