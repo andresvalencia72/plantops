@@ -1,6 +1,6 @@
 # ADR-0004 — Identidad, sesiones y autorización contextual
 
-**Estado:** PROPUESTO · **Fecha:** 2026-11-11 · Requiere revisión.
+**Estado:** ACEPTADO como dirección de identidad (11/11/2026); contrato de implementación, permisos y pruebas pendientes de verificar. **Propuesto:** 11/11/2026. **Reconciliado:** 23/11/2026.
 **Relación:** [ADR-0003](0003-multi-tenancy.md), [Sprint 1](../plan/roadmap.md).
 
 ## Problema y límites de confianza
@@ -10,7 +10,7 @@ ni autoriza. Una identidad global puede pertenecer a varias organizaciones con
 roles diferentes. Hay que revocar sesiones y membresías sin confiar en un ID
 suministrado por el navegador. Esta decisión NO abre endpoints privados.
 
-## Alternativas (aún no aceptadas)
+## Alternativas consideradas en la propuesta histórica (11/11/2026)
 
 | Opción | Beneficio | Coste / riesgo |
 | --- | --- | --- |
@@ -18,11 +18,26 @@ suministrado por el navegador. Esta decisión NO abre endpoints privados.
 | Proveedor OIDC administrado + validación server-side | Reduce gestión de credenciales, MFA y recuperación | Dependencia externa, costes, callback y mapeo de identidad |
 | JWT propio y refresh tokens desarrollados desde cero | Control completo | Mayor superficie criptográfica y de revocación: no recomendado para MVP |
 
-**Recomendación para revisión:** `@nestjs/authentication` con sesiones
-persistentes de servidor y cookie HttpOnly/Secure/SameSite, si se acepta
-operar recuperación de cuentas; o proveedor OIDC si se prioriza externalizarla.
-No escribir un login mock o asumir JWT como autorización. La integración
-definitiva requiere aprobar proveedor, registro, recuperación y sesión.
+**Recomendación original (antes de la decisión):** se comparaban sesiones
+operadas por la aplicación y OIDC como vías de login. No se seleccionó JWT
+propio ni un login ficticio. La elección posterior no invalida la comparación.
+
+## Decisión de dirección aceptada (11/11/2026)
+
+- **Login:** OIDC con Google y Microsoft, sin contraseñas propias de PlantOps.
+- **Alta:** acceso por invitación verificada, sin autorregistro abierto.
+- **Sesión de aplicación:** persistencia y revocación en PostgreSQL; cookie
+  HttpOnly/Secure/SameSite y comprobación de membresía vigente en servidor.
+- **Separación de responsabilidades:** OIDC verifica la identidad externa;
+  la sesión propia gestiona el acceso posterior y los permisos de PlantOps.
+  Son capas complementarias, no opciones mutuamente excluyentes.
+- **Implementación aún por validar:** si `@nestjs/authentication` cubre el
+  store, las cookies, el guard y CSRF con NodeAdapter; no se presupone por
+  la mera compatibilidad publicada. La integración real se revisará en
+  [PR #25–#35](https://github.com/andresvalencia72/plantops/pull/25).
+- **Decisiones operativas por cerrar:** TTL absoluto/de inactividad, rotación,
+  política de invitaciones, recuperación de acceso y despliegue HTTPS.
+  Su aprobación no se infiere de aceptar esta dirección arquitectónica.
 
 ## Modelo de autorización previsto (independiente del proveedor)
 
@@ -74,5 +89,7 @@ definitiva requiere aprobar proveedor, registro, recuperación y sesión.
 - [NestJS CSRF](https://docs.nestjs.com/security/csrf)
 - [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 
-**Bloqueo:** no dar por aprobada la opción de login hasta elegir proveedor,
-flujo de altas y recuperación. Mantener sin endpoints privados de producción.
+**Bloqueo para publicar rutas privadas:** demostrar integración de OIDC,
+sesiones PostgreSQL, CSRF, revocación y autorización contextual con pruebas
+negativas en PostgreSQL aislado. La dirección de login ya se eligió; los
+controles de seguridad **no** se consideran implementados por este ADR.

@@ -7,8 +7,10 @@
 
 `reportIncident(database, context, { assetId, title, description })` sólo
 acepta un `TenantContext` que debe haberse obtenido tras validar una sesión
-real y su membresía. **El proveedor de sesiones aún no está elegido**, por
-tanto el caso de uso no se registra en ningún controlador NestJS.
+real y su membresía. **Al redactarse (11/11/2026), el proveedor de sesiones aún no estaba elegido**,
+por tanto el caso de uso no se registra en ningún controlador NestJS.
+**Actualización (23/11/2026):** se decidió OIDC por invitación y sesión
+PostgreSQL, pero todavía no se ha conectado este caso de uso a HTTP.
 
 Los campos se normalizan y validan en el servidor: título 3–160 caracteres,
 descripción 10–4000 y UUID del activo. Los límites superiores son una
@@ -41,3 +43,12 @@ inactivos: esta implementación utiliza la política conservadora de rechazo.
 Documentación relacionada: [modelo de dominio](../product/domain-model.md),
 [ADR-0004](../adr/0004-authentication-and-session.md) y
 [plan de Sprint 1](../plan/2026-11-11-sprint1-implementation.md).
+
+## Puerta pendiente antes de publicar la escritura HTTP
+
+- El corte actual **no inserta un evento de auditoría** al crear la incidencia.
+  La puerta de seguridad de Sprint 1 exige auditar el reporte dentro de la
+  misma transacción. Añadir y probar el evento (o una prueba explícita
+  equivalente aprobada) antes de exponer escrituras reales a usuarios.
+- Este caso de uso interno no constituye autorización para habilitar HTTP;
+  también exige sesión verificada, CSRF, permisos, idempotencia y pruebas A/B.
