@@ -31,3 +31,10 @@ Se reprodujo mediante un test E2E inicialmente rojo: no existía un elemento `di
 - La navegación sigue en estado React, no es enrutamiento por URL.
 - Ninguna de estas pruebas valida permisos ni aislamiento de datos en backend.
 - **No fusionar** la PR apilada antes de revisar las anteriores.
+
+## Integración del 19/11/2026 — cambio de tamaño de ventana
+
+- **Defecto adicional confirmado:** abrir el menú en un ancho móvil y ampliar la ventana a escritorio mantenía el diálogo modal abierto; el `body` seguía con `pointer-events: none` y la navegación de escritorio dejaba de responder. Reproducido con Playwright (prueba roja).
+- **Corrección incluida en esta misma PR:** `AppShell` cierra el menú al cruzar el breakpoint `md` (768 px), y `Sidebar` restaura el foco al botón móvil si es visible, o al botón actual del menú de escritorio.
+- **Nueva prueba de regresión:** cambiar de móvil a escritorio con el diálogo abierto, verificar que se cierra, devuelve el foco y permite navegar a Incidencias.
+- **Límites:** no sustituye una auditoría con lector de pantalla real ni valida la seguridad del backend.
