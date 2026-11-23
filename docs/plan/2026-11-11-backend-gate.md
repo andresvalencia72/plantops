@@ -1,7 +1,9 @@
 # Sprint 1 — Puerta de decisión antes de la API real
 
-**Estado:** ADR-0002/0003 aceptados por el propietario el 2026-11-11; identidad y modelo físico pendientes.
-**Base de trabajo:** `fix/plantops-mobile-navigation` (PR #10). Mantener esta PR apilada; sin merge en `main`.
+**Estado del corte histórico (11/11/2026):** ADR-0002/0003 aceptados; integración de identidad y modelo físico pendientes de diseño y verificación.
+**Base de trabajo original:** `fix/plantops-mobile-navigation` (PR #10). Esta referencia registra la rama de partida del 11/11/2026, no la base vigente de integración.
+
+> **Actualización de revisión (19/11/2026):** tras esta propuesta se seleccionó OIDC Google/Microsoft con acceso por invitación y sesiones de servidor persistentes en PostgreSQL. La selección de la dirección de identidad **no demuestra** integración, revocación, CSRF ni autorización efectiva; esas comprobaciones siguen exigidas en las PRs posteriores. El esquema físico también requiere revisión y pruebas A/B reales antes de considerar seguro el sistema.
 
 ## Objetivo del siguiente corte vertical
 
