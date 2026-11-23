@@ -57,6 +57,12 @@ describe('opt-in OIDC HTTP routing without real provider credentials', () => {
       .expect(404);
   });
 
+  it('rejects user-selected redirect destinations before OIDC discovery', async () => {
+    await request(app.getHttpServer())
+      .get('/auth/oidc/google/login?redirectTo=https%3A%2F%2Fevil.invalid')
+      .expect(400);
+  });
+
   it('refuses a callback without state and browser transaction cookie', async () => {
     await request(app.getHttpServer())
       .get('/auth/oidc/google/callback?code=untrusted-code')

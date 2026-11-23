@@ -45,7 +45,7 @@ export const memberships = pgTable(
       .notNull()
       .references(() => users.id),
     role: membershipRole('role').notNull(),
-    status: membershipStatus('status').notNull().default('ACTIVE'),
+    status: membershipStatus('status').notNull().default('SUSPENDED'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

@@ -40,7 +40,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'ACTIVE'"
+          "default": "'SUSPENDED'"
         },
         "created_at": {
           "name": "created_at",
