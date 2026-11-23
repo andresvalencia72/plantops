@@ -54,6 +54,9 @@ jobs:
       - name: Check generated migrations
         run: npm run db:check
 
+      - name: Verify secure tenant migration snapshots
+        run: node ../../scripts/check-tenant-snapshots.mjs
+
       - name: Unit tests
         run: npm test
 

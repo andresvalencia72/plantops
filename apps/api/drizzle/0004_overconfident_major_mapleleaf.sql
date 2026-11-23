@@ -1,0 +1,1 @@
+CREATE INDEX "incidents_org_reported_id_idx" ON "incidents" USING btree ("organization_id","reported_at" DESC NULLS LAST,"id" DESC NULLS LAST);

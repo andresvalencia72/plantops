@@ -99,6 +99,13 @@ describe('shared-schema tenant constraints', () => {
     ]);
   });
 
+  it('indexes incident keyset scans by organization and report time', () => {
+    const indexes = getTableConfig(incidents).indexes.map(
+      (entry) => entry.config.name,
+    );
+    expect(indexes).toContain('incidents_org_reported_id_idx');
+  });
+
   it('defaults new memberships to SUSPENDED (fail closed)', () => {
     expect(memberships.status.default).toBe('SUSPENDED');
   });

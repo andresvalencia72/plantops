@@ -50,7 +50,7 @@ async function verifyDatabase(connectionString) {
       'select count(*)::int as count from drizzle.__drizzle_migrations',
     );
     const count = migrations.rows[0]?.count;
-    if (typeof count !== 'number' || count < 4) {
+    if (typeof count !== 'number' || count < 5) {
       throw new Error('Local Drizzle migrations are incomplete');
     }
     process.stdout.write(
