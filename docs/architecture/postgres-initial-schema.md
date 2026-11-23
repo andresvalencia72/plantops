@@ -1,8 +1,9 @@
 # PostgreSQL inicial — diseño revisable de Sprint 1
 
 **Estado:** PROPUESTA implementada como migración **no aplicada**, 2026-11-11.
-**Contexto:** ADR-0003 aprobado como estrategia; elección exacta de identidad
-y de atributos de dominio aún abierta. Migración Drizzle en `apps/api/drizzle`.
+**Contexto:** ADR-0003 aprobado como estrategia; OIDC Google/Microsoft por
+invitación y sesiones PostgreSQL acordados en ADR-0004. Atributos de dominio
+y pruebas de implementación aún por completar. Migración en `apps/api/drizzle`.
 
 ## Tablas del primer corte
 
@@ -15,8 +16,10 @@ y de atributos de dominio aún abierta. Migración Drizzle en `apps/api/drizzle`
 | `incidents` | UUID, organización, activo, autor miembro y estado inicial REPORTED |
 
 **Integridad en BD:**
-- `memberships(user_id, organization_id)` único: una membresía vigente por
-  organización y persona en el primer corte.
+- `memberships(user_id, organization_id)` único: una membresía por
+  organización y persona, con un rol principal en el MVP. El supervisor
+  puede ejecutar OT de las que sea responsable asignado (INV-06); los permisos
+  se validan en el servicio y no se infieren de la unicidad.
 - `assets(organization_id, id)` único: objetivo de FK compuesta en incidencias.
 - `memberships(organization_id, id)` único: autor pertenece a la empresa.
 - `incidents(organization_id, asset_id)` referencia
@@ -30,6 +33,11 @@ y de atributos de dominio aún abierta. Migración Drizzle en `apps/api/drizzle`
 - No autentica identidades; `users` no guarda contraseña ni sesión.
 - No valida membresía ACTIVE ni permisos de rol en las consultas: responsabilidad
   del caso de uso/servicio respaldado por pruebas de acceso negativo.
+- **Decisión aplicada al esquema (2026-11-23):** `memberships.status`
+  es `SUSPENDED` por defecto, nunca `ACTIVE` de forma implícita.
+  Drizzle, migración y snapshot deben coincidir y probarse en PostgreSQL
+  efímero antes del merge. La PR #32 deberá insertar `ACTIVE`
+  explícitamente al consumir una invitación OIDC verificada.
 - No impide que alguien con acceso SQL sin restricciones consulte todo: se
   necesita limitar credenciales y, si se adopta, RLS. RLS no está habilitado.
 - No garantiza todavía consistencia del cierre de incidencias con OT concurrentes.
@@ -52,8 +60,11 @@ PostgreSQL de pruebas con dos organizaciones y membresías independientes.
 
 ### Pendiente para revisión
 
-- Selección del mecanismo de login (ADR-0004, PROPUESTO) y relación con usuarios.
-- Estrategia de roles múltiples, revocación e historia de cambios de membresía.
+- Integrar y verificar OIDC por invitación y sesiones PostgreSQL ya elegidos
+  (ADR-0004), incluyendo revocación y seguridad por empresa.
+- Un rol principal por empresa aprobado para MVP; múltiples roles quedan
+  fuera del primer corte. Revisar revocación e historia de membresías.
+- Aplicar `SUSPENDED` como default y probar activación explícita segura.
 - Política de desactivación de activos y restricciones de longitud/no vacío
   en strings, validación de input.
 - Validación técnica de migración y FKs lograda en PostgreSQL efímero de CI (#43000678007); pendiente revisión de modelo físico antes de desplegar.

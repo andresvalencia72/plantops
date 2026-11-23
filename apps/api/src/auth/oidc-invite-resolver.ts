@@ -71,6 +71,7 @@ export async function resolveInvitedIdentity(
         organizationId: invite.organizationId,
         userId,
         role: invite.role,
+        status: 'ACTIVE' as const, // Only verified invitation activates new tenant.
       })));
       await tx.update(invitations)
         .set({ consumedAt: new Date(), consumedByUserId: userId })
