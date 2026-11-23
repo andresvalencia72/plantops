@@ -77,6 +77,10 @@ describe('shared-schema tenant constraints', () => {
     ]);
   });
 
+  it('defaults new memberships to SUSPENDED (fail closed)', () => {
+    expect(memberships.status.default).toBe('SUSPENDED');
+  });
+
   it('assigns a new incident the reported state by default', () => {
     expect(incidents.status.default).toBe('REPORTED');
   });
