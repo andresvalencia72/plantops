@@ -33,11 +33,11 @@ y pruebas de implementación aún por completar. Migración en `apps/api/drizzle
 - No autentica identidades; `users` no guarda contraseña ni sesión.
 - No valida membresía ACTIVE ni permisos de rol en las consultas: responsabilidad
   del caso de uso/servicio respaldado por pruebas de acceso negativo.
-- **Decisión pendiente de implementar (2026-11-23):** `memberships.status`
-  debe quedar `SUSPENDED` por defecto, nunca `ACTIVE` de forma implícita.
-  Esta rama todavía genera `ACTIVE`: cambiar Drizzle, migración y snapshot,
-  y validar con PostgreSQL de pruebas antes del merge. La PR #32 deberá
-  marcar `ACTIVE` explícitamente solo tras consumir una invitación OIDC válida.
+- **Decisión aplicada al esquema (2026-11-23):** `memberships.status`
+  es `SUSPENDED` por defecto, nunca `ACTIVE` de forma implícita.
+  Drizzle, migración y snapshot deben coincidir y probarse en PostgreSQL
+  efímero antes del merge. La PR #32 deberá insertar `ACTIVE`
+  explícitamente al consumir una invitación OIDC verificada.
 - No impide que alguien con acceso SQL sin restricciones consulte todo: se
   necesita limitar credenciales y, si se adopta, RLS. RLS no está habilitado.
 - No garantiza todavía consistencia del cierre de incidencias con OT concurrentes.
