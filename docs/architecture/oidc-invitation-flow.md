@@ -1,7 +1,7 @@
 # Acceso OIDC por invitación — estado verificable de Sprint 1
 
-**Fecha:** 2026-11-11 · **Estado:** implementado en PR draft apiladas,
-sin integración con proveedores de identidad reales ni producción.
+**Fecha:** 2026-11-11 · **Revisión:** 2026-11-23. **Estado:** integrado
+en main; sin clientes OIDC reales, migraciones persistentes ni despliegue.
 **Aprobado:** Google y Microsoft OIDC + invitación, con sesión segura en
 PostgreSQL. **Aún no aprobado:** política administrativa para emitir
 invitaciones, despliegue final y recuperación de cuenta.
@@ -62,10 +62,12 @@ https://api.plantops.example/auth/oidc/microsoft/callback
 - Microsoft Entra puede no afirmar `emailVerified` como espera el resolver.
   **No convertir `preferred_username` en email verificado sin pruebas**:
   el primer acceso debe denegarse hasta diseñar un mecanismo seguro.
+- La ruta de login rechaza cualquier `redirectTo` externo o elegido por
+  el cliente hasta revisar una política de redirección local segura.
 - El callback configurado es un origen fijo, nunca se construye con el
   `Host` o `X-Forwarded-Host` del navegador.
 
-## Endpoints disponibles en las ramas draft
+## Endpoints integrados en main (no desplegados)
 
 | Método y recurso | Autorización | Estado |
 | --- | --- | --- |
@@ -75,8 +77,8 @@ https://api.plantops.example/auth/oidc/microsoft/callback
 | `GET /auth/oidc/:provider/callback` | OIDC state + cookie del navegador | Termina OIDC |
 | `GET /me` | Sesión | Id y nombre del usuario |
 | `GET /me/organizations` | Sesión | Sólo membresías ACTIVE |
-| `GET /organizations/:orgId/assets` | Sesión + membresía ACTIVE | Filtrado por tenant |
-| `GET /organizations/:orgId/assets/:assetId` | Sesión + membresía ACTIVE | ID ajeno ⇒ 404 |
+| `GET /organizations/:organizationId/assets` | Sesión + membresía ACTIVE | Filtrado por tenant |
+| `GET /organizations/:organizationId/assets/:assetId` | Sesión + membresía ACTIVE | ID ajeno ⇒ 404 |
 
 `POST` de incidencias y UI React conectada **no están implementados**.
 El caso de uso transaccional existe, pero su cabecera de idempotencia y

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Redirect } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Param, Query, Redirect } from '@nestjs/common';
 import { OidcService, Public } from '@nestjs/authentication';
 
 /** OIDC protocol endpoints only; never accept self-signup or email-linking. */
@@ -13,8 +13,12 @@ export class OidcController {
     @Param('provider') provider: string,
     @Query('redirectTo') redirectTo?: string,
   ) {
-    // Account linking is intentionally unavailable until reviewed.
-    return this.oidc.start(provider, { redirectTo });
+    // Dynamic post-login redirects have not been reviewed; fail closed.
+    // The server-side redirectAfterLogin setting remains a trusted constant.
+    if (redirectTo !== undefined) {
+      throw new BadRequestException('Custom OIDC redirect is not enabled');
+    }
+    return this.oidc.start(provider);
   }
 
   @Get(':provider/callback')

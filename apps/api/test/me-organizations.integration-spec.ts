@@ -53,6 +53,7 @@ describe('authenticated /me and membership isolation', () => {
         userId: ids.person,
         organizationId: ids.tenantA,
         role: 'MEMBER',
+        status: 'ACTIVE',
       },
       {
         id: ids.memberB,
