@@ -51,6 +51,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Verify secure tenant migration snapshots
+        run: node ../../scripts/check-tenant-snapshots.mjs
+
       - name: Unit tests
         run: npm test
 
