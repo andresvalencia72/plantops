@@ -57,8 +57,11 @@ export async function resolveInvitedIdentity(
       return active ? { id: account.userId } : null;
     };
 
-    const existing = await existingAccount();
-    if (existing) return existing;
+    // Existing identities are never re-provisioned from a new invitation.
+    // In particular, a suspended identity cannot create a replacement account.
+    const [alreadyLinked] = await tx.select({ userId: oidcAccounts.userId })
+      .from(oidcAccounts).where(lookup).limit(1);
+    if (alreadyLinked) return existingAccount();
 
     const email = verifiedInvitationEmail(profile);
     if (!email) return null;
@@ -98,6 +101,7 @@ export async function resolveInvitedIdentity(
       organizationId: invitation.organizationId,
       userId: person.id,
       role: invitation.role,
+      status: 'ACTIVE', // Only verified OIDC + valid, locked invitation activates access.
     })));
     await tx.update(invitations)
       .set({ consumedAt: new Date(), consumedByUserId: person.id })
