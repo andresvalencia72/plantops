@@ -53,6 +53,7 @@ describe('HTTP asset isolation across organizations', () => {
       organizationId: ids.orgA,
       userId: ids.user,
       role: 'MEMBER',
+      status: 'ACTIVE',
     });
     await db.insert(assets).values([
       { id: ids.assetA, organizationId: ids.orgA, code: 'A-1', name: 'Mixer A' },
