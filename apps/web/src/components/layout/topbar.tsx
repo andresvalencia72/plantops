@@ -1,5 +1,5 @@
 import type { RefObject } from 'react'
-import { Menu, Moon, Sun, UserRound } from 'lucide-react'
+import { Database, Menu, Moon, Sun, UserRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { demoOrganizations } from '@/app/types'
 import type { ColorTheme, DemoOrganization, Screen } from '@/app/types'
@@ -28,6 +28,12 @@ export function Topbar({
         <span className="text-[13px] font-semibold">{screen === 'overview' ? 'Vista general' : 'Incidencias'}</span>
       </div>
       <div className="flex items-center gap-2">
+        {import.meta.env.DEV && (
+          <a href="/?source=api"
+            className="hidden h-9 items-center gap-2 rounded-md border border-border px-3 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground lg:inline-flex">
+            <Database size={14} aria-hidden="true" /> Vista API
+          </a>
+        )}
         <label className="sr-only" htmlFor="organization-select">Organización de demostración</label>
         <select
           id="organization-select"

@@ -23,7 +23,8 @@ concurrency:
 jobs:
   verify:
     name: Typecheck, test, lint & build
-    runs-on: ubuntu-latest
+    # Keep an explicit runner image during the Ubuntu 26.04 migration.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     defaults:
       run:
@@ -57,8 +58,10 @@ jobs:
       - name: Production build
         run: npm run build
 
-      - name: Install Chromium for browser tests
-        run: npx playwright install --with-deps chromium
+      # GitHub-hosted Ubuntu 24.04 already includes Google Chrome.
+      # Avoid apt/download-based Playwright installation: it can fail on runner DNS.
+      - name: Check preinstalled Chrome
+        run: google-chrome --version
 
       - name: Browser smoke tests
         run: npm run test:e2e

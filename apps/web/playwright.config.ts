@@ -15,7 +15,8 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], ...(process.env.CI ? {} : { channel: 'chrome' }) },
+      // Use preinstalled Chrome locally and on GitHub-hosted Ubuntu runners.
+      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     },
   ],
   webServer: {
