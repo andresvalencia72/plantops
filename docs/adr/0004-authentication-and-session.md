@@ -1,6 +1,6 @@
 # ADR-0004 — Identidad, sesiones y autorización contextual
 
-**Estado:** PARCIALMENTE ACEPTADO · **Fecha:** 2026-11-11 · Sesiones servidor/PostgreSQL aprobadas; primer factor y puesta en servicio pendientes.
+**Estado:** ACEPTADO como dirección de identidad (11/11/2026); contrato de implementación, permisos y pruebas pendientes de verificar. **Propuesto:** 11/11/2026. **Reconciliado:** 23/11/2026.
 **Relación:** [ADR-0003](0003-multi-tenancy.md), [Sprint 1](../plan/roadmap.md).
 
 ## Problema y límites de confianza
@@ -10,7 +10,7 @@ ni autoriza. Una identidad global puede pertenecer a varias organizaciones con
 roles diferentes. Hay que revocar sesiones y membresías sin confiar en un ID
 suministrado por el navegador. Esta decisión NO abre endpoints privados.
 
-## Alternativas (selección parcial)
+## Alternativas consideradas en la propuesta histórica (11/11/2026)
 
 | Opción | Beneficio | Coste / riesgo |
 | --- | --- | --- |
@@ -18,12 +18,26 @@ suministrado por el navegador. Esta decisión NO abre endpoints privados.
 | Proveedor OIDC administrado + validación server-side | Reduce gestión de credenciales, MFA y recuperación | Dependencia externa, costes, callback y mapeo de identidad |
 | JWT propio y refresh tokens desarrollados desde cero | Control completo | Mayor superficie criptográfica y de revocación: no recomendado para MVP |
 
-**Aprobado por el propietario (2026-11-11):** sesiones servidor PostgreSQL
-con `@nestjs/authentication` y cookies HttpOnly, Secure y SameSite.
-**No aprobado:** primer factor de autenticación (contraseña, invitación,
-OIDC o magic link), alta/recuperación, política exacta de TTL, CSRF/orígenes,
-flujo de despliegue de PostgreSQL y apertura de rutas privadas. Evitar login
-simulado o usar un JWT del navegador como fuente de permisos.
+**Recomendación original (antes de la decisión):** se comparaban sesiones
+operadas por la aplicación y OIDC como vías de login. No se seleccionó JWT
+propio ni un login ficticio. La elección posterior no invalida la comparación.
+
+## Decisión de dirección aceptada (11/11/2026)
+
+- **Login:** OIDC con Google y Microsoft, sin contraseñas propias de PlantOps.
+- **Alta:** acceso por invitación verificada, sin autorregistro abierto.
+- **Sesión de aplicación:** persistencia y revocación en PostgreSQL; cookie
+  HttpOnly/Secure/SameSite y comprobación de membresía vigente en servidor.
+- **Separación de responsabilidades:** OIDC verifica la identidad externa;
+  la sesión propia gestiona el acceso posterior y los permisos de PlantOps.
+  Son capas complementarias, no opciones mutuamente excluyentes.
+- **Implementación aún por validar:** si `@nestjs/authentication` cubre el
+  store, las cookies, el guard y CSRF con NodeAdapter; no se presupone por
+  la mera compatibilidad publicada. La integración real se revisará en
+  [PR #25–#35](https://github.com/andresvalencia72/plantops/pull/25).
+- **Decisiones operativas por cerrar:** TTL absoluto/de inactividad, rotación,
+  política de invitaciones, recuperación de acceso y despliegue HTTPS.
+  Su aprobación no se infiere de aceptar esta dirección arquitectónica.
 
 ## Modelo de autorización previsto (independiente del proveedor)
 
@@ -57,7 +71,7 @@ simulado o usar un JWT del navegador como fuente de permisos.
 8. Operación de doble tenant: seleccionar B sólo cuando la identidad pertenece
    de forma vigente a B; A no obtiene recursos de B por cambiar un header.
 
-## Pruebas de aceptación (parciales, no equivalen a login real)
+## Pruebas de aceptación por capa (fundación de sesiones probada; HTTP/OIDC pendientes)
 
 - Sin sesión → 401. Usuario activo de A puede leer A, no B.
 - IDOR por ID de activo/incidencia B → 404 sin revelar la existencia.
@@ -79,7 +93,7 @@ simulado o usar un JWT del navegador como fuente de permisos.
 - [PR #27](https://github.com/andresvalencia72/plantops/pull/27):
   `SessionService` oficial con pruebas de hash SHA-256 (Base64URL),
   vencimientos, rotación y revocación real en PostgreSQL temporal.
-- **No configurado en la aplicación HTTP:** aún no se ha registrado proveedor
+- **Estado de PR #27 (fundación, antes del guard HTTP):** aún no se ha registrado proveedor
   de credenciales o conectada la base de datos a `AppModule`. Por tanto
   el guard global no está habilitado, no se emiten cookies, no hay login
   ni rutas privadas. El único endpoint continúa siendo `GET /health`.
@@ -91,6 +105,7 @@ simulado o usar un JWT del navegador como fuente de permisos.
 - [NestJS CSRF](https://docs.nestjs.com/security/csrf)
 - [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 
-**Bloqueo:** elegir el primer factor, recuperación e invitaciones; revisar
-configuración CSRF, cookies y expiración antes de registrar proveedores y
-activar el guard global. No abrir endpoints privados antes de esa revisión.
+**Bloqueo para publicar rutas privadas:** demostrar integración de OIDC,
+sesiones PostgreSQL, CSRF, revocación y autorización contextual con pruebas
+negativas en PostgreSQL aislado. La dirección de login ya se eligió; los
+controles de seguridad **no** se consideran implementados por este ADR.

@@ -74,6 +74,14 @@ describe('OIDC state uses atomic PostgreSQL storage', () => {
     expect(await store.consumeOidcState(state.state)).toEqual(state);
   });
 
+  it('never accepts an expired callback even without a subsequent login', async () => {
+    const now = Date.now();
+    const expired = transaction(new Date(now - 120_000), 60_000);
+    await store.saveOidcState(expired);
+    expect(await store.consumeOidcState(expired.state)).toBeUndefined();
+    expect(await store.consumeOidcState(expired.state)).toBeUndefined();
+  });
+
   it('removes expired states when a new login is saved', async () => {
     const timestamp = new Date(Date.now());
     const expired = transaction(
