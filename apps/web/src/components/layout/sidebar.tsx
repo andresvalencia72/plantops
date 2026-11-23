@@ -98,7 +98,11 @@ export function Sidebar({ screen, onNavigate, mobileOpen, onClose, menuTriggerRe
           aria-describedby={undefined}
           onCloseAutoFocus={(event) => {
             event.preventDefault()
-            menuTriggerRef.current?.focus()
+            if (menuTriggerRef.current?.getClientRects().length) {
+              menuTriggerRef.current.focus()
+            } else {
+              document.querySelector<HTMLButtonElement>('aside button[aria-current="page"]')?.focus()
+            }
           }}
           className="w-60 max-w-60 gap-0 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground md:hidden"
         >
