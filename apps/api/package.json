@@ -24,7 +24,8 @@
     "db:check": "drizzle-kit check",
     "test:integration": "vitest run --config ./vitest.config.integration.ts",
     "invites:operator": "npm run build && node ./scripts/invitations-operator.mjs",
-    "db:migrate:dev": "node ./scripts/migrate-dev.mjs"
+    "db:migrate:dev": "node ./scripts/migrate-dev.mjs",
+    "dev:smoke": "node --env-file=.env scripts/check-local-stack.mjs"
   },
   "dependencies": {
     "@nestjs/authentication": "0.1.5",

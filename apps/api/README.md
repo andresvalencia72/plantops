@@ -36,6 +36,19 @@ organización. Ninguna invitación o credencial real se ha creado.
 Consultar [guía de piloto OIDC](../../docs/architecture/oidc-local-validation.md)
 antes de encender Docker, configurar OAuth o migrar datos locales.
 
+## Comprobación local sin cuentas ni OAuth
+
+Con Docker Desktop, PostgreSQL descartable y la API ejecutándose en
+`127.0.0.1:3001`, utiliza `npm run dev:smoke` desde `apps/api`.
+
+El comando consulta **solo** la base local `plantops_dev` en
+`127.0.0.1:55432` y verifica las 9 tablas de negocio y migraciones,
+además de siete respuestas HTTP (health público, `401` en rutas
+protegidas, login Google no configurado y raíz `404`).
+No crea usuarios ni invitaciones, no modifica datos y nunca imprime
+credenciales. No prueba un login OAuth real. Para detener la base local
+descartable: `docker compose --env-file .env -f compose.dev.yml down`.
+
 ## Validación
 
 ```sh

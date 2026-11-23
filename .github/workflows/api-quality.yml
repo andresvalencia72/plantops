@@ -71,6 +71,13 @@ jobs:
             exit 1
           fi
 
+      - name: Refuse unsafe local-stack smoke targets
+        run: |
+          if DATABASE_URL='postgresql://plantops:fixture@db.invalid:55432/plantops_dev' node ./scripts/check-local-stack.mjs; then
+            echo 'Unsafe local-stack target was accepted' >&2
+            exit 1
+          fi
+
       - name: Preview operator invite without database access
         run: |
           env -u DATABASE_URL node ./scripts/invitations-operator.mjs \
