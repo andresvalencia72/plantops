@@ -12,7 +12,7 @@ Vitest y Oxlint. Generado a partir de la CLI oficial y ajustado para PlantOps.
 - Por defecto escucha en `127.0.0.1:3001`. `PORT` permite otro puerto local.
 - `curl http://127.0.0.1:3001/health` devuelve `{"status":"ok"}`.
 
-Las PR draft de autenticación incluyen `@nestjs/authentication`, una
+La fundación de autenticación integrada en PR #25–#27 incluye `@nestjs/authentication`, una
 migración `sessions` y un `PostgresSessionStore` comprobado en CI. **No están
 conectados todavía al arranque HTTP**: sin proveedor de identidad, cookies
 emitidas, guard global ni endpoints de login. La prueba de sesiones corre
@@ -20,7 +20,7 @@ contra un PostgreSQL descartable en CI y no requiere credenciales reales.
 
 La ruta `/health` **sólo prueba que el proceso responde**, no que haya una
 base de datos disponible ni aislamiento multiempresa. Las demás rutas aún
-no están creadas. Hay un esquema y repositorios Drizzle en PR draft, pero
+no están creadas. Hay esquema y repositorios Drizzle, pero
 no se incluye autenticación ni conexión a una BD persistente.
 
 ## Validación
@@ -44,7 +44,8 @@ El caso de uso interno de incidencias admite un UUIDv4 `idempotencyKey`
 para deduplicar reintentos concurrentes. No existe aún un endpoint HTTP
 que acepte esa clave ni se ha aprobado el formato de cabecera.
 
-No iniciar recursos reales ni exponer API pública antes del diseño de
-identidad/membresías y migraciones. Ver [roadmap](../../docs/plan/roadmap.md),
+No iniciar recursos reales ni exponer API pública hasta verificar el flujo
+OIDC por invitación, sesiones PostgreSQL, permisos y migraciones en un entorno
+seguro. La elección de tecnología no equivale a autenticación implementada. Ver [roadmap](../../docs/plan/roadmap.md),
 [ADR-0002](../../docs/adr/0002-modular-monolith.md) y
 [ADR-0003](../../docs/adr/0003-multi-tenancy.md).

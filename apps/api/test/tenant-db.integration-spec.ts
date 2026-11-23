@@ -64,8 +64,8 @@ describe('real PostgreSQL tenant constraints', () => {
       { id: id.userB, displayName: 'Member B' },
     ]);
     await db.insert(memberships).values([
-      { id: id.memberA, organizationId: id.orgA, userId: id.userA, role: 'MEMBER' },
-      { id: id.memberB, organizationId: id.orgB, userId: id.userB, role: 'SUPERVISOR' },
+      { id: id.memberA, organizationId: id.orgA, userId: id.userA, role: 'MEMBER', status: 'ACTIVE' },
+      { id: id.memberB, organizationId: id.orgB, userId: id.userB, role: 'SUPERVISOR', status: 'ACTIVE' },
     ]);
     await db.insert(assets).values([
       { id: id.assetA, organizationId: id.orgA, code: 'A-1', name: 'Pump A' },
@@ -129,6 +129,7 @@ describe('real PostgreSQL tenant constraints', () => {
       organizationId: id.orgB,
       userId: id.userA,
       role: 'TECHNICIAN',
+      status: 'ACTIVE', // Authorized fixture; the database defaults to SUSPENDED.
     });
 
     const contextB = await resolveTenantContext(sessionA, id.orgB, membershipLookup);
