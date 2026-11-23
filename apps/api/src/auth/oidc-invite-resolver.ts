@@ -101,7 +101,7 @@ export async function resolveInvitedIdentity(
       organizationId: invitation.organizationId,
       userId: person.id,
       role: invitation.role,
-      status: 'ACTIVE', // Only verified OIDC + valid, locked invitation activates access.
+      status: 'ACTIVE' as const, // Only verified OIDC + valid, locked invitation activates access.
     })));
     await tx.update(invitations)
       .set({ consumedAt: new Date(), consumedByUserId: person.id })
