@@ -33,12 +33,11 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 | Bloque | Rama/PR | Resultado | Pruebas/bloqueos |
 | --- | --- | --- | --- |
 | 1 Identidad | `docs/plantops-auth-boundaries` · [PR #14](https://github.com/andresvalencia72/plantops/pull/14) | ADR-0004 propuesta; commit `619f798` | Sin login ficticio ni elección de proveedor |
-| 2 Modelo SQL | `feat/plantops-s1-schema` · [PR #15](https://github.com/andresvalencia72/plantops/pull/15) | Migración Drizzle generada, no aplicada fuera de CI | 4 tests de esquema; CI API y web verdes; corrección lockfile `006c0d2` |
-| 3 Autorización | `feat/plantops-tenant-authorization` · [PR #16](https://github.com/andresvalencia72/plantops/pull/16) | Resolver tenant + membresía ACTIVE + permisos de reporte/cierre sin login mock | 7 tests; CI verde; no se exponen endpoints privados |
-| 4 Repositorios | `feat/plantops-tenant-repositories` · [PR #17](https://github.com/andresvalencia72/plantops/pull/17) | Lecturas de activos y membresías con filtro tenant obligatorio | 4 tests SQL; CI verde; aún sin integración con rutas |
-| 5 Integración DB | `test/plantops-postgres-isolation` · [PR #18](https://github.com/andresvalencia72/plantops/pull/18) | Test CI real contra PostgreSQL 17 temporal | [GitHub Actions #43000678007](https://github.com/andresvalencia72/plantops/actions/runs/43000678007) SUCCESS; no DB persistente tocada |
+| 2 Modelo SQL | `feat/plantops-s1-database-schema` (sólo rama local) | **BLOQUEADO**, sin archivos ni commit | `npm install` → ENOSPC (sin espacio), 2026-11-11 10:43 CET |
+| 3 Autorización | pendiente | pendiente | pendiente |
+| 4 Repositorios | pendiente | pendiente | pendiente |
 
-## Bloqueo histórico del entorno — 2026-11-11, 10:43 CET (resuelto)
+## Bloqueo histórico del entorno — 2026-11-11, 10:43 CET
 
 - Al instalar Drizzle/pg en `apps/api`, npm falló con `ENOSPC`.
 - `df -h` en Mac: volumen de datos de 228 GiB, **124 MiB libres**,
@@ -55,7 +54,7 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 - Los bloques 2–4 quedan **sin implementar**. El diseño de sesiones de
   ADR-0004 sigue propuesto, pendiente de elección del mecanismo real.
 
-## Reanudación y resultados — 2026-11-11
+## Reanudación y resultados — registro histórico 2026-11-11
 
 - Usuario autorizó limpiar caché descargable npm y basura inequívoca solo
   en Descargas. Ejecutado `npm cache clean --force`: el espacio disponible
@@ -73,7 +72,7 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 - PR #18 ejecuta 5 escenarios sobre PostgreSQL 17 efímero de GitHub Actions:
   contexto A/B, listado restringido, rechazo de FK cruzada de activo,
   rechazo de FK cruzada de autor y reporte legítimo. CI verde.
-- **No es un login ni API privada lista:** ADR-0004 sigue propuesto; sesiones
+- **Estado de 11/11 (no vigente):** aún no existía login ni API privada: ADR-0004 seguía propuesto; sesiones
   y credenciales reales no están elegidas. PostgreSQL no se desplegó en Mac,
   ni se aplicó migración sobre datos persistentes; ningún cambio en `main`.
 - El trabajo autorizado se entrega en PR draft encadenadas #14 → #15 →
@@ -81,7 +80,7 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   requieren revisión del proveedor de identidad, modelo físico y permisos
   antes de conectar endpoints privados y frontend.
 
-## Continuación segura sin proveedor de identidad — 2026-11-11
+## Continuación de Sprint 1 — registro histórico 2026-11-11
 
 - [PR #19 — pruebas de membresía](https://github.com/andresvalencia72/plantops/pull/19)
   (commit `b2d4537`): nuevos escenarios PostgreSQL de cambio de empresa
@@ -99,11 +98,11 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 - Se mantiene el contrato de seguridad: **sin endpoint HTTP privado, login
   ficticio ni migración aplicada a datos persistentes**. Los límites de
   longitud del comando son provisionales hasta revisar el contrato.
-- **Siguiente puerta de decisión:** seleccionar proveedor de identidad y
+- **Siguiente puerta de decisión entonces (resuelta después):** seleccionar proveedor de identidad y
   sesiones en ADR-0004 y revisar la propuesta de modelo físico antes de
   conectar frontend y API. Ninguna PR draft fue fusionada; `main` intacta.
 
-## Resistencia a reintentos y concurrencia — 2026-11-11
+## Resistencia a reintentos y concurrencia — registro histórico 2026-11-11
 
 - [PR #21](https://github.com/andresvalencia72/plantops/pull/21):
   migración `0001` con `idempotency_key`, `request_hash` e índice único
@@ -122,10 +121,11 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 - **Contrato público no aprobado:** cabecera `Idempotency-Key`, estados
   HTTP para el primer commit/replay, retención de claves y manejo de
   cambios de activo durante una carrera extrema necesitan revisión.
-  Se conserva `ADR-0004` propuesto, sin proveedor de sesión ni endpoints
-  privados; `main` sigue sin fusiones.
+  En este corte histórico `ADR-0004` seguía propuesto y aún no había
+  endpoints privados ni fusiones en `main`; la dirección OIDC y los
+  merges posteriores se registraron aparte el 23/11/2026.
 
-## Fundación de sesiones PostgreSQL — 2026-11-11
+## Fundación de sesiones PostgreSQL — registro histórico 11/11/2026
 
 - Aprobado por el usuario: almacenar sesiones del lado del servidor con
   `@nestjs/authentication` 0.1.5 / NestJS 12 y cookies HttpOnly/Secure/SameSite.
@@ -143,14 +143,15 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   ficticios, nunca credenciales de producción.
 - **Frontera:** aún no se activa `AuthenticationModule` en `AppModule`,
   no existen formularios/endpoints de login ni cookie real emitida. Falta
-  elegir primer factor de login, invitaciones, recuperación, TTL y CSRF.
+  elegir primer factor de login, invitaciones, recuperación, TTL y CSRF;
+  OIDC por invitación se aprobó posteriormente y no se implementa aquí.
   No dar por entregada autenticación real ni conectar React hasta cerrar
   ese diseño y realizar E2E de protección HTTP. `main` intacta.
 
-## OIDC por invitación y primeros GET autenticados — 2026-11-11
+## OIDC y primeros GET — registro histórico 2026-11-11
 
-- Recuperado espacio: Mac volvió a ~20 GiB libres sin borrar Descargas.
-  `main` no se fusionó y todas las nuevas PR continúan draft encadenadas.
+- En esa fecha histórica el Mac llegó a ~20 GiB libres sin borrar Descargas.
+  En aquel momento `main` seguía intacta y las PR se entregaron draft.
 - [PR #30](https://github.com/andresvalencia72/plantops/pull/30):
   migración `0003` (tablas `oidc_accounts`, `invitations`, `oidc_states`)
   y restricciones de identidad y expiración.
@@ -183,7 +184,7 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   React a login no verificado. Ver
   [guía OIDC](../architecture/oidc-invitation-flow.md).
 
-## Piloto de invitaciones y login real — 2026-11-11
+## Piloto de invitaciones y login real — registro histórico 2026-11-11
 
 - [PR #38](https://github.com/andresvalencia72/plantops/pull/38):
   API **interna** para emitir/revocar/listar invitaciones, caducidad acotada
@@ -204,9 +205,10 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 - [PR #42](https://github.com/andresvalencia72/plantops/pull/42):
   guía de puesta en marcha y registro de clientes Google/Entra sin secretos,
   pruebas manuales esperadas y bloqueo específico `email_verified` Microsoft.
-- **Pendiente para login realmente probado:** crear clientes OAuth en las
+- **Pendiente para login realmente probado (a esa fecha):** crear clientes OAuth en las
   consolas de los proveedores, aportar secretos mediante .env local seguro,
-  abrir Docker Desktop y completar el callback en un navegador. No reclamar
+  abrir Docker Desktop y completar el callback en un navegador. Docker fue
+  recuperado después; no se ha demostrado el login real. No reclamar
   validación de IdP real hasta disponer de evidencia; ninguna PR fusionada.
 
 ## TODO aplazado — login local y diagnóstico Docker (2026-11-11)
@@ -242,7 +244,7 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
 - El piloto OAuth con callback local Google / cookies Secure continúa
   **aplazado por decisión del usuario**. La guía de OIDC fue actualizada.
 
-## Verificación local con Docker real — 2026-11-11
+## Verificación local con Docker real — evidencia histórica 2026-11-11
 
 - Aprobado continuar con trabajo independiente del login externo. Docker
   Desktop ya recuperado y operativo, se inició `api-postgres-1` con
@@ -263,10 +265,10 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   invitaciones ni creado usuarios reales en `plantops_dev`. Mantener
   pendiente el TODO de callback localhost y cookies Secure.
 
-## Incidencias: consultas autorizadas y paginación — 2026-11-11
+## Incidencias: GET y paginación — registro histórico 2026-11-11
 
 - [PR #44](https://github.com/andresvalencia72/plantops/pull/44)
-  (draft, encadenada sobre #43): `GET /organizations/:id/incidents`
+  (entonces draft sobre #43, integrada más tarde): `GET /organizations/:id/incidents`
   con `limit` 1–50, cursor opaco y keyset por `reportedAt DESC, id DESC`,
   y `GET /organizations/:id/incidents/:incidentId`.
 - Cada petición obtiene usuario de sesión válida y consulta membresía ACTIVE
@@ -284,3 +286,15 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   lint y typecheck correctos.
 - `npm run dev:smoke` requiere al menos 5 migraciones tras este cambio.
   OAuth real sigue como TODO y el POST de incidencias no se publicó.
+
+## Nota de revisión — 23/11/2026
+
+El bloqueo ENOSPC y los bloques pendientes descritos arriba son una
+**instantánea histórica del 11/11/2026**, no el estado actual del Sprint 1.
+La [PR #15](https://github.com/andresvalencia72/plantops/pull/15) existe
+como propuesta de esquema PostgreSQL; todavía exige revisión del modelo,
+migraciones en PostgreSQL de prueba y evidencias de aislamiento A/B.
+La dirección de identidad se seleccionó después: OIDC Google/Microsoft,
+acceso por invitación y sesiones persistidas en PostgreSQL. No hay licencia
+para publicar endpoints privados sin verificaciones de autenticación, CSRF,
+autorización y revocación.
