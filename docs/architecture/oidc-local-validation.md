@@ -1,8 +1,10 @@
 # Piloto OIDC real, limitado a una base local descartable
 
-**Estado:** preparado, NO ejecutado contra Google ni Microsoft.
-**Fecha:** 2026-11-11. Solo para desarrolladores autorizados; nunca producción.
-El código y las verificaciones PostgreSQL están en PR draft #29–#41.
+**Estado:** guía de piloto preparada; sin prueba demostrada con Google/Microsoft reales.
+**Fecha original:** 2026-11-11 · **Revisión:** 2026-11-23. Solo para
+entorno local autorizado; nunca producción. La base OIDC y las pruebas
+PostgreSQL #29–#40 ya están integradas en `main`. La infraestructura local
+#41 se verifica por separado y no implica desplegar una base persistente.
 
 ## TODO aplazado — callback local y navegadores (11/11/2026)
 
@@ -129,12 +131,16 @@ npm run build
 node --env-file=.env dist/main.js
 ```
 
-En un navegador, abre
-`http://127.0.0.1:3001/auth/oidc/google/login?redirectTo=/me`.
+En un navegador, abre exactamente
+`http://127.0.0.1:3001/auth/oidc/google/login` **sin** `redirectTo`:
+la API rechaza el parámetro de redirección enviado por el cliente para
+prevenir destinos externos arbitrarios. La configuración actual redirige
+tras el login al path fijo `/`. Desde el mismo navegador/origen, visita
+`/me` y `/me/organizations` para comprobar la sesión y las membresías.
 El servicio oficial valida state/nonce/PKCE, firma, issuer, audience y
 expiración del token. Si tu cuenta tiene el correo invitado verificado,
-deberías terminar en `/me` con cookie de sesión HttpOnly.
-`/me/organizations` debe listar solo las membresías activas. Sin cookie,
+`/me` debe mostrar la identidad autenticada y `/me/organizations` solo
+las membresías activas. Sin cookie,
 `/me` debe responder 401. Con un correo no invitado, el login debe fallar.
 
 **No deshabilites cookies Secure para “arreglar” un fallo local.** Si el
