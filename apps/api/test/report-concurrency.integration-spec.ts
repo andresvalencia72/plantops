@@ -52,8 +52,8 @@ describe('idempotent report concurrency on real PostgreSQL', () => {
       { id: ids.userB, displayName: 'Reporter B' },
     ]);
     await database.insert(memberships).values([
-      { id: ids.memberA, userId: ids.userA, organizationId: ids.tenant, role: 'MEMBER' },
-      { id: ids.memberB, userId: ids.userB, organizationId: ids.tenant, role: 'MEMBER' },
+      { id: ids.memberA, userId: ids.userA, organizationId: ids.tenant, role: 'MEMBER', status: 'ACTIVE' },
+      { id: ids.memberB, userId: ids.userB, organizationId: ids.tenant, role: 'MEMBER', status: 'ACTIVE' },
     ]);
     await database.insert(assets).values({
       id: ids.asset, organizationId: ids.tenant, name: 'Shared Asset', code: 'SHARED',

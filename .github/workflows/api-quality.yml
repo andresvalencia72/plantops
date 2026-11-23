@@ -51,6 +51,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check generated migrations
+        run: npm run db:check
+
       - name: Unit tests
         run: npm test
 
