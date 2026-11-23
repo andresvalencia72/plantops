@@ -1,6 +1,6 @@
 # Contratos de API — borrador para diseño frontend
 
-**Estado:** PARCIAL · hay HTTP autenticado para perfil, organizaciones, activos e incidencias de solo lectura en PR draft; OIDC aún sin clientes reales, no hay POST de incidencias ni OpenAPI publicado. **Revisión:** 2026-11-11.
+**Estado:** PARCIAL · HTTP autenticado de perfil, organizaciones, activos y lectura de incidencias en `main` tras PR #44; OIDC aún sin clientes reales, sin POST de incidencias ni OpenAPI publicado. **Revisión:** 2026-11-23.
 
 Este documento permite diseñar fixtures y adaptadores **sin convertir propuestas en API pública comprometida**.
 
@@ -30,11 +30,11 @@ Este documento permite diseñar fixtures y adaptadores **sin convertir propuesta
 | Cerrar incidencia | `POST /incidents/:id/close` | Supervisor |
 | Crear orden | `POST /work-orders` | Supervisor |
 | Asignar/reasignar | `POST /work-orders/:id/assign` | Supervisor |
-| Iniciar orden | `POST /work-orders/:id/start` | Técnico responsable |
-| Completar orden | `POST /work-orders/:id/complete` | Técnico responsable |
+| Iniciar orden | `POST /work-orders/:id/start` | Responsable asignado (técnico o supervisor) |
+| Completar orden | `POST /work-orders/:id/complete` | Responsable asignado (técnico o supervisor) |
 | Cancelar orden | `POST /work-orders/:id/cancel` | Supervisor |
 
-**Estos endpoints GET están implementados en PR draft, no desplegados.**
+**Estos endpoints GET están integrados en main, pero no desplegados.**
 El parámetro `organizationId` selecciona contexto, nunca concede permiso;
 el backend verifica membresía ACTIVE por identidad autenticada y filtra
 PostgreSQL. Sin sesión se responde 401, sin membresía 403 y un activo

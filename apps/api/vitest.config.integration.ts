@@ -4,8 +4,10 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   test: {
     globals: true,
-    include: ['test/**/*.integration-spec.ts'],
+    root: './',
+    include: ['**/*.integration-spec.ts'],
     fileParallelism: false,
+    maxWorkers: 1,
     hookTimeout: 20_000,
     testTimeout: 20_000,
   },

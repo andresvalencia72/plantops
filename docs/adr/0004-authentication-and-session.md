@@ -1,6 +1,6 @@
 # ADR-0004 — Identidad, sesiones y autorización contextual
 
-**Estado:** ACEPTADO COMO DIRECCIÓN · **Fecha:** 2026-11-11 · Sesiones PostgreSQL y OIDC por invitación Google/Microsoft aprobados; despliegue, provisión de invitaciones y contrato HTTP de mutaciones pendientes.
+**Estado:** ACEPTADO como dirección de identidad (11/11/2026); contrato de implementación, permisos y pruebas pendientes de verificar. **Propuesto:** 11/11/2026. **Reconciliado:** 23/11/2026.
 **Relación:** [ADR-0003](0003-multi-tenancy.md), [Sprint 1](../plan/roadmap.md).
 
 ## Problema y límites de confianza
@@ -10,7 +10,7 @@ ni autoriza. Una identidad global puede pertenecer a varias organizaciones con
 roles diferentes. Hay que revocar sesiones y membresías sin confiar en un ID
 suministrado por el navegador. Esta decisión NO abre endpoints privados.
 
-## Alternativas (selección parcial)
+## Alternativas consideradas en la propuesta histórica (11/11/2026)
 
 | Opción | Beneficio | Coste / riesgo |
 | --- | --- | --- |
@@ -18,12 +18,26 @@ suministrado por el navegador. Esta decisión NO abre endpoints privados.
 | Proveedor OIDC administrado + validación server-side | Reduce gestión de credenciales, MFA y recuperación | Dependencia externa, costes, callback y mapeo de identidad |
 | JWT propio y refresh tokens desarrollados desde cero | Control completo | Mayor superficie criptográfica y de revocación: no recomendado para MVP |
 
-**Aprobado por el propietario (2026-11-11):** sesiones servidor PostgreSQL
-con `@nestjs/authentication`, cookies HttpOnly/Secure/SameSite y primer
-factor **OIDC Google/Microsoft por invitación**.
-**Pendiente:** política administrativa de invitaciones, provisión de cuentas
-externas reales, recuperación, despliegue PostgreSQL, CORS y contrato HTTP
-de mutaciones. No escribir login simulado ni confiar en JWT del navegador.
+**Recomendación original (antes de la decisión):** se comparaban sesiones
+operadas por la aplicación y OIDC como vías de login. No se seleccionó JWT
+propio ni un login ficticio. La elección posterior no invalida la comparación.
+
+## Decisión de dirección aceptada (11/11/2026)
+
+- **Login:** OIDC con Google y Microsoft, sin contraseñas propias de PlantOps.
+- **Alta:** acceso por invitación verificada, sin autorregistro abierto.
+- **Sesión de aplicación:** persistencia y revocación en PostgreSQL; cookie
+  HttpOnly/Secure/SameSite y comprobación de membresía vigente en servidor.
+- **Separación de responsabilidades:** OIDC verifica la identidad externa;
+  la sesión propia gestiona el acceso posterior y los permisos de PlantOps.
+  Son capas complementarias, no opciones mutuamente excluyentes.
+- **Implementación aún por validar:** si `@nestjs/authentication` cubre el
+  store, las cookies, el guard y CSRF con NodeAdapter; no se presupone por
+  la mera compatibilidad publicada. La integración real se revisará en
+  [PR #25–#35](https://github.com/andresvalencia72/plantops/pull/25).
+- **Decisiones operativas por cerrar:** TTL absoluto/de inactividad, rotación,
+  política de invitaciones, recuperación de acceso y despliegue HTTPS.
+  Su aprobación no se infiere de aceptar esta dirección arquitectónica.
 
 ## Modelo de autorización previsto (independiente del proveedor)
 
@@ -57,7 +71,7 @@ de mutaciones. No escribir login simulado ni confiar en JWT del navegador.
 8. Operación de doble tenant: seleccionar B sólo cuando la identidad pertenece
    de forma vigente a B; A no obtiene recursos de B por cambiar un header.
 
-## Pruebas de aceptación (parciales, no equivalen a login real)
+## Pruebas de aceptación por capa (fundación de sesiones probada; HTTP/OIDC pendientes)
 
 - Sin sesión → 401. Usuario activo de A puede leer A, no B.
 - IDOR por ID de activo/incidencia B → 404 sin revelar la existencia.
@@ -100,8 +114,10 @@ de mutaciones. No escribir login simulado ni confiar en JWT del navegador.
 - [NestJS CSRF](https://docs.nestjs.com/security/csrf)
 - [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 
-**Bloqueo para producción:** Google está probado **solo en local**.
-Falta definir política de invitaciones administradas, verificar Microsoft
-`emailVerified`, HTTPS/CORS/CSRF, logout/revocación E2E, desplegar
-PostgreSQL persistente y aprobar el contrato de mutaciones.
-La vista de desarrollo no constituye un despliegue público.
+**Bloqueo para producción:** el registro del piloto #46 documenta un login
+Google real en Chrome y PostgreSQL local efímero el 11/11/2026, pero **no se
+ha revalidado después de corregir las redirecciones de esta integración**.
+Quedan política de invitaciones administradas, Microsoft `emailVerified`,
+HTTPS/CORS/CSRF, logout/revocación E2E, migraciones persistentes, copias y
+restauración y contrato de mutaciones. La vista de desarrollo no es un
+servicio público ni una prueba de producción.

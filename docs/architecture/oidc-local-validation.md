@@ -1,9 +1,10 @@
 # Piloto OIDC real, limitado a una base local descartable
 
-**Estado:** Google validado de extremo a extremo en Chrome local (11/11/2026);
-Microsoft y producción NO verificados.
-**Fecha:** 2026-11-11. Solo para desarrolladores autorizados; nunca producción.
-El código y las verificaciones PostgreSQL están en PR draft #29–#41.
+**Estado:** el piloto anterior documentó un Google OIDC real completado en
+Chrome local el 11/11/2026. **Pendiente:** repetirlo con la nueva redirección
+fija del servidor. Microsoft, Safari y producción NO verificados.
+**Fecha original:** 2026-11-11 · **Revisión:** 2026-11-23. Solo entorno local;
+nunca producción. La base #29–#45 está integrada en `main`; PR #46 en revisión.
 
 ## Resultado real y causa del primer 403 — 11/11/2026
 

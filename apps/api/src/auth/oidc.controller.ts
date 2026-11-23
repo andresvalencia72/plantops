@@ -22,7 +22,7 @@ export class OidcController {
     @Param('provider') provider: string,
     @Query('redirectTo') redirectTo?: string,
   ) {
-    // Redirect destination is configured server-side; never supplied by client.
+    // The post-login destination is configured server-side, never from the request.
     if (redirectTo !== undefined) {
       throw new BadRequestException('Custom OIDC redirect is not enabled');
     }

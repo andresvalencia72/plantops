@@ -93,6 +93,7 @@ describe('invite-only OIDC identity resolution', () => {
       .where(eq(memberships.userId, linked!.id));
     expect(membershipsFound.map((row) => row.organizationId).sort())
       .toEqual([orgA, orgB].sort());
+    expect(membershipsFound.every((row) => row.status === 'ACTIVE')).toBe(true);
     for (const invite of [inviteA, inviteB]) {
       const [current] = await db.select().from(invitations)
         .where(eq(invitations.id, invite.id));
@@ -112,6 +113,7 @@ describe('invite-only OIDC identity resolution', () => {
       .where(eq(memberships.userId, original!.id));
     expect(membershipsFound.map((row) => row.organizationId).sort())
       .toEqual([orgA, orgB].sort());
+    expect(membershipsFound.every((row) => row.status === 'ACTIVE')).toBe(true);
     const [used] = await db.select().from(invitations)
       .where(eq(invitations.id, next.id));
     expect(used.consumedByUserId).toBe(original!.id);
@@ -180,11 +182,11 @@ describe('invite-only OIDC identity resolution', () => {
     await db.update(memberships).set({ status: 'SUSPENDED' })
       .where(eq(memberships.userId, linked!.id));
     expect(await resolveInvitedIdentity(db, subject, {})).toBeNull();
-    const secondInvite = await invitation(address('suspended'));
+    const newInvite = await invitation(address('suspended'));
     expect(await resolveInvitedIdentity(db, subject, {})).toBeNull();
-    const [stillPending] = await db.select().from(invitations)
-      .where(eq(invitations.id, secondInvite.id));
-    expect(stillPending?.consumedAt).toBeNull();
+    const [unchanged] = await db.select().from(invitations)
+      .where(eq(invitations.id, newInvite.id));
+    expect(unchanged?.consumedAt).toBeNull();
     const usersFound = await db.select().from(users)
       .where(eq(users.id, linked!.id));
     expect(usersFound).toHaveLength(1);
