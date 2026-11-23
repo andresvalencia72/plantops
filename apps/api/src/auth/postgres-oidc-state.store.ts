@@ -48,7 +48,8 @@ export class PostgresOidcStateStore implements OidcStateStore {
       .where(sql`${oidcStates.state} = ${state}`)
       .returning();
 
-    if (!record) return undefined;
+    // Delete atomically even when expired, but never return expired state.
+    if (!record || record.expiresAt.getTime() <= Date.now()) return undefined;
     return {
       state: record.state,
       provider: record.provider,
