@@ -37,6 +37,12 @@ describe('Foundation API (e2e)', () => {
       .expect(401);
   });
 
+  it('does not expose OIDC routes when credentials are not configured', async () => {
+    await request(app.getHttpServer())
+      .get('/auth/oidc/google/login')
+      .expect(404);
+  });
+
   it('does not expose the generated root Hello World route', async () => {
     await request(app.getHttpServer()).get('/').expect(404);
   });

@@ -7,12 +7,19 @@ import { PlantOpsSessionAuth } from './auth/session-auth.provider.js';
 import { SessionController } from './auth/session.controller.js';
 import { SessionPersistence } from './auth/session-persistence.js';
 import { trustedOrigins } from './auth/trusted-origins.js';
+import { buildOidcConfig } from './auth/oidc.config.js';
+import { OidcController } from './auth/oidc.controller.js';
+import { OidcStatePersistence } from './auth/oidc-state-persistence.js';
+import { PlantOpsOidcInviteResolver } from './auth/oidc-invite-resolver.js';
+
+const oidcConfig = buildOidcConfig();
 
 @Module({
   imports: [
     AuthenticationModule.forRoot({
       globalGuard: true,
       allowInMemoryStorage: false,
+      ...(oidcConfig ? { oidc: oidcConfig } : {}),
       session: {
         absoluteTtl: '8h',
         idleTtl: '30m',
@@ -22,12 +29,13 @@ import { trustedOrigins } from './auth/trusted-origins.js';
       },
     }),
   ],
-  controllers: [AppController, SessionController],
+  controllers: [AppController, SessionController, ...(oidcConfig ? [OidcController] : [])],
   providers: [
     AppService,
     DatabaseConnection,
     SessionPersistence,
     PlantOpsSessionAuth,
+    ...(oidcConfig ? [OidcStatePersistence, PlantOpsOidcInviteResolver] : []),
   ],
 })
 export class AppModule {}
