@@ -64,11 +64,11 @@ describe('HTTP incident read isolation and keyset pagination', () => {
     await db.insert(memberships).values([
       {
         id: ids.memberA, organizationId: ids.orgA,
-        userId: ids.user, role: 'MEMBER',
+        userId: ids.user, role: 'MEMBER', status: 'ACTIVE',
       },
       {
         id: ids.memberB, organizationId: ids.orgB,
-        userId: ids.otherUser, role: 'MEMBER',
+        userId: ids.otherUser, role: 'MEMBER', status: 'ACTIVE',
       },
     ]);
     await db.insert(assets).values([

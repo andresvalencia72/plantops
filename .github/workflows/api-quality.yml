@@ -51,6 +51,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check generated migrations
+        run: npm run db:check
+
+      - name: Verify secure tenant migration snapshots
+        run: node ../../scripts/check-tenant-snapshots.mjs
+
       - name: Unit tests
         run: npm test
 
@@ -59,6 +65,28 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Refuse unsafe migrations and confirm dry run
+        run: |
+          env -u DATABASE_URL node ./scripts/migrate-dev.mjs | grep -Fx 'Dry run: no migration executed. Pass --apply explicitly.'
+          if DATABASE_URL='postgresql://plantops:fixture@db.invalid:55432/plantops_dev' node ./scripts/migrate-dev.mjs --apply; then
+            echo 'Unsafe migration target was accepted' >&2
+            exit 1
+          fi
+
+      - name: Refuse unsafe local-stack smoke targets
+        run: |
+          if DATABASE_URL='postgresql://plantops:fixture@db.invalid:55432/plantops_dev' node ./scripts/check-local-stack.mjs; then
+            echo 'Unsafe local-stack target was accepted' >&2
+            exit 1
+          fi
+
+      - name: Preview operator invite without database access
+        run: |
+          env -u DATABASE_URL node ./scripts/invitations-operator.mjs \
+            issue --organization 11111111-1111-4111-8111-111111111111 \
+            --email Person@EXAMPLE.test --role MEMBER --days 7 \
+            | node -e 'let s=""; process.stdin.on("data",c=>s+=c); process.stdin.on("end",()=>{ const p=JSON.parse(s); if (p.databaseTouched!==false || p.preview!==true || p.email!=="p***@example.test") process.exit(1); });'
 
   postgres-integration:
     name: PostgreSQL tenant isolation
