@@ -104,6 +104,7 @@ describe('invite-only OIDC identity resolution', () => {
       .where(eq(memberships.userId, original!.id));
     expect(membershipsFound.map((row) => row.organizationId).sort())
       .toEqual([orgA, orgB].sort());
+    expect(membershipsFound.every((row) => row.status === 'ACTIVE')).toBe(true);
     const [used] = await db.select().from(invitations)
       .where(eq(invitations.id, next.id));
     expect(used.consumedByUserId).toBe(original!.id);
