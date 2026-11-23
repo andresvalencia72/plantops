@@ -80,6 +80,28 @@ No mezclar PR, no fusionar `main`, no modificar otros repositorios.
   requieren revisión del proveedor de identidad, modelo físico y permisos
   antes de conectar endpoints privados y frontend.
 
+## Continuación de Sprint 1 — registro histórico 2026-11-11
+
+- [PR #19 — pruebas de membresía](https://github.com/andresvalencia72/plantops/pull/19)
+  (commit `b2d4537`): nuevos escenarios PostgreSQL de cambio de empresa
+  con doble membresía, revocación efectiva en siguiente resolución de
+  contexto y denegación sin sesión. [CI #43001555040](https://github.com/andresvalencia72/plantops/actions/runs/43001555040):
+  **SUCCESS**. Se comprueba resolución de membresía, no revocación completa
+  de una sesión gestionada por un proveedor real.
+- [PR #20 — reporte interno](https://github.com/andresvalencia72/plantops/pull/20)
+  (commits `31dae57`, `3044afe`): caso de uso `reportIncident`
+  transaccional, revalidación de membresía/rol, activo propio y activo
+  habilitado, más validación de entrada. Se usan bloqueos SQL `FOR SHARE`
+  antes de insertar. [CI #43001988246](https://github.com/andresvalencia72/plantops/actions/runs/43001988246):
+  **SUCCESS**, incluidos seis escenarios adicionales con PostgreSQL 17
+  efímero y el job estándar de compilación/tests.
+- Se mantiene el contrato de seguridad: **sin endpoint HTTP privado, login
+  ficticio ni migración aplicada a datos persistentes**. Los límites de
+  longitud del comando son provisionales hasta revisar el contrato.
+- **Siguiente puerta de decisión entonces (resuelta después):** seleccionar proveedor de identidad y
+  sesiones en ADR-0004 y revisar la propuesta de modelo físico antes de
+  conectar frontend y API. Ninguna PR draft fue fusionada; `main` intacta.
+
 ## Nota de revisión — 23/11/2026
 
 El bloqueo ENOSPC y los bloques pendientes descritos arriba son una
