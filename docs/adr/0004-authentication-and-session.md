@@ -71,7 +71,7 @@ propio ni un login ficticio. La elección posterior no invalida la comparación.
 8. Operación de doble tenant: seleccionar B sólo cuando la identidad pertenece
    de forma vigente a B; A no obtiene recursos de B por cambiar un header.
 
-## Pruebas de aceptación posteriores (no ejecutadas aún)
+## Pruebas de aceptación por capa (fundación de sesiones probada; HTTP/OIDC pendientes)
 
 - Sin sesión → 401. Usuario activo de A puede leer A, no B.
 - IDOR por ID de activo/incidencia B → 404 sin revelar la existencia.
@@ -81,6 +81,22 @@ propio ni un login ficticio. La elección posterior no invalida la comparación.
 - Usuario sin permiso supervisor → no cierra incidencias.
 - CSRF, logout, vencimiento y rotación de sesión probados.
 - Los tests usan credenciales de test exclusivamente dentro de su infraestructura.
+
+### Evidencia técnica de la fundación de sesiones
+
+- [PR #25](https://github.com/andresvalencia72/plantops/pull/25):
+  tabla `sessions` con clave externa a `users`, campos absolutos y
+  actividad, MFA y metadatos, índices y migración Drizzle `0002`.
+- [PR #26](https://github.com/andresvalencia72/plantops/pull/26):
+  implementación PostgreSQL de las seis operaciones de `SessionStore`,
+  revocación y `touch` atómicos, pruebas de integración.
+- [PR #27](https://github.com/andresvalencia72/plantops/pull/27):
+  `SessionService` oficial con pruebas de hash SHA-256 (Base64URL),
+  vencimientos, rotación y revocación real en PostgreSQL temporal.
+- **Estado de PR #27 (fundación, antes del guard HTTP):** aún no se ha registrado proveedor
+  de credenciales o conectada la base de datos a `AppModule`. Por tanto
+  el guard global no está habilitado, no se emiten cookies, no hay login
+  ni rutas privadas. El único endpoint continúa siendo `GET /health`.
 
 ## Fuentes consultadas (2026-11-11)
 
