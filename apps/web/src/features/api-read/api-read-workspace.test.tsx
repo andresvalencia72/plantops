@@ -77,7 +77,7 @@ describe('API read-only workspace', () => {
     render(<ApiReadWorkspace client={createApiReadClient(fetcher)} />)
     const link = await screen.findByRole('link', { name: 'Continuar con Google' })
     expect(link).toHaveAttribute('href',
-      '/auth/oidc/google/login?redirectTo=%2F%3Fsource%3Dapi')
+      '/auth/oidc/google/login')
     expect(screen.queryByRole('link', { name: 'Continuar con Microsoft' }))
       .not.toBeInTheDocument()
     expect(fetcher).toHaveBeenCalledTimes(2)

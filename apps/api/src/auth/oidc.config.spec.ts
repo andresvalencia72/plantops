@@ -42,6 +42,21 @@ describe('OIDC configuration', () => {
     expect(configuration!.transactionTtl).toBe('10m');
   });
 
+  it('uses a fixed API-preview destination only for the exact local Vite origin', () => {
+    const base = {
+      GOOGLE_OIDC_CLIENT_ID: 'client', GOOGLE_OIDC_CLIENT_SECRET: 'secret',
+    };
+    expect(buildOidcConfig({ ...base,
+      OIDC_CALLBACK_ORIGIN: 'http://127.0.0.1:5184',
+    })?.redirectAfterLogin).toBe('/?source=api');
+    expect(buildOidcConfig({ ...base,
+      OIDC_CALLBACK_ORIGIN: 'http://127.0.0.1:3001',
+    })?.redirectAfterLogin).toBe('/');
+    expect(buildOidcConfig({ ...base,
+      OIDC_CALLBACK_ORIGIN: 'https://api.plantops.example',
+    })?.redirectAfterLogin).toBe('/');
+  });
+
   it('requires tenant-specific Microsoft Entra ID, not common', () => {
     const base = {
       MICROSOFT_OIDC_CLIENT_ID: 'client',

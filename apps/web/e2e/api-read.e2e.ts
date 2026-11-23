@@ -37,7 +37,7 @@ test('Google login link is shown only for a configured provider', async ({ page 
   const link = page.getByRole('link', { name: 'Continuar con Google' })
   await expect(link).toBeVisible()
   await expect(link).toHaveAttribute('href',
-    '/auth/oidc/google/login?redirectTo=%2F%3Fsource%3Dapi')
+    '/auth/oidc/google/login')
   await expect(page.getByRole('link', { name: 'Continuar con Microsoft' }))
     .toHaveCount(0)
   await expect(page.getByText('Atlas Manufacturing')).toHaveCount(0)

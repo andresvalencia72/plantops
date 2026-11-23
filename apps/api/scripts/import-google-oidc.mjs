@@ -48,7 +48,7 @@ async function main() {
   const parsed = JSON.parse(await readFile(resolve(paths[0]), 'utf8'));
   const web = parsed?.web;
   if (!web || typeof web.client_id !== 'string' ||
-    !web.client_id.endsWith('.apps.googleusercontent.com') ||
+    !/^[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(web.client_id) ||
     typeof web.client_secret !== 'string' ||
     !/^[A-Za-z0-9._~-]{12,}$/.test(web.client_secret) ||
     !Array.isArray(web.redirect_uris) ||

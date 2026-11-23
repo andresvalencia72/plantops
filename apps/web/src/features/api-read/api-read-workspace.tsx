@@ -115,14 +115,14 @@ export function ApiReadWorkspace({ client = apiReadClient }: { client?: ApiReadC
             </p>
             {connection.providers.includes('google') && (
               <Button asChild className="w-full sm:w-auto">
-                <a href="/auth/oidc/google/login?redirectTo=%2F%3Fsource%3Dapi">
+                <a href="/auth/oidc/google/login">
                   Continuar con Google
                 </a>
               </Button>
             )}
             {connection.providers.includes('microsoft') && (
               <Button asChild className="w-full sm:w-auto">
-                <a href="/auth/oidc/microsoft/login?redirectTo=%2F%3Fsource%3Dapi">
+                <a href="/auth/oidc/microsoft/login">
                   Continuar con Microsoft
                 </a>
               </Button>

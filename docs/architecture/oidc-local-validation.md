@@ -221,8 +221,11 @@ node --env-file=.env dist/main.js
    enumerar `google`. Inicia el navegador en
    `http://127.0.0.1:5184/?source=api` y pulsa
    **Continuar con Google**. Google regresará por el proxy Vite y
-   `redirectTo=/?source=api` llevará a la vista React con la cookie
-   de sesión HttpOnly si la invitación es válida.
+   la configuración local devolverá a la vista React `/?source=api`
+   con la cookie de sesión HttpOnly si la invitación es válida. El enlace
+   de login no incluye `redirectTo` y el servidor rechaza redirecciones
+   escogidas por el navegador. La validación Chrome documentada arriba
+   corresponde al corte anterior y debe repetirse con esta configuración.
 `/me/organizations` debe listar solo las membresías activas. Sin cookie,
 `/me` debe responder 401. Con un correo no invitado, el login debe fallar.
 
