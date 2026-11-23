@@ -11,6 +11,8 @@ function uniqueColumnSets(table: typeof assets | typeof memberships) {
 }
 
 import { sessions } from '../auth/sessions.schema.js';
+import { invitations, oidcAccounts } from '../auth/oidc-identity.schema.js';
+import { oidcStates } from '../auth/oidc-state.schema.js';
 
 describe('session database constraints', () => {
   it('stores the session token digest, never the cookie token', () => {
@@ -21,6 +23,26 @@ describe('session database constraints', () => {
       .toEqual(['user_id']);
     expect(schema.indexes.map((index) => index.config.name))
       .toContain('sessions_expires_at_idx');
+  });
+});
+
+describe('OIDC database constraints', () => {
+  it('prevents external identity hijacking across users', () => {
+    const keys = getTableConfig(oidcAccounts).uniqueConstraints
+      .map((constraint) => constraint.columns.map((column) => column.name));
+    expect(keys).toContainEqual(['provider', 'subject']);
+    expect(keys).toContainEqual(['user_id', 'provider']);
+  });
+
+  it('prevents duplicate live invitations and one state being consumed twice', () => {
+    const invite = getTableConfig(invitations);
+    expect(invite.indexes.map((index) => index.config.name))
+      .toContain('invitations_pending_organization_email');
+    expect(invite.checks.map((check) => check.name))
+      .toContain('invitations_email_normalized');
+    const states = getTableConfig(oidcStates);
+    expect(states.columns.find((column) => column.name === 'state')?.primary)
+      .toBe(true);
   });
 });
 

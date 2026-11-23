@@ -7,6 +7,8 @@ export default defineConfig({
     './src/database/assets.ts',
     './src/database/incidents.ts',
     './src/auth/sessions.schema.ts',
+    './src/auth/oidc-identity.schema.ts',
+    './src/auth/oidc-state.schema.ts',
   ],
   out: './drizzle',
   strict: true,
