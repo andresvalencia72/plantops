@@ -53,9 +53,9 @@ erDiagram
 
 **INV-04 — cardinalidad:** una orden nunca está vinculada a más de una incidencia; una incidencia puede tener varias.
 
-**INV-05 — asignación:** una orden tiene máximo un técnico responsable activo y éste pertenece a la organización. Toda reasignación registra anterior, nuevo, autor y fecha; el motivo es RECOMENDADO.
+**INV-05 — asignación:** una orden tiene máximo un responsable operativo activo y éste pertenece a la organización. Para v0.1 puede ser un TECHNICIAN o SUPERVISOR autorizado (INV-06). Toda reasignación registra anterior, nuevo, autor y fecha; el motivo es RECOMENDADO.
 
-**INV-06 — ciclo de trabajo:** solo el técnico actualmente responsable inicia/completa su orden, y COMPLETED requiere un resultado documentado. El supervisor asigna/reasigna y cancela con razón.
+**INV-06 — ciclo de trabajo:** solo el responsable operativo actualmente asignado inicia/completa su orden, y COMPLETED requiere un resultado documentado. El responsable debe tener rol TECHNICIAN o SUPERVISOR habilitado en la misma empresa; ser supervisor no permite actuar sobre una OT ajena. El supervisor asigna/reasigna y cancela con razón.
 
 **INV-07 — cierre de incidencia:** solo el supervisor de la organización cierra una incidencia. Sin órdenes, justificación obligatoria; con órdenes, todas deben estar COMPLETED o CANCELLED (éstas con razón) y el cierre registra conclusión.
 
@@ -93,10 +93,10 @@ stateDiagram-v2
 
 En el MVP la reasignación ordinaria ocurre **antes** del inicio; cambiar responsable durante IN_PROGRESS queda pendiente de diseño explícito. Si se cancela o completa, no modificar el estado terminal en v0.1.
 
-## Reglas con estado no definitivo
+## Reglas adicionales y decisiones pendientes
 
 - **PROPUESTA:** distinguir `CORRECTIVE` y `PREVENTIVE` como origen/tipo de orden; correctiva vinculada obligatoriamente a incidencia; preventiva vinculada a activo y sin incidencia.
-- **PENDIENTE:** si un supervisor puede desempeñar además funciones de técnico con una segunda membresía/rol y cómo se implementan.
+- **ACEPTADO (2026-11-23):** en el MVP una persona tiene un único rol principal por empresa (MEMBER, TECHNICIAN o SUPERVISOR). Un SUPERVISOR puede asumir funciones técnicas en una OT cuando figura como responsable operativo asignado; no necesita una segunda membresía ni puede iniciar/completar órdenes de terceros. El cierre de incidencias permanece reservado al supervisor (INV-07); no se exige doble aprobación por defecto en v0.1, y cualquier control de segregación para operaciones críticas se evaluará por separado. Esta decisión requiere pruebas de autorización en el backend; el documento no acredita su implementación.
 - **PENDIENTE:** si una incidencia puede pasar a revisión directamente antes de que intervenga un supervisor concreto o si requiere asignación.
 - **PENDIENTE:** política exacta de desactivación de activos, niveles de severidad y catálogos personalizables.
 
@@ -104,6 +104,8 @@ En el MVP la reasignación ordinaria ocurre **antes** del inicio; cambiar respon
 
 - Usuario de empresa A intenta reportar incidencia sobre activo B → no autorizado, sin revelar información de B.
 - Técnico de A intenta completar orden de otro técnico A → denegado.
+- Supervisor asignado a una OT propia de su empresa la inicia/completa → permitido si cumple las transiciones.
+- Supervisor no asignado intenta iniciar/completar una OT ajena → denegado.
 - Supervisor intenta cerrar incidencia con una orden IN_PROGRESS → conflicto de negocio.
 - Supervisor intenta cancelar sin motivo → validación.
 - Dos solicitudes simultáneas crean orden y cierran incidencia → una debe fallar o esperar conforme a estrategia atómica.
