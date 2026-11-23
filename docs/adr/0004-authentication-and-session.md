@@ -93,10 +93,17 @@ propio ni un login ficticio. La elección posterior no invalida la comparación.
 - [PR #27](https://github.com/andresvalencia72/plantops/pull/27):
   `SessionService` oficial con pruebas de hash SHA-256 (Base64URL),
   vencimientos, rotación y revocación real en PostgreSQL temporal.
-- **Estado de PR #27 (fundación, antes del guard HTTP):** aún no se ha registrado proveedor
-  de credenciales o conectada la base de datos a `AppModule`. Por tanto
-  el guard global no está habilitado, no se emiten cookies, no hay login
-  ni rutas privadas. El único endpoint continúa siendo `GET /health`.
+- [PR #29](https://github.com/andresvalencia72/plantops/pull/29):
+  guard HTTP global, sesión PostgreSQL y CSRF nativo activos en la API.
+- [PR #30–#34](https://github.com/andresvalencia72/plantops/pull/34):
+  esquema de invitaciones, OIDC state PKCE persistente, resolver de cuentas
+  con identidad por (provider, subject), rutas condicionales por proveedor,
+  tests negativos y de concurrencia.
+- [PR #35–#36](https://github.com/andresvalencia72/plantops/pull/36):
+  identidad y organizaciones accesibles, activos filtrados por tenant.
+- **No configurado en servicios externos:** sin clientes OAuth reales ni
+  invitaciones administrativas; ningún login real contra proveedores
+  verificado. Las pruebas usan PostgreSQL efímero en CI.
 
 ## Fuentes consultadas (2026-11-11)
 
@@ -105,7 +112,7 @@ propio ni un login ficticio. La elección posterior no invalida la comparación.
 - [NestJS CSRF](https://docs.nestjs.com/security/csrf)
 - [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 
-**Bloqueo para publicar rutas privadas:** demostrar integración de OIDC,
-sesiones PostgreSQL, CSRF, revocación y autorización contextual con pruebas
-negativas en PostgreSQL aislado. La dirección de login ya se eligió; los
-controles de seguridad **no** se consideran implementados por este ADR.
+**Bloqueo para uso real:** registrar clientes OIDC reales, definir emisión de
+invitaciones, verificar Microsoft `emailVerified`, desplegar PostgreSQL
+y aprobar contrato de mutaciones/CSRF. No conectar frontend como si existiera
+login operativo antes de estas verificaciones.
